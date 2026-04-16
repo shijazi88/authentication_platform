@@ -1,0 +1,419 @@
+{
+  "info": {
+    "_postman_id": "a1f2c3d4-5e6f-7890-abcd-ef0123456789",
+    "name": "Sannad — Identity Verification API",
+    "description": "## Sannad Identity Verification — Service Provider API\n\nWelcome. This collection contains everything a bank or fintech needs to integrate with **Sannad** — the identity verification platform that connects you to national identity systems through a single, unified REST surface.\n\n---\n\n### Quick start\n\n1. **Import this collection** and the matching environment file (`Sannad-Local-Dev.postman_environment.json` or your provided one).\n2. Open the active environment and fill in:\n   - `baseUrl` — the URL we provided (e.g. `https://api.sannad.example`).\n   - `clientId` — issued to you during onboarding (starts with `cli_`).\n   - `clientSecret` — issued to you ONCE, never retrievable later (starts with `sec_`).\n3. Open **Identity Verification → Verify identity** and click **Send**. You should get a `200 OK` with a verification result.\n\nThat's it. Authentication, request id, and tests are all wired up at the collection level — you do not need to set anything per request.\n\n---\n\n### Authentication\n\nEvery request uses **HTTP Basic** authentication with your `clientId` as the username and your `clientSecret` as the password. Postman handles this automatically because the collection's auth is configured at the top level.\n\nIf you see `401 Unauthorized`, check:\n- Your `clientId` and `clientSecret` environment variables are set.\n- Your tenant has been activated (we send confirmation when this happens).\n- Your IP address is on your tenant's allowlist (if you provided one).\n- The credential has not expired or been revoked.\n\n---\n\n### Request tracking — `X-Request-Id`\n\nEvery request automatically generates a UUID v7 and sends it as the `X-Request-Id` header. The same id is echoed back in the response and is the unique key under which we store your transaction. Quote it when you contact support.\n\nIf you prefer to provide your own id (e.g. correlate with your bank's internal trace id), you can override the `requestId` collection variable before sending.\n\n---\n\n### Field-level visibility (your plan controls what we return)\n\nYour subscription plan determines which response fields you receive. There are two common shapes you'll see in the response:\n\n- **Hit-only plan** — `result.transaction` and `result.verification` only. This tells you whether the identity matched, with no demographic data. Use this when you only need a yes/no answer (lowest cost per call).\n- **Full-data plan** — adds `result.person.demographics` (names in Arabic + Latin, date of birth, gender, etc.) and `result.person.cards` (issued ID cards, expiry, etc.).\n\nThe envelope (`transaction.id`, `transaction.timestamp`, `transaction.status`, `result`) is identical for both plans — only the contents of `result` change. Your code should be tolerant of optional sub-objects.\n\n---\n\n### Errors\n\n| HTTP | Error code | Meaning | Action |\n|---|---|---|---|\n| 400 | 1002 | `VALIDATION_FAILED` — bad request body | Check the field validation errors in `fieldErrors[]` |\n| 401 | 1101 | Missing or invalid credentials | Re-check your `clientId` / `clientSecret` |\n| 403 | 1202 | `ENTITLEMENT_DENIED` — operation not in your plan | Contact us to upgrade |\n| 404 | 1301 | National number not found in the backend | Confirm with the customer |\n| 429 | 1402 | `QUOTA_EXCEEDED` — monthly quota reached | Upgrade or wait for next billing period |\n| 502 | 2101 | Backend connector error | Retry with the same `X-Request-Id`; if persistent, contact support |\n| 504 | 2102 | Backend timeout | Retry with backoff |\n\nAll error responses share the same JSON envelope:\n```json\n{\n  \"timestamp\": \"2026-04-08T09:41:10.616589Z\",\n  \"errorCode\": 1202,\n  \"error\": \"ENTITLEMENT_DENIED\",\n  \"message\": \"Plan does not include operation YEMEN_ID/verify\",\n  \"requestId\": \"019d6c81-50b4-7af7-bca0-52eb7016a852\"\n}\n```\n\n---\n\n### Support\n\nIf you need help, email **integrations@sannad.example** and include:\n1. Your tenant code.\n2. The `requestId` (or `X-Request-Id` header) of the failing call.\n3. The timestamp.\n\nWe can usually reproduce the exact request from those three pieces.\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{clientId}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{clientSecret}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Generate a UUID v7 for X-Request-Id (time-ordered, per the platform spec).",
+          "// Banks may override the `requestId` collection variable to inject their own trace id.",
+          "function uuidv7() {",
+          "    const ts = Date.now();",
+          "    const tsHex = ts.toString(16).padStart(12, '0');",
+          "    const rand = [...crypto.getRandomValues(new Uint8Array(10))]",
+          "        .map((b) => b.toString(16).padStart(2, '0'))",
+          "        .join('');",
+          "    return ([",
+          "        tsHex.slice(0, 8),",
+          "        tsHex.slice(8, 12),",
+          "        '7' + rand.slice(1, 4),",
+          "        ((parseInt(rand.slice(4, 5), 16) & 0x3) | 0x8).toString(16) + rand.slice(5, 8),",
+          "        rand.slice(8, 20)",
+          "    ].join('-'));",
+          "}",
+          "",
+          "// Only auto-generate if the user has not pinned a value for this run.",
+          "if (!pm.variables.get('requestId') || pm.collectionVariables.get('autoGenerateRequestId') !== 'false') {",
+          "    pm.variables.set('requestId', uuidv7());",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Shared assertions that run after every request in the collection.",
+          "",
+          "pm.test('Has X-Request-Id response header', function () {",
+          "    pm.response.to.have.header('X-Request-Id');",
+          "});",
+          "",
+          "if (pm.response.code === 200) {",
+          "    pm.test('Status 200', function () {",
+          "        pm.response.to.have.status(200);",
+          "    });",
+          "    pm.test('Response is JSON', function () {",
+          "        pm.response.to.be.json;",
+          "    });",
+          "    pm.test('Envelope has transaction + result', function () {",
+          "        const json = pm.response.json();",
+          "        pm.expect(json).to.have.property('transaction');",
+          "        pm.expect(json.transaction).to.have.property('id');",
+          "        pm.expect(json.transaction).to.have.property('timestamp');",
+          "        pm.expect(json).to.have.property('result');",
+          "    });",
+          "    // Stash the platform transaction id so subsequent requests can reference it.",
+          "    try {",
+          "        const json = pm.response.json();",
+          "        if (json && json.transaction && json.transaction.id) {",
+          "            pm.collectionVariables.set('lastTransactionId', json.transaction.id);",
+          "        }",
+          "    } catch (e) { /* swallow */ }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string",
+      "description": "Sannad API base URL. Override per environment (dev / staging / prod)."
+    },
+    {
+      "key": "clientId",
+      "value": "",
+      "type": "string",
+      "description": "Issued to you during onboarding. Starts with cli_."
+    },
+    {
+      "key": "clientSecret",
+      "value": "",
+      "type": "string",
+      "description": "Issued to you ONCE during onboarding. Cannot be retrieved later — store securely."
+    },
+    {
+      "key": "requestId",
+      "value": "",
+      "type": "string",
+      "description": "Auto-generated UUID v7 per request. Override here to use your own trace id."
+    },
+    {
+      "key": "lastTransactionId",
+      "value": "",
+      "type": "string",
+      "description": "Populated automatically by the test script after a successful verify call."
+    },
+    {
+      "key": "autoGenerateRequestId",
+      "value": "true",
+      "type": "string",
+      "description": "Set to 'false' to keep a fixed requestId across runs (useful when testing idempotency)."
+    }
+  ],
+  "item": [
+    {
+      "name": "Identity Verification",
+      "description": "Verify a person against the national identity backend. The same endpoint serves all plans — your subscription decides what fields are returned in `result`.",
+      "item": [
+        {
+          "name": "Verify identity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Request-Id",
+                "value": "{{requestId}}",
+                "description": "UUID v7 generated automatically by the pre-request script. Override the `requestId` collection variable to use your own."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/verify/identity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "verify", "identity"]
+            },
+            "description": "**Minimal verify call.**\n\nPasses just the customer's national number. Use this when you don't have biometric data — verification will return `MATCH` or `NO_MATCH` based on the backend's internal logic.\n\n### Request body\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `nationalNumber` | string (≤32) | yes | The customer's national identification number. |\n| `biometrics` | object | no | See the **Verify identity (with fingerprint)** request for the schema. |\n\n### Headers automatically added\n\n- `Authorization: Basic <base64(clientId:clientSecret)>` — handled by collection auth.\n- `X-Request-Id: <uuid v7>` — generated by the pre-request script.\n\n### Sample response (Hit-only plan)\n\n```json\n{\n  \"transaction\": {\n    \"id\": \"019d6c81-50b4-7af7-bca0-52eb7016a852\",\n    \"timestamp\": \"2026-04-08T09:51:47.580081Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"transaction\": {\n      \"id\": \"018e246e-17d1-7a6c-8e3b-9e48602b4742\",\n      \"timestamp\": \"2026-01-01T12:00:00\"\n    },\n    \"verification\": {\n      \"status\": \"MATCH\",\n      \"biometric\": {\n        \"status\": true,\n        \"score\": 92\n      }\n    }\n  }\n}\n```\n\n### Sample response (Full-data plan)\n\nIdentical envelope, but `result.person` is populated:\n\n```json\n{\n  \"transaction\": { /* ... */ },\n  \"result\": {\n    \"transaction\": { /* ... */ },\n    \"verification\": { /* ... */ },\n    \"person\": {\n      \"nationalNumber\": \"B123ADSBADADASDFCFDD\",\n      \"demographics\": {\n        \"names\": {\n          \"arabic\": { \"first\": \"محمد\", \"last\": \"الحسني\", \"full\": \"محمد علي الحسني\" },\n          \"latin\":  { \"first\": \"MOHAMMED\", \"last\": \"AL-HUSNI\", \"full\": \"MOHAMMED ALI AL-HUSNI\" }\n        },\n        \"phone\": \"+967700000000\",\n        \"email\": \"mohammed@example.com\",\n        \"dateOfBirth\": \"1990-01-01T00:00:00\",\n        \"gender\": { \"id\": \"M\", \"text\": \"Male\" }\n      },\n      \"cards\": [\n        {\n          \"documentNumber\": \"ABC1234567\",\n          \"type\": \"ID_CARD\",\n          \"status\": \"ACTIVE\",\n          \"expiry\": \"2030-01-01T23:59:59\",\n          \"issue\": \"2020-01-01T00:00:00\",\n          \"issuingAuthority\": \"MOI Yemen\"\n        }\n      ]\n    }\n  }\n}\n```\n"
+          },
+          "response": [
+            {
+              "name": "200 OK · Hit-only plan",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "X-Request-Id", "value": "019d6c81-50b4-7af7-bca0-52eb7016a852" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"transaction\": {\n    \"id\": \"019d6c81-50b4-7af7-bca0-52eb7016a852\",\n    \"timestamp\": \"2026-04-08T09:51:47.580081Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"transaction\": {\n      \"id\": \"018e246e-17d1-7a6c-8e3b-9e48602b4742\",\n      \"timestamp\": \"2026-01-01T12:00:00\"\n    },\n    \"verification\": {\n      \"status\": \"MATCH\",\n      \"biometric\": {\n        \"status\": true,\n        \"score\": 92\n      }\n    }\n  }\n}"
+            },
+            {
+              "name": "200 OK · Full-data plan",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "X-Request-Id", "value": "019d6c81-5666-78d3-a32e-817b0a85247a" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"transaction\": {\n    \"id\": \"019d6c81-5666-78d3-a32e-817b0a85247a\",\n    \"timestamp\": \"2026-04-08T09:51:48.866322Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"transaction\": {\n      \"id\": \"018e246e-17d1-7a6c-8e3b-9e48602b4742\",\n      \"timestamp\": \"2026-01-01T12:00:00\"\n    },\n    \"verification\": {\n      \"status\": \"MATCH\",\n      \"biometric\": { \"status\": true, \"score\": 92 }\n    },\n    \"person\": {\n      \"nationalNumber\": \"B123ADSBADADASDFCFDD\",\n      \"demographics\": {\n        \"names\": {\n          \"arabic\": { \"first\": \"محمد\", \"second\": \"علي\", \"last\": \"الحسني\", \"full\": \"محمد علي الحسني\" },\n          \"latin\":  { \"first\": \"MOHAMMED\", \"second\": \"ALI\", \"last\": \"AL-HUSNI\", \"full\": \"MOHAMMED ALI AL-HUSNI\" }\n        },\n        \"phone\": \"+967700000000\",\n        \"email\": \"mohammed@example.com\",\n        \"dateOfBirth\": \"1990-01-01T00:00:00\",\n        \"gender\": { \"id\": \"M\", \"text\": \"Male\" },\n        \"maritalStatus\": \"Single\",\n        \"profession\": \"Engineer\",\n        \"religion\": \"Islam\",\n        \"educationLevel\": \"Bachelor's Degree\"\n      },\n      \"cards\": [\n        {\n          \"documentNumber\": \"ABC1234567\",\n          \"type\": \"ID_CARD\",\n          \"serialNumber\": \"BDASJ12312JANSDJSADHKJHADS\",\n          \"status\": \"ACTIVE\",\n          \"expiry\": \"2030-01-01T23:59:59\",\n          \"issue\": \"2020-01-01T00:00:00\",\n          \"issuingAuthority\": \"MOI Yemen\"\n        }\n      ]\n    }\n  }\n}"
+            },
+            {
+              "name": "400 · Validation failed",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"\"\n}" },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "X-Error-Code", "value": "1002" },
+                { "key": "X-Request-Id", "value": "019d6c81-9111-7000-8000-000000000001" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"timestamp\": \"2026-04-08T09:55:00.000000Z\",\n  \"errorCode\": 1002,\n  \"error\": \"VALIDATION_FAILED\",\n  \"message\": \"Validation failed\",\n  \"requestId\": \"019d6c81-9111-7000-8000-000000000001\",\n  \"fieldErrors\": [\n    { \"field\": \"nationalNumber\", \"message\": \"must not be blank\" }\n  ]\n}"
+            },
+            {
+              "name": "401 · Unauthorized (bad credentials)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"B123\"\n}" },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "X-Error-Code", "value": "1101" },
+                { "key": "X-Request-Id", "value": "019d6c81-9111-7000-8000-000000000002" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"timestamp\": \"2026-04-08T09:56:00.000000Z\",\n  \"errorCode\": 1101,\n  \"error\": \"UNAUTHENTICATED\",\n  \"message\": \"Authentication required\",\n  \"requestId\": \"019d6c81-9111-7000-8000-000000000002\"\n}"
+            },
+            {
+              "name": "403 · Entitlement denied",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"B123\"\n}" },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "X-Error-Code", "value": "1202" },
+                { "key": "X-Request-Id", "value": "019d6c81-9111-7000-8000-000000000003" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"timestamp\": \"2026-04-08T09:57:00.000000Z\",\n  \"errorCode\": 1202,\n  \"error\": \"ENTITLEMENT_DENIED\",\n  \"message\": \"Plan does not include operation YEMEN_ID/verify\",\n  \"requestId\": \"019d6c81-9111-7000-8000-000000000003\"\n}"
+            },
+            {
+              "name": "429 · Quota exceeded",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"B123\"\n}" },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "X-Error-Code", "value": "1402" },
+                { "key": "X-Request-Id", "value": "019d6c81-9111-7000-8000-000000000004" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"timestamp\": \"2026-04-08T09:58:00.000000Z\",\n  \"errorCode\": 1402,\n  \"error\": \"QUOTA_EXCEEDED\",\n  \"message\": \"Quota exceeded\",\n  \"requestId\": \"019d6c81-9111-7000-8000-000000000004\"\n}"
+            },
+            {
+              "name": "502 · Backend connector error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"B123\"\n}" },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "X-Error-Code", "value": "2101" },
+                { "key": "X-Request-Id", "value": "019d6c81-9111-7000-8000-000000000005" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"timestamp\": \"2026-04-08T09:59:00.000000Z\",\n  \"errorCode\": 2101,\n  \"error\": \"CONNECTOR_ERROR\",\n  \"message\": \"Backend connector error\",\n  \"requestId\": \"019d6c81-9111-7000-8000-000000000005\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify identity (with fingerprint)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" },
+              { "key": "X-Request-Id", "value": "{{requestId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\",\n  \"biometrics\": {\n    \"fingerPosition\": 2,\n    \"image\": \"/6D/qAB6TklTVF9DT00gOQpQSVhfV0lEVEggMzU3ClBJWF9IRUlHSFQgMzkyClBJWF9ERVBUSCAyNTYKUFBJIDk2OAo=\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/verify/identity",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "verify", "identity"]
+            },
+            "description": "**Verify with biometric fingerprint.**\n\nIncludes a WSQ-formatted fingerprint image (base64 encoded). When biometrics are present, the backend performs both demographic AND biometric matching, and the response's `verification.biometric` block reports the match flag and confidence score (1–100).\n\n### `biometrics` object\n\n| Field | Type | Required | Description |\n|---|---|---|---|\n| `fingerPosition` | integer 1–10 | yes | Which finger was captured. `1` = Right Thumb, `2` = Right Index, … `10` = Left Little. |\n| `image` | string (base64) | yes | WSQ-encoded fingerprint image, base64 encoded. Max ≈32 KB. |\n\n### Finger position codes\n\n| Code | Finger |\n|---|---|\n| 1 | Right Thumb |\n| 2 | Right Index |\n| 3 | Right Middle |\n| 4 | Right Ring |\n| 5 | Right Little |\n| 6 | Left Thumb |\n| 7 | Left Index |\n| 8 | Left Middle |\n| 9 | Left Ring |\n| 10 | Left Little |\n\n### Capturing & encoding the fingerprint\n\n1. Capture from a certified fingerprint scanner.\n2. Compress to **WSQ** (Wavelet Scalar Quantization) format with quality bitrate 0.75 — this is the standard for ID-grade fingerprint exchange.\n3. Base64-encode the WSQ bytes.\n4. Send as the `image` field above.\n\nThe sample value in this request body is a truncated placeholder — replace with a real WSQ blob from your capture pipeline.\n"
+          },
+          "response": [
+            {
+              "name": "200 OK · Biometric MATCH",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\",\n  \"biometrics\": {\n    \"fingerPosition\": 2,\n    \"image\": \"/6D/qAB6TklTVF9DT00gOQpQSVhfV0lEVEggMzU3...\"\n  }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "X-Request-Id", "value": "019d6c8c-2222-7333-8444-555555555555" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"transaction\": {\n    \"id\": \"019d6c8c-2222-7333-8444-555555555555\",\n    \"timestamp\": \"2026-04-08T10:12:00.000000Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"transaction\": {\n      \"id\": \"018e246e-17d1-7a6c-8e3b-9e48602b4742\",\n      \"timestamp\": \"2026-04-08T10:12:00\"\n    },\n    \"verification\": {\n      \"status\": \"MATCH\",\n      \"biometric\": {\n        \"status\": true,\n        \"score\": 96\n      }\n    }\n  }\n}"
+            },
+            {
+              "name": "200 OK · Biometric NO_MATCH",
+              "originalRequest": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nationalNumber\": \"B123ADSBADADASDFCFDD\",\n  \"biometrics\": { \"fingerPosition\": 2, \"image\": \"...\" }\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/verify/identity",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "verify", "identity"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "X-Request-Id", "value": "019d6c8c-2222-7333-8444-666666666666" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"transaction\": {\n    \"id\": \"019d6c8c-2222-7333-8444-666666666666\",\n    \"timestamp\": \"2026-04-08T10:12:30.000000Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"verification\": {\n      \"status\": \"NO_MATCH\",\n      \"biometric\": {\n        \"status\": false,\n        \"score\": 23\n      }\n    }\n  }\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+# =============================================================================
+# Profile: dev
+# Local development against MySQL in Docker (docker-compose up -d mysql wiremock).
+# Insecure defaults — never use this profile outside a developer workstation.
+# =============================================================================
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/yemen?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+    username: root
+    password: "12345678"
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 5000
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    root: INFO
+    com.middleware.platform: DEBUG
+    org.springframework.security: INFO
+    # NOTE: org.hibernate.SQL DEBUG and especially org.hibernate.orm.jdbc.bind TRACE
+    # log SQL bind parameters in plaintext (national numbers, BCrypt hashes, secrets).
+    # Keep them at INFO unless you're actively debugging a specific query.
+    org.hibernate.SQL: INFO
+
+platform:
+  security:
+    jwt:
+      secret: dev-secret-please-change-me-dev-secret-please-change-me-256bit
+      issuer: middleware-platform-dev
+      access-token-ttl-minutes: 120
+    bootstrap-admin:
+      email: admin@middleware.local
+      password: admin123
+      enabled: true
+
+  connectors:
+    yemen-id:
+      base-url: http://localhost:8089/base_path
+      bearer-token: dev-token
+      timeout-ms: 8000

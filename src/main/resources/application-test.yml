@@ -1,0 +1,42 @@
+# =============================================================================
+# Profile: test
+# Used by `./mvnw test` and integration test runs.
+# Points at a separate MySQL schema (yemen_test) to keep dev data intact.
+# Override DB settings via env vars in CI.
+# =============================================================================
+
+spring:
+  datasource:
+    url: ${TEST_DB_URL:jdbc:mysql://localhost:3306/yemen_test?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8}
+    username: ${TEST_DB_USERNAME:root}
+    password: ${TEST_DB_PASSWORD:12345678}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  jpa:
+    show-sql: false
+  flyway:
+    clean-disabled: false
+
+logging:
+  level:
+    root: WARN
+    com.middleware.platform: INFO
+
+platform:
+  security:
+    jwt:
+      secret: test-secret-test-secret-test-secret-test-secret-test-secret-256
+      issuer: middleware-platform-test
+      access-token-ttl-minutes: 60
+    bootstrap-admin:
+      email: admin@test.local
+      password: test1234
+      enabled: true
+
+  connectors:
+    yemen-id:
+      base-url: http://localhost:8089/base_path
+      bearer-token: test-token
+      timeout-ms: 5000

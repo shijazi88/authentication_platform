@@ -1,0 +1,256 @@
+{
+  "brand": {
+    "name": "Sannad",
+    "tagline": "Identity Verification Platform"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "search": "Search",
+    "noData": "No data",
+    "yes": "Yes",
+    "no": "No",
+    "viewAll": "View all",
+    "filter": "Filter",
+    "page": "Page",
+    "of": "of",
+    "total": "total",
+    "prev": "Previous",
+    "next": "Next",
+    "id": "ID",
+    "code": "Code",
+    "name": "Name",
+    "description": "Description",
+    "status": "Status",
+    "createdAt": "Created",
+    "actions": "Actions",
+    "active": "Active",
+    "inactive": "Inactive",
+    "selectTenant": "Select tenant",
+    "selectPlan": "Select plan",
+    "currency": "Currency",
+    "done": "Done",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "status": {
+    "PENDING": "Pending",
+    "ACTIVE": "Active",
+    "SUSPENDED": "Suspended",
+    "TERMINATED": "Terminated",
+    "CANCELED": "Canceled",
+    "EXPIRED": "Expired",
+    "INITIATED": "Initiated",
+    "SUCCESS": "Success",
+    "FAILED": "Failed",
+    "TIMEOUT": "Timeout",
+    "REJECTED": "Rejected"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "tenants": "Tenants",
+    "plans": "Plans",
+    "subscriptions": "Subscriptions",
+    "catalog": "Service Catalog",
+    "transactions": "Transactions",
+    "reports": "Reports",
+    "billing": "Billing"
+  },
+  "topbar": {
+    "searchPlaceholder": "Search tenants, transactions…",
+    "signOut": "Sign out",
+    "theme": {
+      "light": "Light mode",
+      "dark": "Dark mode"
+    },
+    "language": {
+      "english": "English",
+      "arabic": "العربية"
+    }
+  },
+  "auth": {
+    "headline": "Verify customers in seconds. Trust built in.",
+    "subheadline": "One platform connecting banks and fintechs to national identity systems — secure, fast, and audit-ready from day one.",
+    "feature1": "Verify customers in seconds, not days",
+    "feature2": "One integration, every backend",
+    "feature3": "Enterprise-grade security and compliance",
+    "signIn": "Sign in",
+    "useCredentials": "Welcome back. Sign in to access your dashboard.",
+    "email": "Email",
+    "password": "Password",
+    "invalidCredentials": "Invalid credentials",
+    "devDefaults": "Demo credentials",
+    "errors": {
+      "emailRequired": "Enter a valid email",
+      "passwordRequired": "Password too short"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Live view of your verification middleware platform.",
+    "metric": {
+      "tenants": "Tenants",
+      "plans": "Plans",
+      "txThisPeriod": "Tx this period ({{period}})",
+      "revenueThisPeriod": "Revenue this period"
+    },
+    "recent": {
+      "title": "Recent transactions",
+      "subtitle": "Latest 10 from {{tenant}}"
+    },
+    "statusDistribution": "Status distribution"
+  },
+  "tenants": {
+    "title": "Tenants",
+    "subtitle": "Service providers (banks) onboarded to the platform.",
+    "newTenant": "New tenant",
+    "newTenantDescription": "A tenant represents a bank or service provider integrating with the platform.",
+    "fields": {
+      "code": "Code",
+      "legalName": "Legal name",
+      "contact": "Contact",
+      "contactEmail": "Contact email"
+    },
+    "empty": {
+      "title": "No tenants yet",
+      "description": "Onboard your first bank to start issuing API credentials and routing verification calls.",
+      "cta": "Create tenant"
+    },
+    "activate": "Activate",
+    "suspend": "Suspend",
+    "issueCredential": "Issue credential",
+    "credential": {
+      "title": "Issue API credential",
+      "description": "Generate a client_id / client_secret pair for the bank to call /api/v1/verify/* with.",
+      "issuedTitle": "Credential issued",
+      "issuedDescription": "The secret is shown only once. Copy it now — you cannot retrieve it later.",
+      "label": "Label (optional)",
+      "labelPlaceholder": "Production · 2026-04",
+      "warn": "⚠ The secret is shown only once. Store it securely now.",
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret"
+    },
+    "detail": {
+      "identity": "Identity",
+      "subscriptions": "Subscriptions",
+      "noSubscriptions": "No subscriptions yet — create one from the Subscriptions page."
+    }
+  },
+  "plans": {
+    "title": "Plans",
+    "subtitle": "Subscription tiers — each plan controls operation access, pricing, quotas, and which response fields are visible.",
+    "newPlan": "New plan",
+    "fields": {
+      "baseFee": "Base fee",
+      "baseFeeMinor": "Base fee (minor units)",
+      "baseFeeHelp": "In cents. e.g. 500 = $5.00"
+    },
+    "empty": {
+      "title": "No plans yet",
+      "description": "Create a plan to define which operations a tenant can call and which response fields they receive.",
+      "cta": "Create plan"
+    },
+    "detail": {
+      "operationEntitlements": "Operation entitlements",
+      "fieldEntitlements": "Field entitlements",
+      "fieldEntitlementsSubtitle": "Response fields visible under this plan",
+      "visibleCount": "{{value}} visible",
+      "noOperationEntitlements": "No operation entitlements yet.",
+      "noFields": "No fields registered for this operation.",
+      "quota": "quota: {{value}}/mo",
+      "rate": "rate: {{value}}/min"
+    }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "subtitle": "Bind tenants to plans. The active subscription drives entitlement resolution at request time.",
+    "newSubscription": "New subscription",
+    "fields": {
+      "plan": "Plan",
+      "tenant": "Tenant",
+      "startDate": "Start date",
+      "endDate": "End date"
+    },
+    "empty": "No subscriptions for this tenant."
+  },
+  "catalog": {
+    "title": "Service Catalog",
+    "subtitle": "Backend providers and operations registered with the platform. Add new ones via Flyway migrations + a connector implementation.",
+    "connector": "connector",
+    "responseFields": "Response fields ({{value}})",
+    "empty": "No services in the catalog."
+  },
+  "transactions": {
+    "title": "Transactions",
+    "subtitle": "Every verification call routed through the platform. Failures, timeouts, and entitlement rejections are also recorded here.",
+    "fields": {
+      "transactionId": "Transaction ID",
+      "latency": "Latency",
+      "price": "Price",
+      "billable": "Billable"
+    },
+    "empty": {
+      "title": "No transactions",
+      "description": "Make a verification call as a bank tenant to see transactions appear here."
+    }
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Daily and monthly transaction reports with success rate, revenue, and CSV export.",
+    "groupBy": "Group by",
+    "daily": "Daily",
+    "monthly": "Monthly",
+    "from": "From",
+    "to": "To",
+    "exportCsv": "Export CSV",
+    "exportPdf": "Export PDF",
+    "exportStarted": "Download started",
+    "statusAll": "All statuses",
+    "successRate": "Success rate",
+    "dailyTransactions": "Daily transactions",
+    "monthlyTransactions": "Monthly transactions",
+    "breakdown": "Breakdown",
+    "period": "Period",
+    "totalTx": "Total",
+    "successCount": "Success",
+    "failedCount": "Failed",
+    "revenue": "Revenue",
+    "noData": "No transactions in this range",
+    "adjustFilters": "Try widening the date range or selecting a different tenant.",
+    "metric": {
+      "totalTx": "Total transactions",
+      "success": "Successful",
+      "failed": "Failed",
+      "revenue": "Revenue"
+    }
+  },
+  "billing": {
+    "title": "Billing",
+    "subtitle": "Per-tenant billing aggregation. Each successful billable transaction creates one billing event.",
+    "period": "Period (YYYY-MM)",
+    "showingFor": "Showing billing data for tenant {{code}} in period {{period}}.",
+    "metric": {
+      "periodRevenue": "Period revenue",
+      "billableTx": "Billable transactions"
+    },
+    "dailyRevenue": "Daily revenue",
+    "summaryByCurrency": "Summary by currency",
+    "events": "Billing events",
+    "fields": {
+      "eventId": "Event ID",
+      "transaction": "Transaction",
+      "amount": "Amount",
+      "occurred": "Occurred"
+    },
+    "empty": {
+      "title": "No billing events",
+      "description": "Successful billable transactions will appear here as soon as they're recorded."
+    },
+    "noPeriodEvents": "No billing events in this period."
+  }
+}

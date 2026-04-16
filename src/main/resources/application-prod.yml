@@ -1,0 +1,64 @@
+# =============================================================================
+# Profile: prod
+# Production environment. Strictest configuration:
+#  - All secrets from environment / secrets manager (no defaults).
+#  - Bootstrap admin disabled.
+#  - No verbose error messages.
+#  - Higher pool sizes, longer timeouts where appropriate.
+# =============================================================================
+
+spring:
+  datasource:
+    url: ${DB_URL:?DB_URL must be set in production}
+    username: ${DB_USERNAME:?DB_USERNAME must be set in production}
+    password: ${DB_PASSWORD:?DB_PASSWORD must be set in production}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 3000
+      max-lifetime: 1800000
+  jpa:
+    show-sql: false
+  flyway:
+    # Production migrations should always be reviewed manually before running.
+    out-of-order: false
+    validate-on-migrate: true
+
+logging:
+  level:
+    root: WARN
+    com.middleware.platform: INFO
+    org.springframework.security: WARN
+
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: never
+
+platform:
+  security:
+    jwt:
+      secret: ${PLATFORM_SECURITY_JWT_SECRET:?PLATFORM_SECURITY_JWT_SECRET must be set in production}
+      issuer: ${PLATFORM_SECURITY_JWT_ISSUER:middleware-platform}
+      access-token-ttl-minutes: 30
+    bootstrap-admin:
+      email: ""
+      password: ""
+      enabled: false
+
+  connectors:
+    yemen-id:
+      base-url: ${YEMEN_ID_BASE_URL:?YEMEN_ID_BASE_URL must be set in production}
+      bearer-token: ${YEMEN_ID_BEARER_TOKEN:?YEMEN_ID_BEARER_TOKEN must be set in production}
+      timeout-ms: 10000

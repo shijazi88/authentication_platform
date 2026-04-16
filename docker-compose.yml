@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: yemen-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "12345678"
+      MYSQL_DATABASE: yemen
+      TZ: UTC
+    command:
+      - --default-authentication-plugin=caching_sha2_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+00:00
+    ports:
+      - "3306:3306"
+    volumes:
+      - yemen_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p12345678"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: WireMock to simulate the Yemen ID backend during development.
+  # Mappings live in ./wiremock/mappings.
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    container_name: yemen-wiremock
+    ports:
+      - "8089:8080"
+    command: ["--global-response-templating", "--verbose"]
+    volumes:
+      - ./wiremock:/home/wiremock
+
+volumes:
+  yemen_mysql_data:

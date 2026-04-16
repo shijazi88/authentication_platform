@@ -1,0 +1,16 @@
+target/
+!target/*.jar
+.git/
+.idea/
+.vscode/
+.claude/
+*.iml
+*.log
+.DS_Store
+portal-admin/
+docs/
+postman/
+wiremock/
+docker-compose.yml
+yemen_id_0_1_0.yaml
+README.md

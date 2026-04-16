@@ -1,0 +1,45 @@
+# =============================================================================
+# Profile: staging
+# Pre-production environment. All sensitive values must come from environment
+# variables — no hardcoded secrets.
+# =============================================================================
+
+spring:
+  datasource:
+    url: ${DB_URL:?DB_URL must be set in staging}
+    username: ${DB_USERNAME:?DB_USERNAME must be set in staging}
+    password: ${DB_PASSWORD:?DB_PASSWORD must be set in staging}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 5
+      connection-timeout: 5000
+
+logging:
+  level:
+    root: INFO
+    com.middleware.platform: INFO
+    org.springframework.security: INFO
+
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+
+platform:
+  security:
+    jwt:
+      secret: ${PLATFORM_SECURITY_JWT_SECRET:?PLATFORM_SECURITY_JWT_SECRET must be set in staging}
+      issuer: middleware-platform-staging
+      access-token-ttl-minutes: 60
+    bootstrap-admin:
+      email: ${BOOTSTRAP_ADMIN_EMAIL:admin@staging.local}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+      # Set to true ONLY for the very first deployment, then disable.
+      enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+
+  connectors:
+    yemen-id:
+      base-url: ${YEMEN_ID_BASE_URL:?YEMEN_ID_BASE_URL must be set in staging}
+      bearer-token: ${YEMEN_ID_BEARER_TOKEN:?YEMEN_ID_BEARER_TOKEN must be set in staging}
+      timeout-ms: 10000

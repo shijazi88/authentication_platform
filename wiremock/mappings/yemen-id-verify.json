@@ -1,0 +1,68 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/base_path/v1/id/verify",
+    "headers": {
+      "Authorization": { "matches": "Bearer .*" }
+    }
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "X-Request-Id": "{{request.headers.X-Request-Id}}"
+    },
+    "transformers": ["response-template"],
+    "jsonBody": {
+      "transaction": {
+        "timestamp": "2026-01-01T12:00:00",
+        "id": "018e246e-17d1-7a6c-8e3b-9e48602b4742"
+      },
+      "verification": {
+        "status": "MATCH",
+        "biometric": {
+          "status": true,
+          "score": 92
+        }
+      },
+      "person": {
+        "nationalNumber": "{{jsonPath request.body '$.nationalNumber'}}",
+        "cards": [
+          {
+            "documentNumber": "ABC1234567",
+            "type": "ID_CARD",
+            "serialNumber": "BDASJ12312JANSDJSADHKJHADS",
+            "status": "ACTIVE",
+            "expiry": "2030-01-01T23:59:59",
+            "issue": "2020-01-01T00:00:00",
+            "issuingAuthority": "MOI Yemen"
+          }
+        ],
+        "demographics": {
+          "names": {
+            "arabic": {
+              "first": "محمد",
+              "second": "علي",
+              "last": "الحسني",
+              "full": "محمد علي الحسني"
+            },
+            "latin": {
+              "first": "MOHAMMED",
+              "second": "ALI",
+              "last": "AL-HUSNI",
+              "full": "MOHAMMED ALI AL-HUSNI"
+            }
+          },
+          "phone": "+967700000000",
+          "email": "mohammed@example.com",
+          "dateOfBirth": "1990-01-01T00:00:00",
+          "gender": { "id": "M", "text": "Male" },
+          "maritalStatus": "Single",
+          "profession": "Engineer",
+          "religion": "Islam",
+          "educationLevel": "Bachelor's Degree"
+        }
+      }
+    }
+  }
+}

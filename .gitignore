@@ -1,0 +1,14 @@
+target/
+*.class
+.idea/
+.vscode/
+*.iml
+.DS_Store
+.env
+.env.*
+!.env.example
+HELP.md
+.claude/
+portal-admin/node_modules/
+portal-admin/dist/
+*.log
