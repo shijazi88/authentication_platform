@@ -8,7 +8,6 @@ import {
   ScrollText,
   Receipt,
   Library,
-  Sparkles,
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -31,16 +30,9 @@ export function Sidebar() {
     <aside className="w-64 shrink-0 h-screen sticky top-0 glass border-e border-border/10 flex flex-col">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-border/10">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent-violet to-accent-cyan flex items-center justify-center shadow-glow">
-            <Sparkles className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-bold text-gradient">{t("brand.name")}</div>
-            <div className="text-[10px] uppercase tracking-wider text-text-muted">
-              {t("brand.tagline")}
-            </div>
-          </div>
+        <div className="text-base font-bold text-gradient">{t("brand.name")}</div>
+        <div className="text-[10px] uppercase tracking-wider text-text-muted mt-0.5">
+          {t("brand.tagline")}
         </div>
       </div>
 

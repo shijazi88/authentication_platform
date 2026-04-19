@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "Sannad",
+    "name": "Sanad",
     "tagline": "Identity Verification Platform"
   },
   "common": {
@@ -31,7 +31,7 @@
     "actions": "Actions",
     "active": "Active",
     "inactive": "Inactive",
-    "selectTenant": "Select tenant",
+    "selectTenant": "Select client",
     "selectPlan": "Select plan",
     "currency": "Currency",
     "done": "Done",
@@ -53,7 +53,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
-    "tenants": "Tenants",
+    "tenants": "Clients",
     "plans": "Plans",
     "subscriptions": "Subscriptions",
     "catalog": "Service Catalog",
@@ -62,7 +62,7 @@
     "billing": "Billing"
   },
   "topbar": {
-    "searchPlaceholder": "Search tenants, transactions…",
+    "searchPlaceholder": "Search clients, transactions…",
     "signOut": "Sign out",
     "theme": {
       "light": "Light mode",
@@ -94,7 +94,7 @@
     "title": "Dashboard",
     "subtitle": "Live view of your verification middleware platform.",
     "metric": {
-      "tenants": "Tenants",
+      "tenants": "Clients",
       "plans": "Plans",
       "txThisPeriod": "Tx this period ({{period}})",
       "revenueThisPeriod": "Revenue this period"
@@ -106,10 +106,10 @@
     "statusDistribution": "Status distribution"
   },
   "tenants": {
-    "title": "Tenants",
-    "subtitle": "Service providers (banks) onboarded to the platform.",
-    "newTenant": "New tenant",
-    "newTenantDescription": "A tenant represents a bank or service provider integrating with the platform.",
+    "title": "Clients",
+    "subtitle": "Banks and service providers onboarded to the platform.",
+    "newTenant": "New client",
+    "newTenantDescription": "A client is a bank or service provider integrating with the platform.",
     "fields": {
       "code": "Code",
       "legalName": "Legal name",
@@ -117,9 +117,9 @@
       "contactEmail": "Contact email"
     },
     "empty": {
-      "title": "No tenants yet",
+      "title": "No clients yet",
       "description": "Onboard your first bank to start issuing API credentials and routing verification calls.",
-      "cta": "Create tenant"
+      "cta": "Create client"
     },
     "activate": "Activate",
     "suspend": "Suspend",
@@ -152,7 +152,7 @@
     },
     "empty": {
       "title": "No plans yet",
-      "description": "Create a plan to define which operations a tenant can call and which response fields they receive.",
+      "description": "Create a plan to define which operations a client can call and which response fields they receive.",
       "cta": "Create plan"
     },
     "detail": {
@@ -168,15 +168,15 @@
   },
   "subscriptions": {
     "title": "Subscriptions",
-    "subtitle": "Bind tenants to plans. The active subscription drives entitlement resolution at request time.",
+    "subtitle": "Bind clients to plans. The active subscription drives entitlement resolution at request time.",
     "newSubscription": "New subscription",
     "fields": {
       "plan": "Plan",
-      "tenant": "Tenant",
+      "tenant": "Client",
       "startDate": "Start date",
       "endDate": "End date"
     },
-    "empty": "No subscriptions for this tenant."
+    "empty": "No subscriptions for this client."
   },
   "catalog": {
     "title": "Service Catalog",
@@ -196,7 +196,7 @@
     },
     "empty": {
       "title": "No transactions",
-      "description": "Make a verification call as a bank tenant to see transactions appear here."
+      "description": "Make a verification call as a client to see transactions appear here."
     }
   },
   "reports": {
@@ -221,7 +221,7 @@
     "failedCount": "Failed",
     "revenue": "Revenue",
     "noData": "No transactions in this range",
-    "adjustFilters": "Try widening the date range or selecting a different tenant.",
+    "adjustFilters": "Try widening the date range or selecting a different client.",
     "metric": {
       "totalTx": "Total transactions",
       "success": "Successful",
@@ -231,9 +231,9 @@
   },
   "billing": {
     "title": "Billing",
-    "subtitle": "Per-tenant billing aggregation. Each successful billable transaction creates one billing event.",
+    "subtitle": "Per-client billing aggregation. Each successful billable transaction creates one billing event.",
     "period": "Period (YYYY-MM)",
-    "showingFor": "Showing billing data for tenant {{code}} in period {{period}}.",
+    "showingFor": "Showing billing data for client {{code}} in period {{period}}.",
     "metric": {
       "periodRevenue": "Period revenue",
       "billableTx": "Billable transactions"

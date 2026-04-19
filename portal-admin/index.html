@@ -17,18 +17,16 @@
         try {
           var raw = localStorage.getItem("middleware-portal-prefs");
           var prefs = raw ? JSON.parse(raw).state : null;
-          var theme = prefs && prefs.theme ? prefs.theme : "dark";
+          var theme = prefs && prefs.theme ? prefs.theme : "light";
           var lang = prefs && prefs.lang ? prefs.lang : "en";
           var html = document.documentElement;
           html.classList.toggle("dark", theme === "dark");
           html.setAttribute("lang", lang);
           html.setAttribute("dir", lang === "ar" ? "rtl" : "ltr");
-        } catch (e) {
-          document.documentElement.classList.add("dark");
-        }
+        } catch (e) {}
       })();
     </script>
-    <title>Sannad · Identity Verification Platform</title>
+    <title>Sanad · Identity Verification Platform</title>
   </head>
   <body class="antialiased">
     <div id="root"></div>

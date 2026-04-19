@@ -22,7 +22,7 @@ export type PrefsState = {
 export const usePrefs = create<PrefsState>()(
   persist(
     (set, get) => ({
-      theme: "dark",
+      theme: "light",
       lang: "en",
       setTheme: (theme) => {
         applyTheme(theme);
