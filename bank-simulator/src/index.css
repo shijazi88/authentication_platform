@@ -1,0 +1,134 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theming via CSS variables.
+ * Light mode is the default (`:root`); dark mode activates when `<html>` has
+ * the `dark` class. Tailwind colors below reference these variables so the
+ * whole UI re-themes without per-component overrides.
+ */
+@layer base {
+  :root {
+    --c-paper: 255 255 255;
+    --c-paper-soft: 248 250 252;     /* slate-50 */
+    --c-paper-raised: 241 245 249;   /* slate-100 */
+    --c-ink: 15 23 42;               /* slate-900 */
+    --c-ink-muted: 71 85 105;        /* slate-600 */
+    --c-ink-dim: 148 163 184;        /* slate-400 */
+    --c-ink-faint: 203 213 225;      /* slate-300 */
+
+    --grad-body:
+      radial-gradient(at 0% 0%, rgba(30,78,140,0.06) 0, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(212,160,23,0.05) 0, transparent 50%);
+  }
+
+  .dark {
+    --c-paper: 30 41 59;             /* slate-800 — card background */
+    --c-paper-soft: 2 6 23;          /* slate-950 — page background (deeper) */
+    --c-paper-raised: 51 65 85;      /* slate-700 — raised surface */
+    --c-ink: 241 245 249;            /* slate-100 — body text */
+    --c-ink-muted: 203 213 225;      /* slate-300 */
+    --c-ink-dim: 148 163 184;        /* slate-400 */
+    --c-ink-faint: 71 85 105;        /* slate-600 — borders */
+
+    --grad-body:
+      radial-gradient(at 0% 0%, rgba(30,78,140,0.10) 0, transparent 60%),
+      radial-gradient(at 100% 100%, rgba(212,160,23,0.04) 0, transparent 60%);
+  }
+
+  .dark body {
+    color-scheme: dark;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply antialiased;
+    color: rgb(var(--c-ink));
+    background-color: rgb(var(--c-paper-soft));
+    background-image: var(--grad-body);
+    background-attachment: fixed;
+    font-family: Inter, system-ui, sans-serif;
+  }
+
+  /* RTL-friendly defaults */
+  [dir="rtl"] body {
+    font-family: "Cairo", Inter, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl shadow-soft;
+    background-color: rgb(var(--c-paper));
+    border: 1px solid rgb(var(--c-ink-faint) / 0.6);
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg
+           bg-moi-blue text-white font-semibold shadow-soft
+           hover:bg-moi-blue-dark active:scale-[0.98] transition disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition;
+    color: rgb(var(--c-ink-muted));
+  }
+  .btn-ghost:hover {
+    color: rgb(var(--c-ink));
+    background-color: rgb(var(--c-paper-raised));
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium transition;
+    border: 1px solid rgb(var(--c-ink-faint));
+    background-color: rgb(var(--c-paper));
+    color: rgb(var(--c-ink));
+  }
+  .btn-secondary:hover {
+    background-color: rgb(var(--c-paper-raised));
+  }
+  .input {
+    @apply w-full px-4 py-2.5 rounded-lg transition;
+    background-color: rgb(var(--c-paper));
+    border: 1px solid rgb(var(--c-ink-faint));
+    color: rgb(var(--c-ink));
+  }
+  .input::placeholder { color: rgb(var(--c-ink-dim)); }
+  .input:focus {
+    outline: none;
+    border-color: rgb(30 78 140);
+    box-shadow: 0 0 0 3px rgba(30, 78, 140, 0.25);
+  }
+  .label {
+    @apply block text-sm font-semibold mb-1.5;
+    color: rgb(var(--c-ink-muted));
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold;
+  }
+}
+
+/* Electron: draggable title region on the top of the sidebar.
+   Any element with `.drag-region` becomes a draggable zone; inner elements
+   with `.no-drag` (like buttons) remain clickable. */
+.drag-region {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* Fingerprint scanner pulse */
+@keyframes scanPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.scan-pulse { animation: scanPulse 1.4s ease-in-out infinite; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.55); }

@@ -197,6 +197,35 @@
     "empty": {
       "title": "No transactions",
       "description": "Make a verification call as a client to see transactions appear here."
+    },
+    "detail": {
+      "title": "Transaction details",
+      "back": "Back to transactions",
+      "summary": "Summary",
+      "tenantId": "Client",
+      "subscriptionId": "Subscription",
+      "providerRequestId": "Provider request ID",
+      "error": "Error",
+      "bankRequest": "Client request",
+      "bankResponse": "Client response",
+      "providerRequest": "Provider request (raw)",
+      "providerResponse": "Provider response (raw)",
+      "moiCalls": "MOI HTTP calls",
+      "noPayload": "Not recorded for this transaction.",
+      "noMoiCalls": "No MOI calls captured for this transaction yet."
+    }
+  },
+  "moi": {
+    "calls": {
+      "url": "URL",
+      "method": "Method",
+      "tokenSnippet": "Token",
+      "requestHeaders": "Request headers",
+      "requestBody": "Request body",
+      "responseHeaders": "Response headers",
+      "responseBody": "Response body",
+      "empty": "Not recorded.",
+      "failed": "No response"
     }
   },
   "reports": {

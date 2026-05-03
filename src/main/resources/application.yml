@@ -69,6 +69,13 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 30s
         permittedNumberOfCallsInHalfOpenState: 3
+      # MOI live connector — same circuit-breaker policy, separate instance so
+      # wiremock and MOI can be tuned independently if traffic patterns diverge.
+      moi-yemen-id:
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
   retry:
     instances:
       yemen-id:
@@ -77,3 +84,16 @@ resilience4j:
         retryExceptions:
           - java.io.IOException
           - java.util.concurrent.TimeoutException
+      # MOI: only retry on transient transport failures. Deterministic 4xx
+      # answers (Invalid biometrics, No record found, Forbidden) are mapped to
+      # ApplicationException by MoiYemenIdConnector — listing it under
+      # ignoreExceptions stops resilience4j from retrying them, which would
+      # otherwise triple MOI traffic for every bad request.
+      moi-yemen-id:
+        maxAttempts: 3
+        waitDuration: 500ms
+        retryExceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:
+          - com.middleware.platform.common.error.ApplicationException

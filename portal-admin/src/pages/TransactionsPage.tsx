@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollText, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,7 @@ import { formatDate, formatMoneyMinor, shortId } from "@/lib/format";
 
 export function TransactionsPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -86,7 +88,11 @@ export function TransactionsPage() {
                 </THead>
                 <TBody>
                   {txQ.data.content.map((tx) => (
-                    <Tr key={tx.id}>
+                    <Tr
+                      key={tx.id}
+                      onClick={() => navigate(`/transactions/${tx.id}`)}
+                      className="cursor-pointer"
+                    >
                       <Td>
                         <div className="font-mono text-xs text-text">
                           {shortId(tx.id, 14)}

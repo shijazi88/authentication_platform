@@ -197,6 +197,35 @@
     "empty": {
       "title": "لا توجد معاملات",
       "description": "نفّذ استدعاء تحقق كعميل بنكي لرؤية المعاملات هنا."
+    },
+    "detail": {
+      "title": "تفاصيل المعاملة",
+      "back": "العودة إلى المعاملات",
+      "summary": "ملخّص",
+      "tenantId": "العميل",
+      "subscriptionId": "الاشتراك",
+      "providerRequestId": "رقم طلب المزوّد",
+      "error": "خطأ",
+      "bankRequest": "طلب العميل",
+      "bankResponse": "ردّ العميل",
+      "providerRequest": "طلب المزوّد (خام)",
+      "providerResponse": "ردّ المزوّد (خام)",
+      "moiCalls": "استدعاءات MOI",
+      "noPayload": "غير مسجَّل لهذه المعاملة.",
+      "noMoiCalls": "لا توجد استدعاءات MOI لهذه المعاملة بعد."
+    }
+  },
+  "moi": {
+    "calls": {
+      "url": "العنوان",
+      "method": "الطريقة",
+      "tokenSnippet": "الرمز",
+      "requestHeaders": "ترويسات الطلب",
+      "requestBody": "محتوى الطلب",
+      "responseHeaders": "ترويسات الرد",
+      "responseBody": "محتوى الرد",
+      "empty": "غير مسجَّل.",
+      "failed": "لا يوجد رد"
     }
   },
   "reports": {

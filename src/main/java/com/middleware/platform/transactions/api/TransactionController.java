@@ -1,6 +1,9 @@
 package com.middleware.platform.transactions.api;
 
 import com.middleware.platform.transactions.domain.Transaction;
+import com.middleware.platform.transactions.domain.TransactionPayload;
+import com.middleware.platform.transactions.dto.TransactionDetail;
+import com.middleware.platform.transactions.repo.TransactionPayloadRepository;
 import com.middleware.platform.transactions.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +23,7 @@ import java.util.UUID;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final TransactionPayloadRepository payloadRepository;
 
     @GetMapping
     public Page<Transaction> listByTenant(@RequestParam UUID tenantId,
@@ -29,8 +33,16 @@ public class TransactionController {
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
     }
 
+    /**
+     * Returns the transaction row joined with its bank-facing and provider-
+     * facing JSON payloads (from {@code transaction_payloads}). Used by the
+     * portal's transaction detail page to render the full request/response
+     * trail.
+     */
     @GetMapping("/{id}")
-    public Transaction get(@PathVariable UUID id) {
-        return transactionService.get(id);
+    public TransactionDetail get(@PathVariable UUID id) {
+        Transaction tx = transactionService.get(id);
+        TransactionPayload payload = payloadRepository.findById(id).orElse(null);
+        return TransactionDetail.from(tx, payload);
     }
 }

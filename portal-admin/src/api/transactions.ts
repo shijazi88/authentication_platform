@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Page, Transaction } from "@/types/api";
+import type { Page, Transaction, TransactionDetail } from "@/types/api";
 
 export async function listTransactions(params: {
   tenantId: string;
@@ -16,7 +16,11 @@ export async function listTransactions(params: {
   return data;
 }
 
-export async function getTransaction(id: string): Promise<Transaction> {
-  const { data } = await api.get<Transaction>(`/admin/transactions/${id}`);
+/**
+ * Single transaction joined with its bank-facing and provider-facing JSON
+ * payloads (from {@code transaction_payloads}). Used by the detail page.
+ */
+export async function getTransaction(id: string): Promise<TransactionDetail> {
+  const { data } = await api.get<TransactionDetail>(`/admin/transactions/${id}`);
   return data;
 }

@@ -12,3 +12,6 @@ HELP.md
 portal-admin/node_modules/
 portal-admin/dist/
 *.log
+NOTES.local.md
+BANK_HANDOVER.md
+postman/*.local.*.json

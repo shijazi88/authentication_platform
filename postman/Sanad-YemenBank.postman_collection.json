@@ -1,0 +1,108 @@
+{
+  "info": {
+    "name": "Sanad — Yemen Bank (Test)",
+    "description": "Bank-facing API collection for Yemen Bank, the test client on the Sanad identity verification platform.\n\n**Environment variables** (set these in the collection variables tab or in a Postman environment):\n- `baseUrl` — `https://sanad-api.promatrix.ai`\n- `clientId` — Yemen Bank's client ID\n- `clientSecret` — Yemen Bank's client secret (shown only once at issue time)\n\nAuthentication uses HTTP Basic (client_id:client_secret). Postman's Basic Auth on the collection handles this automatically — no need to build the header manually.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{clientId}}", "type": "string" },
+      { "key": "password", "value": "{{clientSecret}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://sanad-api.promatrix.ai", "type": "string" },
+    { "key": "clientId", "value": "cli_cWdP3br0aLqCYObp", "type": "string" },
+    { "key": "clientSecret", "value": "sec_TUB6XGBZ2_xByP0Z7h3iAWXW5ZunRdtKWtCvZCCTuPo", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Verify Identity — by National Number",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-Request-Id", "value": "{{$guid}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nationalNumber\": \"1234567890\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/verify/identity",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "verify", "identity"]
+        },
+        "description": "Verify a Yemeni citizen by their national ID number.\n\n**Request:**\n- `nationalNumber` (required, max 32 chars) — the citizen's 10-digit national ID.\n- `biometrics` (optional) — for biometric match against a captured fingerprint.\n\n**Response fields returned** depend on the subscription plan:\n- `YEMEN_ID_BASIC` — hit-only (verification status + biometric score, no demographics)\n- `YEMEN_ID_PREMIUM` — full demographics, cards, biometric match (Yemen Bank's current plan)"
+      },
+      "response": [
+        {
+          "name": "200 · Success (Premium plan)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nationalNumber\": \"1234567890\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/verify/identity" }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": "{\n  \"transaction\": {\n    \"id\": \"019daa2a-278d-7c37-a8e9-aacf4b38e664\",\n    \"timestamp\": \"2026-04-20T09:13:03.646Z\",\n    \"status\": \"OK\"\n  },\n  \"result\": {\n    \"transaction\": {\n      \"timestamp\": \"2026-01-01T12:00:00\",\n      \"id\": \"018e246e-17d1-7a6c-8e3b-9e48602b4742\"\n    },\n    \"verification\": {\n      \"status\": \"MATCH\",\n      \"biometric\": { \"status\": true, \"score\": 92 }\n    },\n    \"person\": {\n      \"nationalNumber\": \"1234567890\",\n      \"cards\": [\n        {\n          \"documentNumber\": \"ABC1234567\",\n          \"type\": \"ID_CARD\",\n          \"serialNumber\": \"BDASJ12312JANSDJSADHKJHADS\",\n          \"status\": \"ACTIVE\",\n          \"expiry\": \"2030-01-01T23:59:59\",\n          \"issue\": \"2020-01-01T00:00:00\",\n          \"issuingAuthority\": \"MOI Yemen\"\n        }\n      ],\n      \"demographics\": {\n        \"names\": {\n          \"arabic\": {\n            \"first\": \"محمد\",\n            \"second\": \"علي\",\n            \"last\": \"الحسني\",\n            \"full\": \"محمد علي الحسني\"\n          },\n          \"latin\": {\n            \"first\": \"MOHAMMED\",\n            \"second\": \"ALI\",\n            \"last\": \"AL-HUSNI\",\n            \"full\": \"MOHAMMED ALI AL-HUSNI\"\n          }\n        },\n        \"phone\": \"+967700000000\",\n        \"email\": \"mohammed@example.com\",\n        \"dateOfBirth\": \"1990-01-01T00:00:00\",\n        \"gender\": { \"id\": \"M\", \"text\": \"Male\" },\n        \"maritalStatus\": \"Single\",\n        \"profession\": \"Engineer\",\n        \"religion\": \"Islam\",\n        \"educationLevel\": \"Bachelor's Degree\"\n      }\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Verify Identity — with Biometrics",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "X-Request-Id", "value": "{{$guid}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nationalNumber\": \"1234567890\",\n  \"biometrics\": {\n    \"fingerPosition\": 2,\n    \"image\": \"<base64-encoded fingerprint image, max 32000 chars>\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/verify/identity",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "verify", "identity"]
+        },
+        "description": "Same endpoint with an optional biometric image for a fingerprint match.\n\n- `fingerPosition` — 1–10 (right-thumb = 1, left-little = 10 per ICAO convention)\n- `image` — base64-encoded fingerprint (PNG/WSQ). Max 32,000 chars."
+      }
+    },
+    {
+      "name": "Error · Invalid National Number",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nationalNumber\": \"\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/verify/identity",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "verify", "identity"]
+        },
+        "description": "Demonstrates the 400 response shape for validation errors."
+      }
+    },
+    {
+      "name": "Health check (public, no auth)",
+      "request": {
+        "auth": { "type": "noauth" },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["actuator", "health"]
+        },
+        "description": "Basic liveness probe. Returns `{\"status\":\"UP\"}` when the platform is healthy."
+      }
+    }
+  ]
+}

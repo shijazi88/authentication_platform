@@ -229,3 +229,40 @@ export type PeriodSummary = {
   totalAmountMinor: number;
   transactionCount: number;
 };
+
+// ── Transaction detail (with payloads) ──────────────────────────────────────
+export type TransactionDetail = Transaction & {
+  /** Canonical bank-facing request body (what the bank sent us). */
+  tenantRequestJson: string | null;
+  /** Canonical bank-facing response body (what we sent back to the bank). */
+  tenantResponseJson: string | null;
+  /** Body our connector sent to the upstream provider (e.g. MOI). */
+  providerRequestJson: string | null;
+  /** Raw response from the upstream provider, before entitlement projection. */
+  providerResponseJson: string | null;
+};
+
+// ── MOI API call audit ──────────────────────────────────────────────────────
+export type MoiApiCallKind = "AUTH" | "VERIFY";
+
+export type MoiApiCallSummary = {
+  id: string;
+  createdAt: string;
+  kind: MoiApiCallKind;
+  url: string;
+  httpStatus: number | null;
+  durationMs: number | null;
+  tokenSnippet: string | null;
+  errorMessage: string | null;
+  tenantId: string | null;
+  transactionId: string | null;
+};
+
+export type MoiApiCallDetail = MoiApiCallSummary & {
+  method: string | null;
+  requestHeadersJson: string | null;
+  requestBodyJson: string | null;
+  responseHeadersJson: string | null;
+  responseBodyJson: string | null;
+};
+

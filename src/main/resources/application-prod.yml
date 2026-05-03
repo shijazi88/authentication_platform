@@ -56,9 +56,24 @@ platform:
       email: ""
       password: ""
       enabled: false
+    # Base64-encoded 32-byte key OR a passphrase (hashed to 32 bytes).
+    # Used for AES-GCM encryption of sensitive DB columns (e.g. moi_credentials.password).
+    # If unset, columns are stored in plaintext (WARNING logged at startup).
+    column-encryption-key: ${PLATFORM_COLUMN_ENCRYPTION_KEY:}
 
   connectors:
     yemen-id:
+      # wiremock: use the mock container for testing
+      # moi:      use the live MOI connector (reads creds from moi_credentials DB row)
+      mode: ${YEMEN_ID_MODE:wiremock}
       base-url: ${YEMEN_ID_BASE_URL:?YEMEN_ID_BASE_URL must be set in production}
       bearer-token: ${YEMEN_ID_BEARER_TOKEN:?YEMEN_ID_BEARER_TOKEN must be set in production}
       timeout-ms: 10000
+      trust-all-certs: ${YEMEN_ID_TRUST_ALL_CERTS:false}
+
+  moi:
+    audit:
+      # How many days of MOI api-call audit rows to keep before the nightly
+      # cleanup deletes them.
+      retention-days: ${MOI_AUDIT_RETENTION_DAYS:30}
+      cleanup-cron: ${MOI_AUDIT_CLEANUP_CRON:0 0 3 * * *}
