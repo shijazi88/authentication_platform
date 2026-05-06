@@ -14,4 +14,8 @@ portal-admin/dist/
 *.log
 NOTES.local.md
 BANK_HANDOVER.md
+TEAM_ACCOUNTS.md
+MOI_EMAIL_DRAFT.md
 postman/*.local.*.json
+test*.json
+postman/Archive.zip

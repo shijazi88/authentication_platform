@@ -68,7 +68,8 @@ public class TransactionService {
 
     @Transactional
     public void completeFailed(Transaction tx, ErrorCode errorCode, String message,
-                               Object tenantRequest, Object providerRequest, Object providerResponse) {
+                               Object tenantRequest, Object tenantResponse,
+                               Object providerRequest, Object providerResponse) {
         tx.setStatus(errorCode == ErrorCode.CONNECTOR_TIMEOUT
                 ? TransactionStatus.TIMEOUT
                 : TransactionStatus.FAILED);
@@ -76,7 +77,7 @@ public class TransactionService {
         tx.setErrorMessage(safeTrim(message, 1024));
         tx.setBillable(false);
         transactionRepository.save(tx);
-        savePayloads(tx.getId(), tenantRequest, null, providerRequest, providerResponse);
+        savePayloads(tx.getId(), tenantRequest, tenantResponse, providerRequest, providerResponse);
         publish(tx);
     }
 

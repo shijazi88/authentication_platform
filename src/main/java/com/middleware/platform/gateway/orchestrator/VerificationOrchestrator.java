@@ -3,6 +3,7 @@ package com.middleware.platform.gateway.orchestrator;
 import com.middleware.platform.catalog.domain.ServiceDefinition;
 import com.middleware.platform.catalog.domain.ServiceOperation;
 import com.middleware.platform.catalog.service.CatalogService;
+import com.middleware.platform.common.error.ApiError;
 import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.common.tenant.TenantContext;
@@ -106,12 +107,14 @@ public class VerificationOrchestrator {
             connectorResponse = connector.invoke(connectorRequest);
         } catch (ApplicationException ex) {
             transactionService.completeFailed(tx, ex.getErrorCode(), ex.getMessage(),
-                    canonicalRequestPayload, connectorRequest, null);
+                    canonicalRequestPayload, errorBody(ex.getErrorCode(), ex.getMessage()),
+                    connectorRequest, null);
             throw ex;
         } catch (Exception ex) {
             log.error("Connector {} failed", service.getConnectorKey(), ex);
             transactionService.completeFailed(tx, ErrorCode.CONNECTOR_ERROR, ex.getMessage(),
-                    canonicalRequestPayload, connectorRequest, null);
+                    canonicalRequestPayload, errorBody(ErrorCode.CONNECTOR_ERROR, ex.getMessage()),
+                    connectorRequest, null);
             throw new ApplicationException(ErrorCode.CONNECTOR_ERROR,
                     "Backend connector error: " + ex.getMessage(), ex);
         }
@@ -133,4 +136,15 @@ public class VerificationOrchestrator {
     }
 
     public record OrchestrationResult(UUID transactionId, Instant timestamp, Map<String, Object> projected) {}
+
+    private static ApiError errorBody(ErrorCode ec, String message) {
+        return new ApiError(
+                Instant.now(),
+                ec.code(),
+                ec.name(),
+                message != null ? message : ec.defaultMessage(),
+                null,
+                null
+        );
+    }
 }
