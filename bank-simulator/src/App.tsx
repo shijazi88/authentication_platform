@@ -5,6 +5,7 @@ import {
   ScanLine,
   History as HistoryIcon,
   Settings as SettingsIcon,
+  Fingerprint as FpIcon,
 } from "lucide-react";
 import { BrandHeader } from "./components/BrandHeader";
 import { ConnectionStatus } from "./components/ConnectionStatus";
@@ -14,11 +15,12 @@ import { VerifyScreen } from "./screens/VerifyScreen";
 import { ResultScreen } from "./screens/ResultScreen";
 import { HistoryScreen } from "./screens/HistoryScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { DevicesScreen } from "./screens/DevicesScreen";
 import { useApp } from "./store";
 import type { VerifyResponse } from "./types";
 import { cn } from "./lib/cn";
 
-type Tab = "verify" | "history" | "settings";
+type Tab = "verify" | "history" | "devices" | "settings";
 type ResultState =
   | { ok: true; data: VerifyResponse }
   | { ok: false; status: number; message: string; body?: unknown };
@@ -62,6 +64,15 @@ export function App() {
             onClick={() => {
               setResult(null);
               setTab("history");
+            }}
+          />
+          <NavButton
+            active={tab === "devices"}
+            icon={<FpIcon className="h-4 w-4" />}
+            label={t("nav.devices")}
+            onClick={() => {
+              setResult(null);
+              setTab("devices");
             }}
           />
           <NavButton
@@ -123,6 +134,7 @@ export function App() {
             <VerifyScreen onResult={setResult} />
           ))}
         {tab === "history" && <HistoryScreen />}
+        {tab === "devices" && <DevicesScreen />}
         {tab === "settings" && <SettingsScreen />}
       </main>
     </div>

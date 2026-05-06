@@ -6,6 +6,7 @@
   "nav": {
     "verify": "تحقق",
     "history": "السجل",
+    "devices": "الأجهزة",
     "settings": "الإعدادات",
     "disconnect": "قطع الاتصال",
     "connectedAs": "متصل كـ",
@@ -85,7 +86,9 @@
     "overlayHint": "يرجى إبقاء العميل في المنظور حتى اكتمال التحقق.",
     "overlayStep1": "جاري التحقق من العميل",
     "overlayStep2": "مطابقة البصمة مع الهوية اليمنية",
-    "overlayStep3": "إنهاء الاستجابة"
+    "overlayStep3": "إنهاء الاستجابة",
+    "deviceCaptured": "تم الالتقاط (الجودة {{quality}})",
+    "deviceCaptureFailed": "فشل الالتقاط: {{error}}"
   },
   "result": {
     "identityVerified": "تم التحقق من الهوية",
@@ -171,5 +174,46 @@
     "language": "اللغة",
     "langEnglish": "English",
     "langArabic": "العربية"
+  },
+  "devices": {
+    "title": "جهاز البصمة",
+    "subtitle": "اختر الماسح الذي يلتقط منه المحاكي. تبقى إعدادات كل مزوّد منفصلة، فالتبديل بين الأجهزة لا يفقد ضبطك.",
+    "providerSection": "المزوّد",
+    "connectionSection": "الاتصال",
+    "captureSection": "اختبار الالتقاط",
+    "captureSectionHint": "اختر إصبعاً والتقط من الجهاز النشط — نفس مسار التحقق.",
+    "activeBadge": "نشط",
+    "driverReady": "التقاط مباشر",
+    "comingSoon": "محاكاة",
+    "baseUrl": "عنوان الخدمة",
+    "baseUrlHint": "عنوان خدمة الالتقاط المحلية لهذا المزوّد.",
+    "qualityThreshold": "حد الجودة",
+    "qualityThresholdHint": "الحد الأدنى للإطار الأول (0–100). الافتراضي 75 لمطابقة Dermalog.",
+    "captureTimeout": "مهلة الالتقاط (ملي ثانية)",
+    "captureTimeoutHint": "مدة انتظار وضع الإصبع قبل التوقّف.",
+    "multiCapture": "عدد إطارات الالتقاط",
+    "multiCaptureHint": "عدد الإطارات الملتقطة؛ نحتفظ بالأعلى جودة.",
+    "testDevice": "اختبار الجهاز",
+    "testing": "جاري الفحص…",
+    "reset": "إعادة ضبط",
+    "save": "حفظ",
+    "saved": "تم حفظ الإعدادات",
+    "resetDone": "تمت استعادة الإعدادات الافتراضية",
+    "captureNow": "التقاط",
+    "cancel": "إلغاء",
+    "captureDone": "تم الالتقاط (الجودة {{quality}})",
+    "captureCancelled": "تم إلغاء الالتقاط",
+    "captureFailed": "فشل الالتقاط: {{error}}",
+    "deviceReady": "الجهاز جاهز",
+    "deviceOffline": "الجهاز غير متصل",
+    "exports": "تصدير البصمة الملتقطة",
+    "copiedPngB64": "تم نسخ PNG base64",
+    "copiedWsqB64": "تم نسخ WSQ base64",
+    "copyWsqBase64": "نسخ WSQ base64",
+    "copyFailed": "فشل النسخ",
+    "errors": {
+      "urlInvalid": "يجب أن يبدأ العنوان بـ http:// أو https://",
+      "pickFinger": "اختر إصبعاً أولاً."
+    }
   }
 }

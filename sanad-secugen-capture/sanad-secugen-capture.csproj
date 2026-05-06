@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>sanad-secugen-capture</AssemblyName>
+    <RootNamespace>SanadSecuGenCapture</RootNamespace>
+    <!-- Daemon, no console window in production builds -->
+    <UseAppHost>true</UseAppHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SecuGen FDx SDK Pro v4.3.1 — managed wrapper -->
+    <Reference Include="SecuGen.FDxSDKPro.DotNet.Windows">
+      <HintPath>sdk-lib\SecuGen.FDxSDKPro.DotNet.Windows.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Native dependencies (x64) — must sit next to the .exe at runtime -->
+    <None Include="sdk-lib\sgfplib.dll"     CopyToOutputDirectory="PreserveNewest" Link="sgfplib.dll" />
+    <None Include="sdk-lib\sgwsqlib.dll"    CopyToOutputDirectory="PreserveNewest" Link="sgwsqlib.dll" />
+    <None Include="sdk-lib\sgfdusdax64.dll" CopyToOutputDirectory="PreserveNewest" Link="sgfdusdax64.dll" />
+    <None Include="sdk-lib\sgfpamx.dll"     CopyToOutputDirectory="PreserveNewest" Link="sgfpamx.dll" />
+    <None Include="sdk-lib\sgbledev.dll"    CopyToOutputDirectory="PreserveNewest" Link="sgbledev.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- System.Drawing.Common is Windows-only on net8 — that's fine, daemon is Windows-only -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+  </ItemGroup>
+</Project>

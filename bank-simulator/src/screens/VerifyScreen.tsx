@@ -12,6 +12,11 @@ import { SAMPLE_FINGERPRINT_BASE64 } from "../sampleFingerprint";
 import { useShortcuts } from "../lib/useShortcuts";
 import { useApp } from "../store";
 import { verifyIdentity } from "../api";
+import {
+  buildProvider,
+  defaultConfigFor,
+  getProviderInfo,
+} from "../providers/registry";
 
 type Props = {
   onResult: (
@@ -24,15 +29,51 @@ type Props = {
 export function VerifyScreen({ onResult }: Props) {
   const creds = useApp((s) => s.credentials)!;
   const addHistory = useApp((s) => s.addHistory);
+  const selectedProviderId = useApp((s) => s.selectedProviderId);
+  const providerConfigs = useApp((s) => s.providerConfigs);
   const { t } = useTranslation();
 
   const [nationalNumber, setNationalNumber] = useState("");
   const [finger, setFinger] = useState<FingerPosition | null>(null);
-  const [fpKind, setFpKind] = useState<"none" | "file" | "sample">("none");
+  const [fpKind, setFpKind] = useState<"none" | "file" | "sample" | "device">("none");
   const [fpDataUrl, setFpDataUrl] = useState<string | null>(null);
   const [fpBase64, setFpBase64] = useState<string | null>(null);
+  const [fpQuality, setFpQuality] = useState<number | null>(null);
+  const [deviceCapturing, setDeviceCapturing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Active fingerprint provider — derived from settings. Re-built when the
+  // user switches device or edits config in the Devices screen.
+  const providerConfig =
+    providerConfigs[selectedProviderId] ?? defaultConfigFor(selectedProviderId);
+  const provider = useMemo(
+    () => buildProvider(selectedProviderId, providerConfig),
+    [selectedProviderId, providerConfig],
+  );
+  const providerInfo = getProviderInfo(selectedProviderId);
+
+  const captureFromDevice = async () => {
+    if (!finger) {
+      toast.error(t("verify.mustSelectFinger"));
+      return;
+    }
+    setDeviceCapturing(true);
+    try {
+      const r = await provider.capture({ fingerPosition: finger });
+      setFpKind("device");
+      setFpDataUrl(`data:image/png;base64,${r.pngBase64}`);
+      setFpBase64(r.wsqBase64);
+      setFpQuality(r.quality);
+      toast.success(t("verify.deviceCaptured", { quality: r.quality }));
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(t("verify.deviceCaptureFailed", { error: msg }));
+    } finally {
+      setDeviceCapturing(false);
+    }
+  };
 
   // Strip everything except digits, then group into NNNN-NNNN-NNNN — the format
   // MoI's verify endpoint requires. Bank can paste either form; we always store
@@ -44,6 +85,9 @@ export function VerifyScreen({ onResult }: Props) {
     const c = digits.slice(8, 12);
     return [a, b, c].filter(Boolean).join("-");
   };
+  // Funnel for every setter — input onChange, test-IDs, and keypad all run
+  // through this so the stored value is always the canonical dashed form.
+  const setFormatted = (raw: string) => setNationalNumber(formatNationalNumber(raw));
   const digitCount = nationalNumber.replace(/\D/g, "").length;
 
   const canSubmit = useMemo(
@@ -241,18 +285,27 @@ export function VerifyScreen({ onResult }: Props) {
 
                 <TestIdentityPicker
                   currentValue={nationalNumber}
-                  onPick={setNationalNumber}
+                  onPick={setFormatted}
                 />
               </div>
 
               {/* Right: keypad */}
               <Keypad
-                currentLength={nationalNumber.length}
+                currentLength={digitCount}
                 maxLength={12}
                 onKey={(d) =>
-                  setNationalNumber((v) => (v.length >= 12 ? v : v + d))
+                  setNationalNumber((v) => {
+                    const digits = v.replace(/\D/g, "");
+                    if (digits.length >= 12) return v;
+                    return formatNationalNumber(digits + d);
+                  })
                 }
-                onBackspace={() => setNationalNumber((v) => v.slice(0, -1))}
+                onBackspace={() =>
+                  setNationalNumber((v) => {
+                    const digits = v.replace(/\D/g, "");
+                    return formatNationalNumber(digits.slice(0, -1));
+                  })
+                }
               />
             </div>
           </div>
@@ -296,18 +349,29 @@ export function VerifyScreen({ onResult }: Props) {
                   setFpKind("file");
                   setFpDataUrl(d);
                   setFpBase64(b64);
+                  setFpQuality(null);
                 }}
                 onSample={() => {
                   setFpKind("sample");
                   setFpDataUrl(null);
                   setFpBase64(SAMPLE_FINGERPRINT_BASE64);
+                  setFpQuality(null);
                 }}
                 onClear={() => {
                   setFpKind("none");
                   setFpDataUrl(null);
                   setFpBase64(null);
+                  setFpQuality(null);
                 }}
                 scanning={submitting}
+                onDeviceCapture={captureFromDevice}
+                deviceCaptureLabel={providerInfo?.displayName ?? selectedProviderId}
+                deviceCaptureDisabled={!finger}
+                deviceCaptureBusy={deviceCapturing}
+                deviceCaptureDisabledReason={
+                  !finger ? t("verify.selectFingerFirst") : undefined
+                }
+                qualityScore={fpQuality}
               />
             </div>
 

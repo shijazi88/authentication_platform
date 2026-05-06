@@ -19,13 +19,16 @@ export function TestIdentityPicker({ currentValue, onPick }: Props) {
 
       <div className="grid grid-cols-2 gap-2">
         {TEST_IDENTITIES.map((id) => {
-          const raw = id.replace(/-/g, "");
-          const isSelected = currentValue === raw;
+          // Compare against either the dashed form (canonical) or the raw
+          // digits — the parent may store either. We always pass the dashed
+          // form back so the regex check on submit succeeds.
+          const stripped = currentValue.replace(/\D/g, "");
+          const isSelected = stripped === id.replace(/-/g, "");
           return (
             <button
               key={id}
               type="button"
-              onClick={() => onPick(raw)}
+              onClick={() => onPick(id)}
               className={cn(
                 "inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg border font-mono text-xs transition",
                 isSelected

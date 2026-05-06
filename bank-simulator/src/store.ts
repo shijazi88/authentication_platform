@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { HistoryEntry } from "./types";
+import type { ProviderConfig, ProviderId } from "./providers/types";
+import { DEFAULT_PROVIDER_ID, defaultConfigFor } from "./providers/registry";
 
 type Credentials = {
   baseUrl: string;
@@ -16,6 +18,10 @@ type AppState = {
   history: HistoryEntry[];
   theme: Theme;
   lang: Lang;
+  // Fingerprint device — vendor-agnostic. Selected provider plus per-provider
+  // saved config (so switching providers doesn't lose your URL/timeout tweaks).
+  selectedProviderId: ProviderId;
+  providerConfigs: Record<ProviderId, ProviderConfig>;
   setCredentials: (c: Credentials) => void;
   clearCredentials: () => void;
   addHistory: (entry: HistoryEntry) => void;
@@ -23,6 +29,9 @@ type AppState = {
   setTheme: (t: Theme) => void;
   toggleTheme: () => void;
   setLang: (l: Lang) => void;
+  setSelectedProvider: (id: ProviderId) => void;
+  updateProviderConfig: (id: ProviderId, patch: Partial<ProviderConfig>) => void;
+  resetProviderConfig: (id: ProviderId) => void;
 };
 
 export const useApp = create<AppState>()(
@@ -32,6 +41,11 @@ export const useApp = create<AppState>()(
       history: [],
       theme: "light",
       lang: "en",
+      selectedProviderId: DEFAULT_PROVIDER_ID,
+      providerConfigs: {
+        secugen: defaultConfigFor("secugen"),
+        dermalog: defaultConfigFor("dermalog"),
+      },
       setCredentials: (c) => set({ credentials: c }),
       clearCredentials: () => set({ credentials: null }),
       addHistory: (entry) =>
@@ -50,6 +64,18 @@ export const useApp = create<AppState>()(
         applyLang(l);
         set({ lang: l });
       },
+      setSelectedProvider: (id) => set({ selectedProviderId: id }),
+      updateProviderConfig: (id, patch) =>
+        set((s) => ({
+          providerConfigs: {
+            ...s.providerConfigs,
+            [id]: { ...(s.providerConfigs[id] ?? defaultConfigFor(id)), ...patch },
+          },
+        })),
+      resetProviderConfig: (id) =>
+        set((s) => ({
+          providerConfigs: { ...s.providerConfigs, [id]: defaultConfigFor(id) },
+        })),
     }),
     {
       name: "sanad-bank-sim",
@@ -58,6 +84,8 @@ export const useApp = create<AppState>()(
         history: s.history,
         theme: s.theme,
         lang: s.lang,
+        selectedProviderId: s.selectedProviderId,
+        providerConfigs: s.providerConfigs,
       }),
     },
   ),

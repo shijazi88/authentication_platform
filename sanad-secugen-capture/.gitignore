@@ -1,0 +1,13 @@
+# .NET build artifacts
+bin/
+obj/
+
+# electron-builder consumes this; build output, not source
+publish/
+
+# Editor / IDE
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/

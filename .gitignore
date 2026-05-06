@@ -7,6 +7,13 @@ target/
 .env
 .env.*
 !.env.example
+
+# Local-only overrides (per-developer machine config — never commit)
+docker-compose.override.yml
+docker-compose.override.yaml
+src/main/resources/application-local.yml
+portal-admin/.env.local
+*.err
 HELP.md
 .claude/
 portal-admin/node_modules/

@@ -9,7 +9,8 @@
     "dev": "vite",
     "electron": "node ./node_modules/electron/cli.js .",
     "start": "concurrently -k \"vite\" \"wait-on tcp:5173 && node ./node_modules/electron/cli.js .\"",
-    "build": "vite build && electron-builder",
+    "build:daemon": "dotnet publish ../sanad-secugen-capture -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o ../sanad-secugen-capture/publish",
+    "build": "npm run build:daemon && vite build && electron-builder",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -43,6 +44,15 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../sanad-secugen-capture/publish/",
+        "to": "sanad-secugen-capture/",
+        "filter": [
+          "**/*"
+        ]
+      }
     ],
     "mac": {
       "category": "public.app-category.finance"

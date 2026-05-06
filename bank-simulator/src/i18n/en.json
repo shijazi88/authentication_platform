@@ -6,6 +6,7 @@
   "nav": {
     "verify": "Verify",
     "history": "History",
+    "devices": "Devices",
     "settings": "Settings",
     "disconnect": "Disconnect",
     "connectedAs": "Connected as",
@@ -85,7 +86,9 @@
     "overlayHint": "Please keep the customer in view until verification completes.",
     "overlayStep1": "Verifying the customer",
     "overlayStep2": "Matching biometric with Yemen ID",
-    "overlayStep3": "Finalizing response"
+    "overlayStep3": "Finalizing response",
+    "deviceCaptured": "Captured (quality {{quality}})",
+    "deviceCaptureFailed": "Capture failed: {{error}}"
   },
   "result": {
     "identityVerified": "Identity verified",
@@ -171,5 +174,46 @@
     "language": "Language",
     "langEnglish": "English",
     "langArabic": "العربية"
+  },
+  "devices": {
+    "title": "Fingerprint device",
+    "subtitle": "Pick which scanner the simulator captures from. Per-provider settings stay isolated, so switching devices doesn't lose your tweaks.",
+    "providerSection": "Provider",
+    "connectionSection": "Connection",
+    "captureSection": "Test capture",
+    "captureSectionHint": "Pick a finger and capture from the active device — the same flow used during verification.",
+    "activeBadge": "Active",
+    "driverReady": "Live capture",
+    "comingSoon": "Simulation",
+    "baseUrl": "Daemon URL",
+    "baseUrlHint": "URL of the local capture daemon for this provider.",
+    "qualityThreshold": "Quality threshold",
+    "qualityThresholdHint": "First-frame minimum (0–100). 75 is the default for Dermalog matching.",
+    "captureTimeout": "Capture timeout (ms)",
+    "captureTimeoutHint": "How long to wait for a finger before giving up.",
+    "multiCapture": "Multi-capture frames",
+    "multiCaptureHint": "Number of frames to capture; we keep the highest quality one.",
+    "testDevice": "Test device",
+    "testing": "Probing…",
+    "reset": "Reset",
+    "save": "Save",
+    "saved": "Settings saved",
+    "resetDone": "Settings reset to defaults",
+    "captureNow": "Capture",
+    "cancel": "Cancel",
+    "captureDone": "Captured (quality {{quality}})",
+    "captureCancelled": "Capture cancelled",
+    "captureFailed": "Capture failed: {{error}}",
+    "deviceReady": "Device ready",
+    "deviceOffline": "Device offline",
+    "exports": "Export the captured print",
+    "copiedPngB64": "PNG base64 copied",
+    "copiedWsqB64": "WSQ base64 copied",
+    "copyWsqBase64": "Copy WSQ base64",
+    "copyFailed": "Copy failed",
+    "errors": {
+      "urlInvalid": "URL must start with http:// or https://",
+      "pickFinger": "Pick a finger first."
+    }
   }
 }

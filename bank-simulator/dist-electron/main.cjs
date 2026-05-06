@@ -1,14 +1,17 @@
-import { app, BrowserWindow, shell } from "electron";
-import { spawn, type ChildProcess } from "node:child_process";
-import * as path from "node:path";
-import * as http from "node:http";
+const { app, BrowserWindow, shell } = require("electron");
+const { spawn } = require("node:child_process");
+const path = require("node:path");
+const http = require("node:http");
 
 const isDev = !app.isPackaged;
 const DAEMON_PORT = 9876;
 
-let daemonProcess: ChildProcess | null = null;
+let daemonProcess = null;
 
-function resolveDaemonPath(): string {
+// Where the SecuGen capture daemon lives.
+//   dev       — sibling project's debug build
+//   prod      — bundled by electron-builder under process.resourcesPath
+function resolveDaemonPath() {
   if (isDev) {
     return path.resolve(
       __dirname,
@@ -28,7 +31,9 @@ function resolveDaemonPath(): string {
   );
 }
 
-function isDaemonAlive(): Promise<boolean> {
+// Probe before spawning so we don't double-launch when the user already has
+// the daemon running in a terminal (common during development).
+function isDaemonAlive() {
   return new Promise((resolve) => {
     const req = http.get(
       { host: "127.0.0.1", port: DAEMON_PORT, path: "/info", timeout: 1500 },
@@ -54,7 +59,7 @@ async function startDaemon() {
     return;
   }
   if (await isDaemonAlive()) {
-    console.log(`[daemon] already running on :${DAEMON_PORT}, skipping spawn`);
+    console.log("[daemon] already running on :" + DAEMON_PORT + ", skipping spawn");
     return;
   }
   const exe = resolveDaemonPath();
@@ -109,7 +114,6 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      // Disable CORS — desktop app calling our own backend.
       webSecurity: false,
     },
   });

@@ -1,8 +1,14 @@
 node_modules/
 dist/
-dist-electron/
+# dist-electron is the Electron-bootstrap output; main.cjs is committed
+# (so a fresh clone runs without an extra build step), everything else
+# (test scripts, intermediate compiles) is ignored.
+dist-electron/*
+!dist-electron/main.cjs
 .env.local
 .DS_Store
 *.log
+*.err
 .vite/
 release/
+*.tsbuildinfo
