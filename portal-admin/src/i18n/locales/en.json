@@ -84,7 +84,6 @@
     "email": "Email",
     "password": "Password",
     "invalidCredentials": "Invalid credentials",
-    "devDefaults": "Demo credentials",
     "errors": {
       "emailRequired": "Enter a valid email",
       "passwordRequired": "Password too short"

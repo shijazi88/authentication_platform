@@ -31,8 +31,8 @@ export function LoginPage() {
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "admin@middleware.local",
-      password: "admin123",
+      email: "",
+      password: "",
     },
   });
 
@@ -130,7 +130,7 @@ export function LoginPage() {
                     id="email"
                     type="email"
                     autoComplete="username"
-                    placeholder="admin@middleware.local"
+                    placeholder="you@example.com"
                     {...register("email")}
                   />
                   {errors.email && (
@@ -171,15 +171,6 @@ export function LoginPage() {
                   {t("auth.signIn")}
                 </Button>
               </form>
-
-              <div className="mt-6 pt-5 border-t border-border/15">
-                <div className="text-[10px] uppercase tracking-wider text-text-dim mb-2">
-                  {t("auth.devDefaults")}
-                </div>
-                <div className="text-xs text-text-muted font-mono">
-                  admin@middleware.local · admin123
-                </div>
-              </div>
             </div>
           </div>
         </div>
