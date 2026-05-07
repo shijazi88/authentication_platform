@@ -124,6 +124,11 @@ public class TransactionService {
     }
 
     @Transactional(readOnly = true)
+    public Page<Transaction> listAll(Pageable pageable) {
+        return transactionRepository.findAll(pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Transaction get(UUID id) {
         return transactionRepository.findById(id)
                 .orElseThrow(() -> ApplicationException.notFound("Transaction"));

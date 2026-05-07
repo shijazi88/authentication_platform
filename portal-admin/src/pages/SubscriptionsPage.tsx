@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
   listSubscriptionsByTenant,
   createSubscription,
+  updateSubscription,
 } from "@/api/subscriptions";
 import { listTenants } from "@/api/tenants";
 import { listPlans } from "@/api/plans";
@@ -25,6 +26,13 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate } from "@/lib/format";
+import type { Subscription } from "@/types/api";
+
+type DialogState =
+  | { mode: "create" }
+  | { mode: "edit"; subscription: Subscription };
+
+const today = () => new Date().toISOString().slice(0, 10);
 
 export function SubscriptionsPage() {
   const { t } = useTranslation();
@@ -32,38 +40,86 @@ export function SubscriptionsPage() {
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
 
-  const [tenantId, setTenantId] = useState<string | null>(null);
+  // Filter on the list — which tenant's subscriptions to show
+  const [filterTenantId, setFilterTenantId] = useState<string | null>(null);
   useEffect(() => {
-    if (!tenantId && tenantsQ.data?.length) {
-      setTenantId(tenantsQ.data[0].id);
+    if (!filterTenantId && tenantsQ.data?.length) {
+      setFilterTenantId(tenantsQ.data[0].id);
     }
-  }, [tenantId, tenantsQ.data]);
+  }, [filterTenantId, tenantsQ.data]);
 
   const subsQ = useQuery({
-    queryKey: ["subscriptions", tenantId],
-    queryFn: () => listSubscriptionsByTenant(tenantId!),
-    enabled: !!tenantId,
+    queryKey: ["subscriptions", filterTenantId],
+    queryFn: () => listSubscriptionsByTenant(filterTenantId!),
+    enabled: !!filterTenantId,
   });
 
-  const [open, setOpen] = useState(false);
-  const [planId, setPlanId] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>(
-    new Date().toISOString().slice(0, 10),
-  );
+  // Dialog state — null = closed
+  const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [formTenantId, setFormTenantId] = useState<string | null>(null);
+  const [formPlanId, setFormPlanId] = useState<string | null>(null);
+  const [formStartDate, setFormStartDate] = useState<string>(today());
+  const [formEndDate, setFormEndDate] = useState<string>("");
+
+  const isEdit = dialog?.mode === "edit";
+
+  function openCreate() {
+    setFormTenantId(filterTenantId);
+    setFormPlanId(plansQ.data?.[0]?.id ?? null);
+    setFormStartDate(today());
+    setFormEndDate("");
+    setDialog({ mode: "create" });
+  }
+
+  function openEdit(s: Subscription) {
+    setFormTenantId(s.tenantId);
+    setFormPlanId(s.planId);
+    setFormStartDate(s.startDate);
+    setFormEndDate(s.endDate ?? "");
+    setDialog({ mode: "edit", subscription: s });
+  }
+
+  function close() {
+    setDialog(null);
+  }
 
   const createMut = useMutation({
     mutationFn: () =>
       createSubscription({
-        tenantId: tenantId!,
-        planId: planId!,
-        startDate,
+        tenantId: formTenantId!,
+        planId: formPlanId!,
+        startDate: formStartDate,
+        endDate: formEndDate || undefined,
       }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["subscriptions", tenantId] });
-      toast.success(t("common.create"));
-      setOpen(false);
+    onSuccess: (created) => {
+      qc.invalidateQueries({ queryKey: ["subscriptions"] });
+      // If we created a sub for a different tenant than the filter, switch the filter
+      if (created.tenantId !== filterTenantId) {
+        setFilterTenantId(created.tenantId);
+      }
+      toast.success(t("subscriptions.toasts.created"));
+      close();
     },
   });
+
+  const updateMut = useMutation({
+    mutationFn: () => {
+      if (dialog?.mode !== "edit") return Promise.reject();
+      return updateSubscription(dialog.subscription.id, {
+        planId: formPlanId!,
+        startDate: formStartDate,
+        endDate: formEndDate || null,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["subscriptions"] });
+      toast.success(t("subscriptions.toasts.updated"));
+      close();
+    },
+  });
+
+  const submitting = createMut.isPending || updateMut.isPending;
+  const canSubmit = !!formTenantId && !!formPlanId && !!formStartDate;
 
   return (
     <div>
@@ -73,11 +129,8 @@ export function SubscriptionsPage() {
         actions={
           <Button
             leftIcon={<Plus className="h-4 w-4" />}
-            disabled={!tenantId || !plansQ.data?.length}
-            onClick={() => {
-              setPlanId(plansQ.data?.[0]?.id ?? null);
-              setOpen(true);
-            }}
+            disabled={!plansQ.data?.length || !tenantsQ.data?.length}
+            onClick={openCreate}
           >
             {t("subscriptions.newSubscription")}
           </Button>
@@ -89,8 +142,8 @@ export function SubscriptionsPage() {
           <CardTitle>{t("common.filter")}</CardTitle>
           <div className="w-72">
             <Select
-              value={tenantId}
-              onChange={(v) => setTenantId(v)}
+              value={filterTenantId}
+              onChange={(v) => setFilterTenantId(v)}
               placeholder={t("common.selectTenant")}
               options={
                 tenantsQ.data?.map((tenant) => ({
@@ -114,6 +167,7 @@ export function SubscriptionsPage() {
                   <Th>{t("subscriptions.fields.endDate")}</Th>
                   <Th>{t("common.status")}</Th>
                   <Th>{t("common.createdAt")}</Th>
+                  <Th className="text-end">{t("common.actions")}</Th>
                 </Tr>
               </THead>
               <TBody>
@@ -137,6 +191,16 @@ export function SubscriptionsPage() {
                       <Td className="text-text-muted">
                         {formatDate(s.createdAt)}
                       </Td>
+                      <Td className="text-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<Pencil className="h-3.5 w-3.5" />}
+                          onClick={() => openEdit(s)}
+                        >
+                          {t("common.edit")}
+                        </Button>
+                      </Td>
                     </Tr>
                   );
                 })}
@@ -151,21 +215,27 @@ export function SubscriptionsPage() {
       </Card>
 
       <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        title={t("subscriptions.newSubscription")}
+        open={dialog !== null}
+        onClose={close}
+        title={
+          isEdit
+            ? t("subscriptions.editSubscription")
+            : t("subscriptions.newSubscription")
+        }
         size="lg"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
+            <Button variant="ghost" onClick={close}>
               {t("common.cancel")}
             </Button>
             <Button
-              loading={createMut.isPending}
-              disabled={!planId || !tenantId}
-              onClick={() => createMut.mutate()}
+              loading={submitting}
+              disabled={!canSubmit}
+              onClick={() =>
+                isEdit ? updateMut.mutate() : createMut.mutate()
+              }
             >
-              {t("common.create")}
+              {isEdit ? t("common.save") : t("common.create")}
             </Button>
           </>
         }
@@ -173,16 +243,30 @@ export function SubscriptionsPage() {
         <div className="space-y-4">
           <div>
             <Label>{t("subscriptions.fields.tenant")}</Label>
-            <div className="px-3 py-2 rounded-lg bg-bg-elevated/40 border border-border/15 text-sm">
-              {tenantsQ.data?.find((tenant) => tenant.id === tenantId)
-                ?.legalName ?? "—"}
-            </div>
+            <Select
+              value={formTenantId}
+              onChange={setFormTenantId}
+              placeholder={t("common.selectTenant")}
+              disabled={isEdit}
+              options={
+                tenantsQ.data?.map((tenant) => ({
+                  value: tenant.id,
+                  label: tenant.legalName,
+                  description: tenant.code,
+                })) ?? []
+              }
+            />
+            {isEdit && (
+              <div className="mt-1 text-[11px] text-text-muted">
+                {t("subscriptions.tenantImmutable")}
+              </div>
+            )}
           </div>
           <div>
             <Label>{t("subscriptions.fields.plan")}</Label>
             <Select
-              value={planId}
-              onChange={setPlanId}
+              value={formPlanId}
+              onChange={setFormPlanId}
               placeholder={t("common.selectPlan")}
               options={
                 plansQ.data?.map((p) => ({
@@ -193,16 +277,31 @@ export function SubscriptionsPage() {
               }
             />
           </div>
-          <div>
-            <Label htmlFor="startDate">
-              {t("subscriptions.fields.startDate")}
-            </Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="startDate">
+                {t("subscriptions.fields.startDate")}
+              </Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={formStartDate}
+                onChange={(e) => setFormStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate">
+                {t("subscriptions.fields.endDate")}{" "}
+                <span className="text-text-dim">({t("common.optional")})</span>
+              </Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={formEndDate}
+                min={formStartDate || undefined}
+                onChange={(e) => setFormEndDate(e.target.value)}
+              />
+            </div>
           </div>
         </div>
       </Dialog>

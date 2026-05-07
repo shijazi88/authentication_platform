@@ -30,3 +30,20 @@ export async function setSubscriptionStatus(
   );
   return data;
 }
+
+export type UpdateSubscriptionRequest = {
+  planId: string;
+  startDate: string;
+  endDate?: string | null;
+};
+
+export async function updateSubscription(
+  id: string,
+  req: UpdateSubscriptionRequest,
+): Promise<Subscription> {
+  const { data } = await api.put<Subscription>(
+    `/admin/subscriptions/${id}`,
+    req,
+  );
+  return data;
+}

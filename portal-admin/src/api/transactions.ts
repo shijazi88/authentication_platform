@@ -2,13 +2,13 @@ import { api } from "@/lib/api";
 import type { Page, Transaction, TransactionDetail } from "@/types/api";
 
 export async function listTransactions(params: {
-  tenantId: string;
+  tenantId?: string;
   page?: number;
   size?: number;
 }): Promise<Page<Transaction>> {
   const { data } = await api.get<Page<Transaction>>("/admin/transactions", {
     params: {
-      tenantId: params.tenantId,
+      ...(params.tenantId ? { tenantId: params.tenantId } : {}),
       page: params.page ?? 0,
       size: params.size ?? 50,
     },

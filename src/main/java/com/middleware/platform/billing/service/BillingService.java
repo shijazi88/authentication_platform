@@ -73,6 +73,8 @@ public class BillingService {
 
     @Transactional(readOnly = true)
     public List<PeriodSummary> summarize(UUID tenantId, String period) {
-        return repository.summarize(tenantId, period);
+        return tenantId != null
+                ? repository.summarize(tenantId, period)
+                : repository.summarizeAll(period);
     }
 }

@@ -5,6 +5,7 @@ import com.middleware.platform.iam.repo.TenantRepository;
 import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.domain.SubscriptionStatus;
 import com.middleware.platform.subscription.dto.CreateSubscriptionRequest;
+import com.middleware.platform.subscription.dto.UpdateSubscriptionRequest;
 import com.middleware.platform.subscription.repo.PlanRepository;
 import com.middleware.platform.subscription.repo.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +72,18 @@ public class SubscriptionService {
         Subscription s = subscriptionRepository.findById(id)
                 .orElseThrow(() -> ApplicationException.notFound("Subscription"));
         s.setStatus(status);
+        return s;
+    }
+
+    @Transactional
+    public Subscription update(UUID id, UpdateSubscriptionRequest req) {
+        Subscription s = subscriptionRepository.findById(id)
+                .orElseThrow(() -> ApplicationException.notFound("Subscription"));
+        planRepository.findById(req.planId())
+                .orElseThrow(() -> ApplicationException.notFound("Plan"));
+        s.setPlanId(req.planId());
+        s.setStartDate(req.startDate());
+        s.setEndDate(req.endDate());
         return s;
     }
 }

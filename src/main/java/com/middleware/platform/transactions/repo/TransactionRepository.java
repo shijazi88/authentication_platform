@@ -71,4 +71,13 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Object[]> monthlyReportRaw(@Param("tenantId") String tenantId,
                                     @Param("from") Instant from,
                                     @Param("to") Instant to);
+
+    @Query(value = """
+            SELECT * FROM transactions
+             WHERE LOWER(CAST(id AS CHAR)) LIKE LOWER(CONCAT(:q, '%'))
+                OR LOWER(provider_request_id) LIKE LOWER(CONCAT('%', :q, '%'))
+             ORDER BY created_at DESC
+             LIMIT :limit
+            """, nativeQuery = true)
+    List<Transaction> search(@Param("q") String q, @Param("limit") int limit);
 }

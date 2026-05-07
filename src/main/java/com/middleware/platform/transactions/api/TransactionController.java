@@ -26,11 +26,13 @@ public class TransactionController {
     private final TransactionPayloadRepository payloadRepository;
 
     @GetMapping
-    public Page<Transaction> listByTenant(@RequestParam UUID tenantId,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "50") int size) {
-        return transactionService.listByTenant(tenantId,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+    public Page<Transaction> list(@RequestParam(required = false) UUID tenantId,
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "50") int size) {
+        PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return tenantId != null
+                ? transactionService.listByTenant(tenantId, pr)
+                : transactionService.listAll(pr);
     }
 
     /**

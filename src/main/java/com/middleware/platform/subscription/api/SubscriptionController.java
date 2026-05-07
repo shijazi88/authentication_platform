@@ -3,6 +3,7 @@ package com.middleware.platform.subscription.api;
 import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.domain.SubscriptionStatus;
 import com.middleware.platform.subscription.dto.CreateSubscriptionRequest;
+import com.middleware.platform.subscription.dto.UpdateSubscriptionRequest;
 import com.middleware.platform.subscription.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,5 +34,11 @@ public class SubscriptionController {
     @PostMapping("/{id}/status")
     public Subscription setStatus(@PathVariable UUID id, @RequestParam SubscriptionStatus status) {
         return subscriptionService.setStatus(id, status);
+    }
+
+    @PutMapping("/{id}")
+    public Subscription update(@PathVariable UUID id,
+                               @Valid @RequestBody UpdateSubscriptionRequest req) {
+        return subscriptionService.update(id, req);
     }
 }

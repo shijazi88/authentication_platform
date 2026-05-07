@@ -19,11 +19,14 @@ export async function listBillingEvents(params: {
 }
 
 export async function getBillingSummary(params: {
-  tenantId: string;
+  tenantId?: string;
   period: string;
 }): Promise<PeriodSummary[]> {
   const { data } = await api.get<PeriodSummary[]>("/admin/billing/summary", {
-    params,
+    params: {
+      period: params.period,
+      ...(params.tenantId ? { tenantId: params.tenantId } : {}),
+    },
   });
   return data;
 }

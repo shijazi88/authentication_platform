@@ -33,20 +33,16 @@ export function DashboardPage() {
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
 
-  const firstTenantId = tenantsQ.data?.[0]?.id;
   const period = currentPeriod();
 
   const txQ = useQuery({
-    queryKey: ["transactions", firstTenantId],
-    queryFn: () =>
-      listTransactions({ tenantId: firstTenantId!, page: 0, size: 10 }),
-    enabled: !!firstTenantId,
+    queryKey: ["transactions", "all"],
+    queryFn: () => listTransactions({ page: 0, size: 10 }),
   });
 
   const summaryQ = useQuery({
-    queryKey: ["billing-summary", firstTenantId, period],
-    queryFn: () => getBillingSummary({ tenantId: firstTenantId!, period }),
-    enabled: !!firstTenantId,
+    queryKey: ["billing-summary", "all", period],
+    queryFn: () => getBillingSummary({ period }),
   });
 
   if (tenantsQ.isLoading) return <PageLoader />;
@@ -109,9 +105,7 @@ export function DashboardPage() {
             <div>
               <CardTitle>{t("dashboard.recent.title")}</CardTitle>
               <div className="text-xs text-text-muted mt-0.5">
-                {t("dashboard.recent.subtitle", {
-                  tenant: tenantsQ.data?.[0]?.code ?? "—",
-                })}
+                {t("dashboard.recent.subtitle")}
               </div>
             </div>
             <Link

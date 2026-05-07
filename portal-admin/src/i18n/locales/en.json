@@ -36,7 +36,8 @@
     "currency": "Currency",
     "done": "Done",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "optional": "optional"
   },
   "status": {
     "PENDING": "Pending",
@@ -63,6 +64,12 @@
   },
   "topbar": {
     "searchPlaceholder": "Search clients, transactions…",
+    "search": {
+      "clients": "Clients",
+      "transactions": "Transactions",
+      "noResults": "No matches",
+      "error": "Search failed"
+    },
     "signOut": "Sign out",
     "theme": {
       "light": "Light mode",
@@ -100,7 +107,7 @@
     },
     "recent": {
       "title": "Recent transactions",
-      "subtitle": "Latest 10 from {{tenant}}"
+      "subtitle": "Latest 10 across all clients"
     },
     "statusDistribution": "Status distribution"
   },
@@ -169,11 +176,17 @@
     "title": "Subscriptions",
     "subtitle": "Bind clients to plans. The active subscription drives entitlement resolution at request time.",
     "newSubscription": "New subscription",
+    "editSubscription": "Edit subscription",
+    "tenantImmutable": "A subscription cannot be reassigned to a different client. Cancel this one and create a new subscription for the other client instead.",
     "fields": {
       "plan": "Plan",
       "tenant": "Client",
       "startDate": "Start date",
       "endDate": "End date"
+    },
+    "toasts": {
+      "created": "Subscription created",
+      "updated": "Subscription updated"
     },
     "empty": "No subscriptions for this client."
   },

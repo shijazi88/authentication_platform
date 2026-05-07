@@ -23,4 +23,13 @@ public interface BillingEventRepository extends JpaRepository<BillingEvent, UUID
             group by b.tenantId, b.period, b.currency
             """)
     List<PeriodSummary> summarize(UUID tenantId, String period);
+
+    @Query("""
+            select new com.middleware.platform.billing.repo.PeriodSummary(
+                null, b.period, b.currency, sum(b.amountMinor), count(b))
+            from BillingEvent b
+            where b.period = :period
+            group by b.period, b.currency
+            """)
+    List<PeriodSummary> summarizeAll(String period);
 }

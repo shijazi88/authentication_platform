@@ -32,7 +32,7 @@ public class BillingController {
     }
 
     @GetMapping("/summary")
-    public List<PeriodSummary> summary(@RequestParam UUID tenantId,
+    public List<PeriodSummary> summary(@RequestParam(required = false) UUID tenantId,
                                        @RequestParam String period) {
         return billingService.summarize(tenantId, period);
     }
