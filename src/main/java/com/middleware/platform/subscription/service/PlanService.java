@@ -110,4 +110,26 @@ public class PlanService {
     public List<PlanFieldEntitlement> listFieldEntitlements(UUID planId) {
         return fieldEntitlementRepository.findByPlanId(planId);
     }
+
+    @Transactional
+    public PlanEntitlement updateLimits(UUID planId, UUID entitlementId,
+                                        Integer rateLimitPerMinute, Long monthlyQuota) {
+        PlanEntitlement e = entitlementRepository.findById(entitlementId)
+                .orElseThrow(() -> ApplicationException.notFound("Entitlement"));
+        if (!e.getPlanId().equals(planId)) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED,
+                    "Entitlement does not belong to this plan");
+        }
+        if (rateLimitPerMinute != null && rateLimitPerMinute <= 0) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED,
+                    "rateLimitPerMinute must be positive or null for unlimited");
+        }
+        if (monthlyQuota != null && monthlyQuota <= 0) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED,
+                    "monthlyQuota must be positive or null for unlimited");
+        }
+        e.setRateLimitPerMinute(rateLimitPerMinute);
+        e.setMonthlyQuota(monthlyQuota);
+        return e;
+    }
 }

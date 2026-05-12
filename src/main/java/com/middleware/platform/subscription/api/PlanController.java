@@ -5,6 +5,7 @@ import com.middleware.platform.subscription.domain.PlanEntitlement;
 import com.middleware.platform.subscription.domain.PlanFieldEntitlement;
 import com.middleware.platform.subscription.dto.AddPlanEntitlementRequest;
 import com.middleware.platform.subscription.dto.CreatePlanRequest;
+import com.middleware.platform.subscription.dto.UpdateEntitlementLimitsRequest;
 import com.middleware.platform.subscription.service.PlanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,14 @@ public class PlanController {
     @GetMapping("/{id}/entitlements")
     public List<PlanEntitlement> listEntitlements(@PathVariable UUID id) {
         return planService.listEntitlements(id);
+    }
+
+    @PutMapping("/{planId}/entitlements/{entitlementId}/limits")
+    public PlanEntitlement updateLimits(@PathVariable UUID planId,
+                                        @PathVariable UUID entitlementId,
+                                        @RequestBody UpdateEntitlementLimitsRequest req) {
+        return planService.updateLimits(planId, entitlementId,
+                req.rateLimitPerMinute(), req.monthlyQuota());
     }
 
     @GetMapping("/{id}/field-entitlements")

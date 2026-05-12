@@ -168,8 +168,17 @@
       "visibleCount": "{{value}} visible",
       "noOperationEntitlements": "No operation entitlements yet.",
       "noFields": "No fields registered for this operation.",
-      "quota": "quota: {{value}}/mo",
-      "rate": "rate: {{value}}/min"
+      "quota": "{{value}}/mo",
+      "rate": "{{value}}/min",
+      "rateLabel": "Rate limit",
+      "quotaLabel": "Monthly quota",
+      "unlimited": "Unlimited",
+      "editLimits": "Edit limits",
+      "limitsSaved": "Limits updated",
+      "perCredentialPerOp": "per API credential, per operation",
+      "perTenantPerMonth": "per client, per calendar month",
+      "rateHint": "Max successful calls per minute. Excess requests get HTTP 429.",
+      "quotaHint": "Cumulative monthly call budget. Excess requests get HTTP 429."
     }
   },
   "subscriptions": {
@@ -200,6 +209,7 @@
   "transactions": {
     "title": "Transactions",
     "subtitle": "Every verification call routed through the platform. Failures, timeouts, and entitlement rejections are also recorded here.",
+    "allClients": "All clients",
     "fields": {
       "transactionId": "Transaction ID",
       "latency": "Latency",

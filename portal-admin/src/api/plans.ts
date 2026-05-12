@@ -50,3 +50,20 @@ export async function addPlanEntitlement(
   );
   return data;
 }
+
+export type UpdateEntitlementLimitsRequest = {
+  rateLimitPerMinute: number | null;
+  monthlyQuota: number | null;
+};
+
+export async function updateEntitlementLimits(
+  planId: string,
+  entitlementId: string,
+  req: UpdateEntitlementLimitsRequest,
+): Promise<PlanEntitlement> {
+  const { data } = await api.put<PlanEntitlement>(
+    `/admin/plans/${planId}/entitlements/${entitlementId}/limits`,
+    req,
+  );
+  return data;
+}

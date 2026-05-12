@@ -168,8 +168,17 @@
       "visibleCount": "{{value}} مرئية",
       "noOperationEntitlements": "لا توجد صلاحيات عمليات بعد.",
       "noFields": "لا توجد حقول مسجلة لهذه العملية.",
-      "quota": "الحصة: {{value}} / شهر",
-      "rate": "المعدل: {{value}} / دقيقة"
+      "quota": "{{value}} / شهر",
+      "rate": "{{value}} / دقيقة",
+      "rateLabel": "حد المعدل",
+      "quotaLabel": "الحصة الشهرية",
+      "unlimited": "غير محدود",
+      "editLimits": "تعديل الحدود",
+      "limitsSaved": "تم تحديث الحدود",
+      "perCredentialPerOp": "لكل بيانات اعتماد ولكل عملية",
+      "perTenantPerMonth": "لكل عميل ولكل شهر تقويمي",
+      "rateHint": "الحد الأقصى للطلبات الناجحة في الدقيقة. ما يتجاوز ذلك يُرفض بـ HTTP 429.",
+      "quotaHint": "الميزانية الشهرية التراكمية للطلبات. ما يتجاوز ذلك يُرفض بـ HTTP 429."
     }
   },
   "subscriptions": {
@@ -200,6 +209,7 @@
   "transactions": {
     "title": "المعاملات",
     "subtitle": "كل طلب تحقق يمر عبر المنصة. الفشل والمهل المنتهية ورفض الصلاحيات تُسجّل هنا أيضاً.",
+    "allClients": "جميع العملاء",
     "fields": {
       "transactionId": "رقم المعاملة",
       "latency": "زمن الاستجابة",

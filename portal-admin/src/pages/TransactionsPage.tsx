@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollText, ChevronLeft, ChevronRight } from "lucide-react";
@@ -28,19 +28,21 @@ export function TransactionsPage() {
   const [page, setPage] = useState(0);
   const size = 50;
 
-  useEffect(() => {
-    if (!tenantId && tenantsQ.data?.length) {
-      setTenantId(tenantsQ.data[0].id);
-    }
-  }, [tenantId, tenantsQ.data]);
-
   const txQ = useQuery({
-    queryKey: ["transactions", tenantId, page, size],
-    queryFn: () => listTransactions({ tenantId: tenantId!, page, size }),
-    enabled: !!tenantId,
+    queryKey: ["transactions", tenantId ?? "all", page, size],
+    queryFn: () =>
+      listTransactions({
+        tenantId: tenantId ?? undefined,
+        page,
+        size,
+      }),
   });
 
   const totalPages = txQ.data?.totalPages ?? 0;
+  const tenantById = new Map(
+    tenantsQ.data?.map((tn) => [tn.id, tn]) ?? [],
+  );
+  const showClientCol = tenantId === null;
 
   return (
     <div>
@@ -54,19 +56,20 @@ export function TransactionsPage() {
           <CardTitle>{t("common.filter")}</CardTitle>
           <div className="w-72">
             <Select
-              value={tenantId}
+              value={tenantId ?? "__all__"}
               onChange={(v) => {
-                setTenantId(v);
+                setTenantId(v === "__all__" ? null : v);
                 setPage(0);
               }}
-              placeholder={t("common.selectTenant")}
-              options={
-                tenantsQ.data?.map((tenant) => ({
+              placeholder={t("transactions.allClients")}
+              options={[
+                { value: "__all__", label: t("transactions.allClients") },
+                ...(tenantsQ.data?.map((tenant) => ({
                   value: tenant.id,
                   label: tenant.legalName,
                   description: tenant.code,
-                })) ?? []
-              }
+                })) ?? []),
+              ]}
             />
           </div>
         </CardHeader>
@@ -79,6 +82,7 @@ export function TransactionsPage() {
                 <THead>
                   <Tr>
                     <Th>{t("transactions.fields.transactionId")}</Th>
+                    {showClientCol && <Th>{t("subscriptions.fields.tenant")}</Th>}
                     <Th>{t("common.status")}</Th>
                     <Th>{t("transactions.fields.latency")}</Th>
                     <Th>{t("transactions.fields.price")}</Th>
@@ -103,6 +107,15 @@ export function TransactionsPage() {
                           </div>
                         )}
                       </Td>
+                      {showClientCol && (
+                        <Td className="text-xs">
+                          {tenantById.get(tx.tenantId)?.legalName ?? (
+                            <span className="font-mono text-text-muted">
+                              {shortId(tx.tenantId, 8)}
+                            </span>
+                          )}
+                        </Td>
+                      )}
                       <Td>
                         <Badge tone={statusTone(tx.status)}>
                           {t(`status.${tx.status}`, tx.status)}
