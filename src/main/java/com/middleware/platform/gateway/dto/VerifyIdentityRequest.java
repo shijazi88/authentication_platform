@@ -19,6 +19,6 @@ public record VerifyIdentityRequest(
 ) {
     public record Biometrics(
             @Min(1) @Max(10) Integer fingerPosition,
-            @Size(max = 32000) String image
+            String image
     ) {}
 }
