@@ -11,9 +11,10 @@ import {
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const navItems = [
-  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
+  { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
   { to: "/tenants", labelKey: "nav.tenants", icon: Building2 },
   { to: "/plans", labelKey: "nav.plans", icon: Layers },
   { to: "/subscriptions", labelKey: "nav.subscriptions", icon: ListChecks },
@@ -29,10 +30,15 @@ export function Sidebar() {
   return (
     <aside className="w-64 shrink-0 h-screen sticky top-0 glass border-e border-border/10 flex flex-col">
       {/* Brand */}
-      <div className="px-5 py-5 border-b border-border/10">
-        <div className="text-base font-bold text-gradient">{t("brand.name")}</div>
-        <div className="text-[10px] uppercase tracking-wider text-text-muted mt-0.5">
-          {t("brand.tagline")}
+      <div className="px-5 py-4 border-b border-border/10 flex items-center gap-3">
+        <BrandLogo size={36} />
+        <div className="min-w-0">
+          <div className="text-base font-bold text-gradient leading-tight truncate">
+            {t("brand.name")}
+          </div>
+          <div className="text-[10px] uppercase tracking-wider text-text-muted mt-0.5 truncate">
+            {t("brand.tagline")}
+          </div>
         </div>
       </div>
 

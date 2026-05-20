@@ -34,23 +34,26 @@ export default {
           DEFAULT: "rgb(var(--border) / <alpha-value>)",
           strong: "rgb(var(--border-strong) / <alpha-value>)",
         },
-        // MOI Yemen palette: deep blue (authority), gold (accent / seal), green (Arab identity).
-        // Legacy aliases (`violet`, `cyan`, `emerald`) remap to the new palette so existing
-        // gradient class names like `from-accent-violet to-accent-cyan` render as
-        // blue→gold without per-component edits.
+        // MOTABIQ palette: teal (primary), gold (accent), navy (deep ground).
+        // Legacy aliases (`violet`, `cyan`, `emerald`) remap to the new palette so
+        // existing gradient class names like `from-accent-violet to-accent-cyan`
+        // render as teal→gold without per-component edits.
         accent: {
-          DEFAULT: "#1e4e8c",
+          DEFAULT: "#24bda5",
           // New semantic names — prefer these in new code:
-          blue: "#1e4e8c",     // primary — deep authority blue
-          gold: "#d4a017",     // accent — rich warm gold
-          green: "#1f7a4d",    // success — forest green
-          // Legacy aliases (point at MOI palette so existing class names work):
-          violet: "#1e4e8c",   // → blue
-          cyan: "#d4a017",     // → gold
+          teal: "#24bda5",     // primary — MOTABIQ teal
+          gold: "#d8aa50",     // accent — MOTABIQ gold
+          mint: "#79e2d0",     // lighter teal — for eyebrows / highlights
+          navy: "#071829",     // deepest ground (dark mode)
+          green: "#1f7a4d",    // success — kept for semantic statuses
+          // Legacy aliases (point at MOTABIQ palette so existing class names work):
+          violet: "#24bda5",   // → teal
+          cyan: "#d8aa50",     // → gold
+          blue: "#24bda5",     // → teal
           emerald: "#1f7a4d",  // → green
           // Unchanged signal colors:
           amber: "#f59e0b",    // warnings
-          rose: "#dc2626",     // errors (slightly more authoritative red than f43f5e)
+          rose: "#dc2626",     // errors
         },
         text: {
           DEFAULT: "rgb(var(--text) / <alpha-value>)",
@@ -62,15 +65,15 @@ export default {
         "gradient-mesh": "var(--gradient-mesh)",
         "grid-pattern": "var(--grid-pattern)",
         "accent-gradient":
-          "linear-gradient(135deg, #1e4e8c 0%, #d4a017 100%)",
+          "linear-gradient(135deg, #24bda5 0%, #d8aa50 100%)",
       },
       backgroundSize: {
         "grid-32": "32px 32px",
       },
       boxShadow: {
-        glow: "0 0 40px -10px rgba(30,78,140,0.5)",      // MOI blue glow
-        "glow-cyan": "0 0 40px -10px rgba(212,160,23,0.5)", // MOI gold glow (legacy name)
-        "glow-gold": "0 0 40px -10px rgba(212,160,23,0.5)",
+        glow: "0 0 40px -10px rgba(36,189,165,0.5)",       // MOTABIQ teal glow
+        "glow-cyan": "0 0 40px -10px rgba(216,170,80,0.5)", // MOTABIQ gold glow (legacy name)
+        "glow-gold": "0 0 40px -10px rgba(216,170,80,0.5)",
         "glow-green": "0 0 40px -10px rgba(31,122,77,0.5)",
         card: "var(--shadow-card)",
       },

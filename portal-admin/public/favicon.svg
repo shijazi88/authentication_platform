@@ -1,11 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44" width="44" height="44">
   <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e4e8c"/>
-      <stop offset="55%" stop-color="#d4a017"/>
-      <stop offset="100%" stop-color="#1f7a4d"/>
+    <linearGradient id="g" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#24bda5"/>
+      <stop offset="100%" stop-color="#d8aa50"/>
     </linearGradient>
   </defs>
-  <rect width="32" height="32" rx="8" fill="#06070d"/>
-  <path d="M8 22 L16 8 L24 22 L20 22 L16 15 L12 22 Z" fill="url(#g)"/>
+  <rect width="44" height="44" rx="13" fill="url(#g)"/>
+  <text x="22" y="30" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="900" font-size="24" fill="#06121e">M</text>
 </svg>

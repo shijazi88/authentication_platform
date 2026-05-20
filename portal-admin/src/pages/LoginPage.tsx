@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { login } from "@/api/auth";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
@@ -45,7 +46,7 @@ export function LoginPage() {
         role: data.role,
         expiresInSeconds: data.expiresInSeconds,
       });
-      navigate("/");
+      navigate("/dashboard");
     },
   });
 
@@ -68,9 +69,7 @@ export function LoginPage() {
           {/* Brand panel */}
           <div className="hidden lg:block animate-slide-up">
             <div className="flex items-center gap-3 mb-8">
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-accent-violet to-accent-cyan flex items-center justify-center shadow-glow">
-                <Sparkles className="h-6 w-6 text-white" />
-              </div>
+              <BrandLogo size={48} className="shadow-glow rounded-xl" />
               <div>
                 <div className="text-xl font-bold text-gradient">
                   {t("brand.name")}
@@ -105,9 +104,7 @@ export function LoginPage() {
           <div className="animate-slide-up" style={{ animationDelay: "120ms" }}>
             <div className="glass rounded-2xl p-8 shadow-card border-gradient">
               <div className="lg:hidden flex items-center gap-2 mb-6">
-                <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-accent-violet to-accent-cyan flex items-center justify-center shadow-glow">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
+                <BrandLogo size={36} className="shadow-glow rounded-xl" />
                 <div className="text-base font-bold text-gradient">
                   {t("brand.name")}
                 </div>

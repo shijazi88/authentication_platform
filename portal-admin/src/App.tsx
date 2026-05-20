@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { TenantsPage } from "@/pages/TenantsPage";
@@ -17,6 +18,9 @@ import { ReportsPage } from "@/pages/ReportsPage";
 export default function App() {
   return (
     <Routes>
+      {/* Public marketing/landing page — anyone can see it. */}
+      <Route path="/" element={<LandingPage />} />
+
       <Route path="/login" element={<LoginPage />} />
 
       <Route
@@ -26,7 +30,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<DashboardPage />} />
+        <Route path="dashboard" element={<DashboardPage />} />
         <Route path="tenants" element={<TenantsPage />} />
         <Route path="tenants/:id" element={<TenantDetailPage />} />
         <Route path="plans" element={<PlansPage />} />

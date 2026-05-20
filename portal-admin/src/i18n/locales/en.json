@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "Sanad",
-    "tagline": "Identity Verification Platform"
+    "name": "MOTABIQ",
+    "tagline": "National Biometric Verification Platform"
   },
   "common": {
     "loading": "Loading…",
@@ -154,7 +154,10 @@
     "fields": {
       "baseFee": "Base fee",
       "baseFeeMinor": "Base fee (minor units)",
-      "baseFeeHelp": "In cents. e.g. 500 = $5.00"
+      "baseFeeHelp": "In cents. e.g. 500 = $5.00",
+      "subscribers": "Subscribers",
+      "activeOfTotal": "active of {{total}}",
+      "noSubscribers": "No subscribers"
     },
     "empty": {
       "title": "No plans yet",
@@ -178,7 +181,11 @@
       "perCredentialPerOp": "per API credential, per operation",
       "perTenantPerMonth": "per client, per calendar month",
       "rateHint": "Max successful calls per minute. Excess requests get HTTP 429.",
-      "quotaHint": "Cumulative monthly call budget. Excess requests get HTTP 429."
+      "quotaHint": "Cumulative monthly call budget. Excess requests get HTTP 429.",
+      "subscribers": "Subscribers",
+      "activeBadge": "{{value}} active",
+      "totalBadge": "{{value}} total",
+      "noSubscribers": "No clients are subscribed to this plan yet."
     }
   },
   "subscriptions": {

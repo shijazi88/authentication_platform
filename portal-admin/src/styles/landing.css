@@ -1,0 +1,436 @@
+/* ============================================================================
+ * MOTABIQ landing — theme-aware (light + dark) version of the original
+ * landingpage/assets/styles.css. All rules are scoped under
+ * `.motabiq-landing` so they don't leak into the rest of the portal.
+ *
+ * The palette is exposed as CSS custom properties on `.motabiq-landing`; the
+ * portal's existing `:root.dark` toggle (set by ThemeToggle) flips the dark
+ * variants in. Light mode is the default.
+ * ========================================================================= */
+
+.motabiq-landing {
+  /* --- Light theme defaults --- */
+  --bg-deep: #f7f9fb;
+  --bg-shell: #ffffff;
+  --bg-veil: rgba(36, 189, 165, 0.06);
+
+  --primary-teal: #1a9889;  /* darkened for contrast on white */
+  --primary-gold: #b88a36;
+  --mint: #2bb89e;
+
+  --ink: #0a1e2e;
+  --ink-muted: #4f5e70;
+  --ink-dim: #7a8896;
+
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --line: rgba(7, 24, 41, 0.10);
+  --shadow: 0 24px 60px rgba(7, 24, 41, 0.10);
+
+  background: radial-gradient(
+    circle at 20% 0%,
+    rgba(36, 189, 165, 0.12) 0%,
+    rgba(255, 255, 255, 1) 35%,
+    var(--bg-deep) 100%
+  );
+  color: var(--ink);
+  overflow-x: hidden;
+  font-family: var(--font-sans, Inter), Arial, Tahoma, sans-serif;
+  min-height: 100vh;
+}
+
+:root.dark .motabiq-landing {
+  /* --- Dark theme overrides --- */
+  --bg-deep: #050c14;
+  --bg-shell: #071829;
+  --bg-veil: rgba(36, 189, 165, 0.05);
+
+  --primary-teal: #24bda5;
+  --primary-gold: #d8aa50;
+  --mint: #79e2d0;
+
+  --ink: #f6f9fb;
+  --ink-muted: #a8b5c4;
+  --ink-dim: #7c8a99;
+
+  --surface: rgba(255, 255, 255, 0.065);
+  --surface-strong: rgba(8, 22, 38, 0.78);
+  --line: rgba(255, 255, 255, 0.14);
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+
+  background: radial-gradient(
+    circle at 20% 0%,
+    #143b58 0%,
+    var(--bg-shell) 28%,
+    var(--bg-deep) 100%
+  );
+}
+
+.motabiq-landing,
+.motabiq-landing * { box-sizing: border-box; }
+.motabiq-landing[dir="rtl"] { font-family: Cairo, Tahoma, Arial, sans-serif; }
+
+.motabiq-landing .noise {
+  position: fixed; inset: 0; pointer-events: none; opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 9;
+}
+:root.dark .motabiq-landing .noise { opacity: 0.08; }
+
+/* Header */
+.motabiq-landing .site-header {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 22px;
+  padding: 18px 5vw;
+  background: var(--surface-strong);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--line);
+}
+.motabiq-landing .brand {
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none; color: var(--ink);
+}
+.motabiq-landing .brand-mark {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 15px;
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-gold));
+  color: #06121e; font-weight: 900;
+  box-shadow: 0 12px 30px rgba(36, 189, 165, 0.24);
+}
+.motabiq-landing .brand strong { display: block; letter-spacing: 0.18em; }
+.motabiq-landing .brand em {
+  display: block; color: var(--primary-gold); font-style: normal; font-size: 13px;
+}
+.motabiq-landing .nav { display: flex; gap: 24px; align-items: center; }
+.motabiq-landing .nav a {
+  color: var(--ink-muted); text-decoration: none; font-size: 14px;
+  transition: color 0.15s;
+}
+.motabiq-landing .nav a:hover { color: var(--ink); }
+.motabiq-landing .nav-cta {
+  padding: 10px 16px;
+  border: 1px solid rgba(216, 170, 80, 0.55);
+  border-radius: 999px;
+  color: var(--primary-gold) !important;
+}
+.motabiq-landing .header-tools {
+  display: flex; gap: 8px; align-items: center;
+}
+.motabiq-landing .lang-toggle,
+.motabiq-landing .theme-btn {
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink);
+  border-radius: 999px; padding: 8px 12px;
+  cursor: pointer; font-size: 13px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.motabiq-landing .lang-toggle:hover,
+.motabiq-landing .theme-btn:hover { background: var(--surface-strong); }
+
+/* Sections */
+.motabiq-landing .section-pad { padding: 90px 7vw; }
+.motabiq-landing .thin { padding-top: 32px; padding-bottom: 32px; }
+.motabiq-landing .hero {
+  min-height: 82vh;
+  display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: center;
+}
+.motabiq-landing .eyebrow {
+  display: inline-flex; color: var(--mint);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 12px; font-weight: 700; margin-bottom: 16px;
+}
+.motabiq-landing .hero h1,
+.motabiq-landing .section-head h2,
+.motabiq-landing .split h2,
+.motabiq-landing .contact-card h2 {
+  font-size: clamp(42px, 6vw, 78px); line-height: 0.98;
+  margin: 0 0 24px; letter-spacing: -0.05em; color: var(--ink);
+}
+.motabiq-landing .split h2,
+.motabiq-landing .section-head h2,
+.motabiq-landing .contact-card h2 { font-size: clamp(34px, 4.5vw, 58px); }
+.motabiq-landing p {
+  color: var(--ink-muted); line-height: 1.75; font-size: 17px;
+}
+
+.motabiq-landing .hero-actions { display: flex; gap: 14px; margin: 34px 0; }
+.motabiq-landing .btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 14px 22px; border-radius: 14px;
+  text-decoration: none; font-weight: 800;
+  border: 1px solid var(--line); cursor: pointer;
+}
+.motabiq-landing .primary {
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-gold));
+  color: #05111d; border: 0;
+}
+.motabiq-landing .ghost {
+  color: var(--ink); background: var(--surface);
+}
+
+.motabiq-landing .trust-strip {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  max-width: 620px;
+}
+.motabiq-landing .trust-strip div {
+  padding: 16px; border: 1px solid var(--line); border-radius: 18px;
+  background: var(--surface);
+}
+.motabiq-landing .trust-strip b {
+  display: block; font-size: 24px; color: var(--primary-gold);
+}
+.motabiq-landing .trust-strip span { color: var(--ink-dim); font-size: 13px; }
+
+.motabiq-landing .hero-visual { position: relative; }
+.motabiq-landing .hero-visual img {
+  width: 100%; border-radius: 34px;
+  box-shadow: var(--shadow); border: 1px solid var(--line);
+  filter: drop-shadow(0 10px 30px rgba(36, 189, 165, 0.18));
+}
+.motabiq-landing .orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(34px); opacity: 0.5;
+}
+.motabiq-landing .orb-1 {
+  width: 190px; height: 190px;
+  background: var(--primary-teal);
+  right: -40px; top: 20px;
+}
+.motabiq-landing .orb-2 {
+  width: 160px; height: 160px;
+  background: var(--primary-gold);
+  left: -20px; bottom: 30px;
+}
+
+.motabiq-landing .logos {
+  display: flex; gap: 28px; align-items: center; justify-content: center;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  background: var(--bg-veil);
+}
+.motabiq-landing .logos span { color: var(--ink-dim); }
+.motabiq-landing .logos b { color: var(--ink); }
+
+.motabiq-landing .split {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;
+}
+.motabiq-landing .modality-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+}
+.motabiq-landing .modality {
+  min-height: 160px;
+  border: 1px solid var(--line); border-radius: 28px;
+  background: var(--surface);
+  display: grid; place-items: center; text-align: center;
+  box-shadow: var(--shadow);
+}
+.motabiq-landing .modality span { font-size: 48px; color: var(--primary-gold); }
+.motabiq-landing .modality b { font-size: 20px; }
+
+.motabiq-landing .section-head {
+  text-align: center; max-width: 880px; margin: 0 auto 44px;
+}
+.motabiq-landing .cards,
+.motabiq-landing .use-grid,
+.motabiq-landing .product-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+}
+.motabiq-landing .card,
+.motabiq-landing .use-card,
+.motabiq-landing .product-card,
+.motabiq-landing .contact-card,
+.motabiq-landing .dashboard {
+  border: 1px solid var(--line); border-radius: 28px;
+  background: var(--surface);
+  padding: 28px; box-shadow: var(--shadow);
+}
+.motabiq-landing .card i {
+  font-style: normal; color: var(--primary-gold); font-weight: 900;
+}
+.motabiq-landing .card h3,
+.motabiq-landing .use-card h3,
+.motabiq-landing .product-card h3 {
+  font-size: 22px; margin: 16px 0 10px; color: var(--ink);
+}
+.motabiq-landing .card p,
+.motabiq-landing .use-card p,
+.motabiq-landing .product-card p { font-size: 15px; }
+
+.motabiq-landing .dark-panel {
+  background: var(--bg-veil);
+  border-block: 1px solid var(--line);
+}
+
+.motabiq-landing .use-grid { grid-template-columns: repeat(4, 1fr); }
+.motabiq-landing .use-card {
+  min-height: 260px;
+  background: radial-gradient(circle at top right, rgba(36, 189, 165, 0.16), var(--surface));
+  position: relative; overflow: hidden;
+}
+.motabiq-landing .use-card::after {
+  content: "";
+  position: absolute;
+  width: 130px; height: 130px;
+  border: 1px solid rgba(216, 170, 80, 0.25);
+  border-radius: 50%;
+  right: -40px; bottom: -40px;
+}
+
+.motabiq-landing .dashboard { min-height: 460px; }
+.motabiq-landing .dash-top { display: flex; gap: 7px; }
+.motabiq-landing .dash-top span {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--primary-gold);
+}
+.motabiq-landing .meter {
+  margin: 30px 0; padding: 32px; border-radius: 22px;
+  background: radial-gradient(circle, var(--primary-teal), rgba(7, 24, 41, 0.4) 64%);
+  text-align: center;
+}
+.motabiq-landing .meter b { font-size: 54px; color: #fff; }
+.motabiq-landing .meter small { display: block; color: rgba(255, 255, 255, 0.85); }
+.motabiq-landing .mini-bars {
+  display: flex; align-items: end; gap: 10px; height: 90px;
+}
+.motabiq-landing .mini-bars span {
+  flex: 1;
+  background: linear-gradient(var(--primary-gold), var(--primary-teal));
+  border-radius: 10px 10px 0 0;
+}
+.motabiq-landing .mini-bars span:nth-child(1) { height: 35%; }
+.motabiq-landing .mini-bars span:nth-child(2) { height: 55%; }
+.motabiq-landing .mini-bars span:nth-child(3) { height: 72%; }
+.motabiq-landing .mini-bars span:nth-child(4) { height: 48%; }
+.motabiq-landing .mini-bars span:nth-child(5) { height: 88%; }
+.motabiq-landing .dash-row {
+  display: flex; justify-content: space-between;
+  padding: 16px 0; border-top: 1px solid var(--line);
+}
+.motabiq-landing .dash-row em { color: var(--mint); font-style: normal; }
+
+.motabiq-landing .check-list {
+  list-style: none; padding: 0; margin: 24px 0 0;
+}
+.motabiq-landing .check-list li {
+  padding: 12px 0 12px 34px; position: relative; color: var(--ink-muted);
+}
+.motabiq-landing .check-list li::before {
+  content: "✓"; position: absolute; left: 0;
+  color: var(--primary-gold); font-weight: 900;
+}
+.motabiq-landing[dir="rtl"] .check-list li { padding: 12px 34px 12px 0; }
+.motabiq-landing[dir="rtl"] .check-list li::before { left: auto; right: 0; }
+
+.motabiq-landing .arch-diagram {
+  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  gap: 14px; align-items: center;
+}
+.motabiq-landing .arch-node {
+  padding: 24px; border: 1px solid var(--line); border-radius: 24px;
+  background: var(--surface);
+  text-align: center; min-height: 135px;
+  display: grid; place-items: center;
+}
+.motabiq-landing .arch-node b { font-size: 19px; }
+.motabiq-landing .arch-node span { color: var(--ink-muted); font-size: 13px; }
+.motabiq-landing .arch-node.hot {
+  background: linear-gradient(135deg, rgba(36, 189, 165, 0.22), rgba(216, 170, 80, 0.14));
+  border-color: rgba(216, 170, 80, 0.4);
+}
+.motabiq-landing .arch-arrow { color: var(--primary-gold); font-size: 32px; }
+
+.motabiq-landing .governance-band {
+  margin-top: 18px; padding: 22px;
+  border: 1px solid rgba(216, 170, 80, 0.35);
+  border-radius: 22px;
+  background: rgba(216, 170, 80, 0.08);
+  display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
+}
+.motabiq-landing .governance-band span { color: var(--primary-gold); }
+
+.motabiq-landing .timeline {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px;
+}
+.motabiq-landing .timeline div {
+  padding: 22px; border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line); min-height: 140px;
+}
+.motabiq-landing .timeline b {
+  display: grid; place-items: center;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-teal), var(--primary-gold));
+  color: #071829; margin-bottom: 14px;
+}
+.motabiq-landing .timeline span { font-weight: 800; }
+
+.motabiq-landing .product-grid { grid-template-columns: repeat(4, 1fr); }
+
+.motabiq-landing .contact-section {
+  background: radial-gradient(circle at center, rgba(36, 189, 165, 0.14), transparent 55%);
+}
+.motabiq-landing .contact-card {
+  max-width: 980px; margin: auto; text-align: center;
+}
+.motabiq-landing .contact-card form {
+  display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px;
+  margin-top: 28px;
+}
+.motabiq-landing .contact-card input,
+.motabiq-landing .contact-card select {
+  padding: 16px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); outline: none;
+}
+.motabiq-landing .contact-card input::placeholder { color: var(--ink-dim); }
+
+.motabiq-landing .footer {
+  padding: 34px 7vw; border-top: 1px solid var(--line);
+  display: flex; justify-content: space-between; gap: 20px;
+  color: var(--ink-muted);
+}
+.motabiq-landing .footer b { display: block; color: var(--ink); }
+.motabiq-landing .footer span {
+  display: block; color: var(--primary-gold); margin-top: 4px;
+}
+
+.motabiq-landing .reveal {
+  opacity: 0; transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.motabiq-landing .reveal.visible { opacity: 1; transform: translateY(0); }
+.motabiq-landing .delay-1 { transition-delay: 0.15s; }
+
+.motabiq-landing[dir="rtl"] .nav,
+.motabiq-landing[dir="rtl"] .hero-actions,
+.motabiq-landing[dir="rtl"] .logos,
+.motabiq-landing[dir="rtl"] .governance-band { direction: rtl; }
+.motabiq-landing[dir="rtl"] .brand strong { letter-spacing: 0.06em; }
+
+@media (max-width: 980px) {
+  .motabiq-landing .nav { display: none; }
+  .motabiq-landing .hero,
+  .motabiq-landing .split { grid-template-columns: 1fr; }
+  .motabiq-landing .cards,
+  .motabiq-landing .use-grid,
+  .motabiq-landing .product-grid { grid-template-columns: 1fr 1fr; }
+  .motabiq-landing .arch-diagram { grid-template-columns: 1fr; }
+  .motabiq-landing .arch-arrow { transform: rotate(90deg); text-align: center; }
+  .motabiq-landing .timeline { grid-template-columns: 1fr 1fr; }
+  .motabiq-landing .contact-card form { grid-template-columns: 1fr; }
+  .motabiq-landing .footer { flex-direction: column; }
+  .motabiq-landing .hero h1 { font-size: 46px; }
+}
+@media (max-width: 620px) {
+  .motabiq-landing .section-pad { padding: 62px 5vw; }
+  .motabiq-landing .cards,
+  .motabiq-landing .use-grid,
+  .motabiq-landing .product-grid,
+  .motabiq-landing .modality-grid,
+  .motabiq-landing .timeline,
+  .motabiq-landing .trust-strip { grid-template-columns: 1fr; }
+  .motabiq-landing .site-header { padding: 14px 4vw; }
+  .motabiq-landing .brand strong { font-size: 14px; }
+  .motabiq-landing .hero h1 { font-size: 40px; }
+}
