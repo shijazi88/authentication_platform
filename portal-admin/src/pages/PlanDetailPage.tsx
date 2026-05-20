@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Eye, EyeOff, Pencil, Infinity as InfinityIcon } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Pencil, Infinity as InfinityIcon, Users, Building2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
   getPlan,
   listPlanEntitlements,
   listPlanFieldEntitlements,
+  listPlanSubscribers,
   updateEntitlementLimits,
 } from "@/api/plans";
 import { listServices, listOperations, listFields } from "@/api/catalog";
@@ -18,7 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { Badge, statusTone } from "@/components/ui/Badge";
 import { PageLoader } from "@/components/ui/Spinner";
 import { Button } from "@/components/ui/Button";
 import { Dialog } from "@/components/ui/Dialog";
@@ -42,6 +43,12 @@ export function PlanDetailPage() {
   const entitlementsQ = useQuery({
     queryKey: ["plan-entitlements", id],
     queryFn: () => listPlanEntitlements(id),
+    enabled: !!id,
+  });
+
+  const subscribersQ = useQuery({
+    queryKey: ["plan-subscribers", id],
+    queryFn: () => listPlanSubscribers(id),
     enabled: !!id,
   });
 
@@ -100,6 +107,8 @@ export function PlanDetailPage() {
 
   const plan = planQ.data;
   const visiblePathSet = new Set(fieldEntsQ.data?.map((f) => f.fieldPath) ?? []);
+  const subscribers = subscribersQ.data ?? [];
+  const activeCount = subscribers.filter((s) => s.status === "ACTIVE").length;
 
   return (
     <div>
@@ -128,6 +137,69 @@ export function PlanDetailPage() {
           </div>
         }
       />
+
+      {/* Subscribers — who joined this plan */}
+      <Card className="mb-4">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-text-muted" />
+            <CardTitle>{t("plans.detail.subscribers")}</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge tone="emerald">
+              {t("plans.detail.activeBadge", { value: activeCount })}
+            </Badge>
+            <Badge tone="neutral">
+              {t("plans.detail.totalBadge", { value: subscribers.length })}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardBody className="p-0">
+          {subscribersQ.isLoading ? (
+            <div className="p-6">
+              <PageLoader />
+            </div>
+          ) : subscribers.length ? (
+            <div className="divide-y divide-border/10">
+              {subscribers.map((s) => (
+                <button
+                  key={s.subscriptionId}
+                  type="button"
+                  onClick={() => navigate(`/tenants/${s.tenantId}`)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-start hover:bg-bg-elevated/40 transition-colors"
+                >
+                  <Building2 className="h-4 w-4 text-text-muted shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">
+                      {s.tenantLegalName ?? s.tenantId.slice(0, 8)}
+                    </div>
+                    <div className="text-xs text-text-muted truncate">
+                      {s.tenantCode && (
+                        <span className="font-mono">{s.tenantCode}</span>
+                      )}
+                      {s.tenantCode && <span className="mx-1">·</span>}
+                      {t("subscriptions.fields.startDate")}: {s.startDate}
+                      {s.endDate && (
+                        <>
+                          {" · "}
+                          {t("subscriptions.fields.endDate")}: {s.endDate}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <Badge tone={statusTone(s.status)}>
+                    {t(`status.${s.status}`, s.status)}
+                  </Badge>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="px-6 py-8 text-center text-xs text-text-muted">
+              {t("plans.detail.noSubscribers")}
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Operation entitlements */}

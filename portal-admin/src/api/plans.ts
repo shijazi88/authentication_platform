@@ -56,6 +56,39 @@ export type UpdateEntitlementLimitsRequest = {
   monthlyQuota: number | null;
 };
 
+export type PlanSubscriberCount = {
+  planId: string;
+  total: number;
+  active: number;
+};
+
+export type PlanSubscriberView = {
+  subscriptionId: string;
+  tenantId: string;
+  tenantCode: string | null;
+  tenantLegalName: string | null;
+  status: "PENDING" | "ACTIVE" | "SUSPENDED" | "CANCELED" | "EXPIRED";
+  startDate: string;
+  endDate: string | null;
+  createdAt: string;
+};
+
+export async function listPlanSubscriberCounts(): Promise<PlanSubscriberCount[]> {
+  const { data } = await api.get<PlanSubscriberCount[]>(
+    "/admin/plans/subscriber-counts",
+  );
+  return data;
+}
+
+export async function listPlanSubscribers(
+  planId: string,
+): Promise<PlanSubscriberView[]> {
+  const { data } = await api.get<PlanSubscriberView[]>(
+    `/admin/plans/${planId}/subscribers`,
+  );
+  return data;
+}
+
 export async function updateEntitlementLimits(
   planId: string,
   entitlementId: string,

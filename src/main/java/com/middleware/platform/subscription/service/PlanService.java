@@ -10,11 +10,17 @@ import com.middleware.platform.config.CacheConfig;
 import com.middleware.platform.subscription.domain.Plan;
 import com.middleware.platform.subscription.domain.PlanEntitlement;
 import com.middleware.platform.subscription.domain.PlanFieldEntitlement;
+import com.middleware.platform.iam.domain.Tenant;
+import com.middleware.platform.iam.repo.TenantRepository;
+import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.dto.AddPlanEntitlementRequest;
 import com.middleware.platform.subscription.dto.CreatePlanRequest;
+import com.middleware.platform.subscription.dto.PlanSubscriberCount;
+import com.middleware.platform.subscription.dto.PlanSubscriberView;
 import com.middleware.platform.subscription.repo.PlanEntitlementRepository;
 import com.middleware.platform.subscription.repo.PlanFieldEntitlementRepository;
 import com.middleware.platform.subscription.repo.PlanRepository;
+import com.middleware.platform.subscription.repo.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
@@ -34,6 +40,8 @@ public class PlanService {
     private final PlanFieldEntitlementRepository fieldEntitlementRepository;
     private final FieldDefinitionRepository fieldRepository;
     private final CatalogService catalogService;
+    private final SubscriptionRepository subscriptionRepository;
+    private final TenantRepository tenantRepository;
 
     @Transactional
     public Plan create(CreatePlanRequest req) {
@@ -109,6 +117,51 @@ public class PlanService {
     @Transactional(readOnly = true)
     public List<PlanFieldEntitlement> listFieldEntitlements(UUID planId) {
         return fieldEntitlementRepository.findByPlanId(planId);
+    }
+
+    /**
+     * Lists all subscriptions on a given plan, joined with the tenant's
+     * legal name + code so the UI can render the "who joined" table
+     * without firing one /admin/tenants/{id} request per row.
+     */
+    @Transactional(readOnly = true)
+    public List<PlanSubscriberView> listSubscribers(UUID planId) {
+        planRepository.findById(planId)
+                .orElseThrow(() -> ApplicationException.notFound("Plan"));
+        List<Subscription> subs = subscriptionRepository.findByPlanId(planId);
+        if (subs.isEmpty()) return List.of();
+        List<UUID> tenantIds = subs.stream().map(Subscription::getTenantId).distinct().toList();
+        Map<UUID, Tenant> byId = tenantRepository.findAllById(tenantIds).stream()
+                .collect(Collectors.toMap(Tenant::getId, t -> t));
+        return subs.stream()
+                .map(s -> {
+                    Tenant t = byId.get(s.getTenantId());
+                    return new PlanSubscriberView(
+                            s.getId(),
+                            s.getTenantId(),
+                            t != null ? t.getCode() : null,
+                            t != null ? t.getLegalName() : null,
+                            s.getStatus(),
+                            s.getStartDate(),
+                            s.getEndDate(),
+                            s.getCreatedAt()
+                    );
+                })
+                .toList();
+    }
+
+    /**
+     * Aggregate subscription counts (total + active) per plan. Single
+     * grouped query; the plans list page calls this once.
+     */
+    @Transactional(readOnly = true)
+    public List<PlanSubscriberCount> subscriberCounts() {
+        return subscriptionRepository.countByPlanRaw().stream()
+                .map(row -> new PlanSubscriberCount(
+                        (UUID) row[0],
+                        ((Number) row[1]).longValue(),
+                        row[2] != null ? ((Number) row[2]).longValue() : 0L))
+                .toList();
     }
 
     @Transactional

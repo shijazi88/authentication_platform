@@ -6,8 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Plus, Layers } from "lucide-react";
-import { listPlans, createPlan } from "@/api/plans";
+import { Plus, Layers, Users } from "lucide-react";
+import {
+  listPlans,
+  createPlan,
+  listPlanSubscriberCounts,
+} from "@/api/plans";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -36,6 +40,13 @@ export function PlansPage() {
   const [open, setOpen] = useState(false);
 
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
+  const countsQ = useQuery({
+    queryKey: ["plan-subscriber-counts"],
+    queryFn: listPlanSubscriberCounts,
+  });
+  const countByPlan = new Map(
+    countsQ.data?.map((c) => [c.planId, c]) ?? [],
+  );
 
   const createMut = useMutation({
     mutationFn: createPlan,
@@ -82,39 +93,65 @@ export function PlansPage() {
                 <Th>{t("common.code")}</Th>
                 <Th>{t("common.name")}</Th>
                 <Th>{t("plans.fields.baseFee")}</Th>
-                <Th>{t("common.currency")}</Th>
+                <Th>{t("plans.fields.subscribers")}</Th>
                 <Th>{t("common.status")}</Th>
                 <Th>{t("common.id")}</Th>
               </Tr>
             </THead>
             <TBody>
-              {plansQ.data.map((p) => (
-                <Tr
-                  key={p.id}
-                  className="cursor-pointer"
-                  onClick={() => navigate(`/plans/${p.id}`)}
-                >
-                  <Td className="font-mono">{p.code}</Td>
-                  <Td>
-                    <div className="font-medium">{p.name}</div>
-                    {p.description && (
-                      <div className="text-xs text-text-muted mt-0.5 line-clamp-1">
-                        {p.description}
+              {plansQ.data.map((p) => {
+                const c = countByPlan.get(p.id);
+                const total = c?.total ?? 0;
+                const active = c?.active ?? 0;
+                return (
+                  <Tr
+                    key={p.id}
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/plans/${p.id}`)}
+                  >
+                    <Td className="font-mono">{p.code}</Td>
+                    <Td>
+                      <div className="font-medium">{p.name}</div>
+                      {p.description && (
+                        <div className="text-xs text-text-muted mt-0.5 line-clamp-1">
+                          {p.description}
+                        </div>
+                      )}
+                    </Td>
+                    <Td>
+                      <div>{formatMoneyMinor(p.baseFeeMinor, p.currency)}</div>
+                      <div className="text-xs text-text-muted">
+                        {p.currency}
                       </div>
-                    )}
-                  </Td>
-                  <Td>{formatMoneyMinor(p.baseFeeMinor, p.currency)}</Td>
-                  <Td className="text-text-muted">{p.currency}</Td>
-                  <Td>
-                    <Badge tone={p.active ? "emerald" : "neutral"}>
-                      {p.active ? t("common.active") : t("common.inactive")}
-                    </Badge>
-                  </Td>
-                  <Td className="font-mono text-xs text-text-dim">
-                    {shortId(p.id)}
-                  </Td>
-                </Tr>
-              ))}
+                    </Td>
+                    <Td>
+                      <div className="inline-flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5 text-text-muted" />
+                        {total > 0 ? (
+                          <>
+                            <span className="font-medium">{active}</span>
+                            <span className="text-text-dim">
+                              {t("plans.fields.activeOfTotal", { total })}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-text-dim">
+                            {t("plans.fields.noSubscribers")}
+                          </span>
+                        )}
+                      </div>
+                    </Td>
+                    <Td>
+                      <Badge tone={p.active ? "emerald" : "neutral"}>
+                        {p.active ? t("common.active") : t("common.inactive")}
+                      </Badge>
+                    </Td>
+                    <Td className="font-mono text-xs text-text-dim">
+                      {shortId(p.id)}
+                    </Td>
+                  </Tr>
+                );
+              })}
             </TBody>
           </Table>
         ) : (

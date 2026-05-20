@@ -5,6 +5,8 @@ import com.middleware.platform.subscription.domain.PlanEntitlement;
 import com.middleware.platform.subscription.domain.PlanFieldEntitlement;
 import com.middleware.platform.subscription.dto.AddPlanEntitlementRequest;
 import com.middleware.platform.subscription.dto.CreatePlanRequest;
+import com.middleware.platform.subscription.dto.PlanSubscriberCount;
+import com.middleware.platform.subscription.dto.PlanSubscriberView;
 import com.middleware.platform.subscription.dto.UpdateEntitlementLimitsRequest;
 import com.middleware.platform.subscription.service.PlanService;
 import jakarta.validation.Valid;
@@ -31,8 +33,18 @@ public class PlanController {
     @GetMapping
     public List<Plan> list() { return planService.list(); }
 
+    @GetMapping("/subscriber-counts")
+    public List<PlanSubscriberCount> subscriberCounts() {
+        return planService.subscriberCounts();
+    }
+
     @GetMapping("/{id}")
     public Plan get(@PathVariable UUID id) { return planService.get(id); }
+
+    @GetMapping("/{id}/subscribers")
+    public List<PlanSubscriberView> listSubscribers(@PathVariable UUID id) {
+        return planService.listSubscribers(id);
+    }
 
     @PostMapping("/{id}/entitlements")
     @ResponseStatus(HttpStatus.CREATED)
