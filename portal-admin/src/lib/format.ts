@@ -9,9 +9,10 @@ import { format, formatDistanceToNow, parseISO } from "date-fns";
 function activeLocale(): string {
   if (typeof document === "undefined") return "en-US";
   const lang = document.documentElement.lang || "en";
-  // Use ar-YE specifically — gives the correct Yemeni Rial symbol (ر.ي.‏)
-  // and Eastern Arabic numerals where appropriate.
-  return lang === "ar" ? "ar-YE" : "en-US";
+  // Use ar-YE for Arabic conventions, but force Latin (Western) digits via
+  // the -u-nu-latn extension so numbers render as 250 / 1,234,567 rather
+  // than Eastern Arabic numerals (٢٥٠).
+  return lang === "ar" ? "ar-YE-u-nu-latn" : "en-US";
 }
 
 /**
