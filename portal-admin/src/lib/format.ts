@@ -26,9 +26,13 @@ function activeLocale(): string {
  */
 export function formatMoneyMinor(amountMinor: number, currency = "YER") {
   const fractionDigits = currency === "YER" ? 0 : 2;
+  const isArabic = activeLocale().startsWith("ar");
   return new Intl.NumberFormat(activeLocale(), {
     style: "currency",
     currency,
+    // Arabic renders the YER symbol as "ر.ي.‏"; show the ISO code "YER"
+    // instead per brand preference. English keeps the symbol ($, YER, …).
+    currencyDisplay: isArabic ? "code" : "symbol",
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(amountMinor / 100);
