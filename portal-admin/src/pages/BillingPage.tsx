@@ -152,12 +152,12 @@ export function BillingPage() {
                     <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                       <stop
                         offset="0%"
-                        stopColor="#d4a017"
+                        stopColor="#003b73"
                         stopOpacity={0.95}
                       />
                       <stop
                         offset="100%"
-                        stopColor="#1e4e8c"
+                        stopColor="#2f7fc9"
                         stopOpacity={0.7}
                       />
                     </linearGradient>

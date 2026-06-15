@@ -95,7 +95,7 @@ export function DashboardPage() {
             summaryQ.data?.[0]?.currency ?? "YER",
           )}
           icon={<TrendingUp className="h-4 w-4" />}
-          accentClass="from-accent-amber to-accent-violet"
+          accentClass="from-accent-cyan to-accent-violet"
         />
       </div>
 
@@ -167,8 +167,8 @@ export function DashboardPage() {
                 <BarChart data={chartData}>
                   <defs>
                     <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#1e4e8c" stopOpacity={0.95} />
-                      <stop offset="100%" stopColor="#d4a017" stopOpacity={0.7} />
+                      <stop offset="0%" stopColor="#003b73" stopOpacity={0.95} />
+                      <stop offset="100%" stopColor="#2f7fc9" stopOpacity={0.7} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid
