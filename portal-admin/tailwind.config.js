@@ -34,22 +34,25 @@ export default {
           DEFAULT: "rgb(var(--border) / <alpha-value>)",
           strong: "rgb(var(--border-strong) / <alpha-value>)",
         },
-        // MOTABIQ palette: teal (primary), gold (accent), navy (deep ground).
+        // MOTABIQ palette: navy (primary), azure (accent), deep navy ground.
         // Legacy aliases (`violet`, `cyan`, `emerald`) remap to the new palette so
         // existing gradient class names like `from-accent-violet to-accent-cyan`
-        // render as teal→gold without per-component edits.
+        // render as navy→azure without per-component edits.
         accent: {
-          DEFAULT: "#24bda5",
+          DEFAULT: "#003b73",
           // New semantic names — prefer these in new code:
-          teal: "#24bda5",     // primary — MOTABIQ teal
-          gold: "#d8aa50",     // accent — MOTABIQ gold
-          mint: "#79e2d0",     // lighter teal — for eyebrows / highlights
-          navy: "#071829",     // deepest ground (dark mode)
+          navy: "#003b73",     // primary — MOTABIQ navy (brand mark color)
+          azure: "#2f7fc9",    // accent — brighter blue for gradients / CTAs
+          sky: "#7fb3e6",      // lightest blue — for eyebrows / highlights
+          deep: "#06192e",     // deepest ground (dark mode)
           green: "#1f7a4d",    // success — kept for semantic statuses
           // Legacy aliases (point at MOTABIQ palette so existing class names work):
-          violet: "#24bda5",   // → teal
-          cyan: "#d8aa50",     // → gold
-          blue: "#24bda5",     // → teal
+          teal: "#003b73",     // → navy
+          gold: "#2f7fc9",     // → azure
+          mint: "#7fb3e6",     // → sky
+          violet: "#003b73",   // → navy
+          cyan: "#2f7fc9",     // → azure
+          blue: "#003b73",     // → navy
           emerald: "#1f7a4d",  // → green
           // Unchanged signal colors:
           amber: "#f59e0b",    // warnings
@@ -65,15 +68,16 @@ export default {
         "gradient-mesh": "var(--gradient-mesh)",
         "grid-pattern": "var(--grid-pattern)",
         "accent-gradient":
-          "linear-gradient(135deg, #24bda5 0%, #d8aa50 100%)",
+          "linear-gradient(135deg, #003b73 0%, #2f7fc9 100%)",
       },
       backgroundSize: {
         "grid-32": "32px 32px",
       },
       boxShadow: {
-        glow: "0 0 40px -10px rgba(36,189,165,0.5)",       // MOTABIQ teal glow
-        "glow-cyan": "0 0 40px -10px rgba(216,170,80,0.5)", // MOTABIQ gold glow (legacy name)
-        "glow-gold": "0 0 40px -10px rgba(216,170,80,0.5)",
+        glow: "0 0 40px -10px rgba(0,59,115,0.5)",          // MOTABIQ navy glow
+        "glow-cyan": "0 0 40px -10px rgba(47,127,201,0.5)", // MOTABIQ azure glow (legacy name)
+        "glow-gold": "0 0 40px -10px rgba(47,127,201,0.5)",
+        "glow-azure": "0 0 40px -10px rgba(47,127,201,0.5)",
         "glow-green": "0 0 40px -10px rgba(31,122,77,0.5)",
         card: "var(--shadow-card)",
       },

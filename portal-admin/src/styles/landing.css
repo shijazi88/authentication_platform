@@ -12,11 +12,11 @@
   /* --- Light theme defaults --- */
   --bg-deep: #f7f9fb;
   --bg-shell: #ffffff;
-  --bg-veil: rgba(36, 189, 165, 0.06);
+  --bg-veil: rgba(0, 59, 115, 0.06);
 
-  --primary-teal: #1a9889;  /* darkened for contrast on white */
-  --primary-gold: #b88a36;
-  --mint: #2bb89e;
+  --primary-teal: #003b73;  /* darkened for contrast on white */
+  --primary-gold: #2f7fc9;
+  --mint: #5a93d6;
 
   --ink: #0a1e2e;
   --ink-muted: #4f5e70;
@@ -29,7 +29,7 @@
 
   background: radial-gradient(
     circle at 20% 0%,
-    rgba(36, 189, 165, 0.12) 0%,
+    rgba(0, 59, 115, 0.12) 0%,
     rgba(255, 255, 255, 1) 35%,
     var(--bg-deep) 100%
   );
@@ -43,11 +43,11 @@
   /* --- Dark theme overrides --- */
   --bg-deep: #050c14;
   --bg-shell: #071829;
-  --bg-veil: rgba(36, 189, 165, 0.05);
+  --bg-veil: rgba(0, 59, 115, 0.05);
 
-  --primary-teal: #24bda5;
-  --primary-gold: #d8aa50;
-  --mint: #79e2d0;
+  --primary-teal: #003b73;
+  --primary-gold: #2f7fc9;
+  --mint: #7fb3e6;
 
   --ink: #f6f9fb;
   --ink-muted: #a8b5c4;
@@ -96,7 +96,7 @@
   border-radius: 15px;
   background: linear-gradient(135deg, var(--primary-teal), var(--primary-gold));
   color: #06121e; font-weight: 900;
-  box-shadow: 0 12px 30px rgba(36, 189, 165, 0.24);
+  box-shadow: 0 12px 30px rgba(0, 59, 115, 0.24);
 }
 .motabiq-landing .brand strong { display: block; letter-spacing: 0.18em; }
 .motabiq-landing .brand em {
@@ -110,7 +110,7 @@
 .motabiq-landing .nav a:hover { color: var(--ink); }
 .motabiq-landing .nav-cta {
   padding: 10px 16px;
-  border: 1px solid rgba(216, 170, 80, 0.55);
+  border: 1px solid rgba(47, 127, 201, 0.55);
   border-radius: 999px;
   color: var(--primary-gold) !important;
 }
@@ -186,7 +186,7 @@
 .motabiq-landing .hero-visual img {
   width: 100%; border-radius: 34px;
   box-shadow: var(--shadow); border: 1px solid var(--line);
-  filter: drop-shadow(0 10px 30px rgba(36, 189, 165, 0.18));
+  filter: drop-shadow(0 10px 30px rgba(0, 59, 115, 0.18));
 }
 .motabiq-landing .orb {
   position: absolute; border-radius: 50%;
@@ -265,14 +265,14 @@
 .motabiq-landing .use-grid { grid-template-columns: repeat(4, 1fr); }
 .motabiq-landing .use-card {
   min-height: 260px;
-  background: radial-gradient(circle at top right, rgba(36, 189, 165, 0.16), var(--surface));
+  background: radial-gradient(circle at top right, rgba(0, 59, 115, 0.16), var(--surface));
   position: relative; overflow: hidden;
 }
 .motabiq-landing .use-card::after {
   content: "";
   position: absolute;
   width: 130px; height: 130px;
-  border: 1px solid rgba(216, 170, 80, 0.25);
+  border: 1px solid rgba(47, 127, 201, 0.25);
   border-radius: 50%;
   right: -40px; bottom: -40px;
 }
@@ -335,16 +335,16 @@
 .motabiq-landing .arch-node b { font-size: 19px; }
 .motabiq-landing .arch-node span { color: var(--ink-muted); font-size: 13px; }
 .motabiq-landing .arch-node.hot {
-  background: linear-gradient(135deg, rgba(36, 189, 165, 0.22), rgba(216, 170, 80, 0.14));
-  border-color: rgba(216, 170, 80, 0.4);
+  background: linear-gradient(135deg, rgba(0, 59, 115, 0.22), rgba(47, 127, 201, 0.14));
+  border-color: rgba(47, 127, 201, 0.4);
 }
 .motabiq-landing .arch-arrow { color: var(--primary-gold); font-size: 32px; }
 
 .motabiq-landing .governance-band {
   margin-top: 18px; padding: 22px;
-  border: 1px solid rgba(216, 170, 80, 0.35);
+  border: 1px solid rgba(47, 127, 201, 0.35);
   border-radius: 22px;
-  background: rgba(216, 170, 80, 0.08);
+  background: rgba(47, 127, 201, 0.08);
   display: flex; gap: 18px; justify-content: center; flex-wrap: wrap;
 }
 .motabiq-landing .governance-band span { color: var(--primary-gold); }
@@ -368,7 +368,7 @@
 .motabiq-landing .product-grid { grid-template-columns: repeat(4, 1fr); }
 
 .motabiq-landing .contact-section {
-  background: radial-gradient(circle at center, rgba(36, 189, 165, 0.14), transparent 55%);
+  background: radial-gradient(circle at center, rgba(0, 59, 115, 0.14), transparent 55%);
 }
 .motabiq-landing .contact-card {
   max-width: 980px; margin: auto; text-align: center;

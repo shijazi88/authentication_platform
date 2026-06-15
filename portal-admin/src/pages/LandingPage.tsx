@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Moon, Sun } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { usePrefs } from "@/lib/prefs";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import "@/styles/landing.css";
 
 /** Picks the right copy variant from the inline {en, ar} pair. */
@@ -48,7 +49,7 @@ export function LandingPage() {
 
       <header className="site-header">
         <a className="brand" href="#home" aria-label="MOTABIQ Home">
-          <span className="brand-mark">M</span>
+          <BrandLogo size={44} />
           <span>
             <strong>MOTABIQ</strong>
             <em>مطابق</em>
@@ -140,7 +141,7 @@ export function LandingPage() {
             </div>
           </div>
           <div className="hero-visual reveal delay-1">
-            <img src="/motabiq-3d-logo.png" alt="MOTABIQ 3D Logo" />
+            <img src="/motabiq-logo-navy.png" alt="MOTABIQ" />
             <div className="orb orb-1" />
             <div className="orb orb-2" />
           </div>

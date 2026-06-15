@@ -1,9 +1,9 @@
 import { cn } from "@/lib/cn";
 
 /**
- * MOTABIQ brand mark — the "M" inside a gradient rounded square. Inline
- * SVG keeps the network cost ~0 vs the bundled PNG (which is reserved
- * for the marketing site's hero render).
+ * MOTABIQ brand mark — the navy woven-diamond lattice with a centered
+ * checkmark, on a rounded navy tile. Inline SVG keeps the network cost ~0
+ * vs the bundled PNG (which is reserved for the marketing site's hero render).
  */
 export function BrandLogo({
   size = 36,
@@ -22,24 +22,39 @@ export function BrandLogo({
       aria-label="MOTABIQ"
       className={cn("shrink-0", className)}
     >
-      <defs>
-        <linearGradient id="motabiq-mark" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#24bda5" />
-          <stop offset="100%" stopColor="#d8aa50" />
-        </linearGradient>
-      </defs>
-      <rect width="44" height="44" rx="13" fill="url(#motabiq-mark)" />
-      <text
-        x="22"
-        y="29"
-        textAnchor="middle"
-        fontFamily="Inter, system-ui, sans-serif"
-        fontWeight="900"
-        fontSize="22"
-        fill="#06121e"
-      >
-        M
-      </text>
+      <rect width="44" height="44" rx="13" fill="#003b73" />
+      <g fill="#fff" transform="rotate(45 22 22)">
+        <rect x="6" y="7.5" width="5.6" height="2.6" rx="1.3" />
+        <rect x="14.1" y="6" width="2.6" height="5.6" rx="1.3" />
+        <rect x="19.2" y="7.5" width="5.6" height="2.6" rx="1.3" />
+        <rect x="27.3" y="6" width="2.6" height="5.6" rx="1.3" />
+        <rect x="32.4" y="7.5" width="5.6" height="2.6" rx="1.3" />
+        <rect x="7.5" y="12.6" width="2.6" height="5.6" rx="1.3" />
+        <rect x="12.6" y="14.1" width="5.6" height="2.6" rx="1.3" />
+        <rect x="20.7" y="12.6" width="2.6" height="5.6" rx="1.3" />
+        <rect x="25.8" y="14.1" width="5.6" height="2.6" rx="1.3" />
+        <rect x="33.9" y="12.6" width="2.6" height="5.6" rx="1.3" />
+        <rect x="6" y="20.7" width="5.6" height="2.6" rx="1.3" />
+        <rect x="32.4" y="20.7" width="5.6" height="2.6" rx="1.3" />
+        <rect x="7.5" y="25.8" width="2.6" height="5.6" rx="1.3" />
+        <rect x="12.6" y="27.3" width="5.6" height="2.6" rx="1.3" />
+        <rect x="20.7" y="25.8" width="2.6" height="5.6" rx="1.3" />
+        <rect x="25.8" y="27.3" width="5.6" height="2.6" rx="1.3" />
+        <rect x="33.9" y="25.8" width="2.6" height="5.6" rx="1.3" />
+        <rect x="6" y="33.9" width="5.6" height="2.6" rx="1.3" />
+        <rect x="14.1" y="32.4" width="2.6" height="5.6" rx="1.3" />
+        <rect x="19.2" y="33.9" width="5.6" height="2.6" rx="1.3" />
+        <rect x="27.3" y="32.4" width="2.6" height="5.6" rx="1.3" />
+        <rect x="32.4" y="33.9" width="5.6" height="2.6" rx="1.3" />
+      </g>
+      <path
+        d="M16 22.2 L20.4 26.6 L29 17.6"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="3.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

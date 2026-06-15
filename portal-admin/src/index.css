@@ -27,14 +27,14 @@
     --glass-bg: 255 255 255 / 0.75;
     --glass-border: 15 18 24 / 0.06;
 
-    /* MOTABIQ gradient mesh: teal + gold halos (light mode) */
+    /* MOTABIQ gradient mesh: navy + azure halos (light mode) */
     --gradient-mesh: radial-gradient(
         at 12% 0%,
-        rgba(36, 189, 165, 0.10) 0px,
+        rgba(0, 59, 115, 0.10) 0px,
         transparent 50%
       ),
-      radial-gradient(at 90% 8%, rgba(216, 170, 80, 0.10) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(36, 189, 165, 0.07) 0px, transparent 50%);
+      radial-gradient(at 90% 8%, rgba(47, 127, 201, 0.10) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(0, 59, 115, 0.07) 0px, transparent 50%);
     --grid-pattern: linear-gradient(rgba(15, 18, 24, 0.045) 1px, transparent 1px),
       linear-gradient(90deg, rgba(15, 18, 24, 0.045) 1px, transparent 1px);
     --shadow-card: 0 1px 0 0 rgba(255, 255, 255, 0.6) inset,
@@ -62,16 +62,16 @@
     --glass-bg: 255 255 255 / 0.02;
     --glass-border: 255 255 255 / 0.06;
 
-    /* MOTABIQ gradient mesh: brighter teal+gold halos for dark-mode contrast */
+    /* MOTABIQ gradient mesh: brighter navy+azure halos for dark-mode contrast */
     --gradient-mesh: radial-gradient(
         at 12% 0%,
-        rgba(36, 189, 165, 0.22) 0px,
+        rgba(47, 127, 201, 0.22) 0px,
         transparent 50%
       ),
-      radial-gradient(at 90% 8%, rgba(216, 170, 80, 0.18) 0px, transparent 50%),
+      radial-gradient(at 90% 8%, rgba(47, 127, 201, 0.18) 0px, transparent 50%),
       radial-gradient(
         at 50% 100%,
-        rgba(36, 189, 165, 0.12) 0px,
+        rgba(0, 59, 115, 0.18) 0px,
         transparent 50%
       );
     --grid-pattern: linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
@@ -104,7 +104,7 @@
   }
 
   ::selection {
-    background-color: rgba(36, 189, 165, 0.45);
+    background-color: rgba(0, 59, 115, 0.45);
     color: #fff;
   }
 
@@ -170,8 +170,8 @@
     border-radius: inherit;
     background: linear-gradient(
       135deg,
-      rgba(36, 189, 165, 0.55),
-      rgba(216, 170, 80, 0.55)
+      rgba(0, 59, 115, 0.55),
+      rgba(47, 127, 201, 0.55)
     );
     -webkit-mask:
       linear-gradient(#000 0 0) content-box,
