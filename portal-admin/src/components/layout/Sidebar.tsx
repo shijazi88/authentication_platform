@@ -11,7 +11,6 @@ import {
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { BrandLogo } from "@/components/ui/BrandLogo";
 
 const navItems = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
@@ -31,7 +30,13 @@ export function Sidebar() {
     <aside className="w-64 shrink-0 h-screen sticky top-0 glass border-e border-border/10 flex flex-col">
       {/* Brand */}
       <div className="px-5 py-4 border-b border-border/10 flex items-center gap-3">
-        <BrandLogo size={36} />
+        <img
+          src="/motabiq-primary.svg"
+          alt="MOTABIQ"
+          width={36}
+          height={36}
+          className="shrink-0"
+        />
         <div className="min-w-0">
           <div className="text-base font-bold text-gradient leading-tight truncate">
             {t("brand.name")}
