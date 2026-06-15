@@ -19,6 +19,8 @@ import { Label } from "@/components/ui/Label";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, shortId } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { canWrite } from "@/lib/access";
 
 const schema = z.object({
   code: z.string().min(2).max(64),
@@ -32,6 +34,8 @@ export function TenantsPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const role = useAuth((s) => s.role);
+  const writable = canWrite(role);
 
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
 
@@ -66,12 +70,14 @@ export function TenantsPage() {
         title={t("tenants.title")}
         description={t("tenants.subtitle")}
         actions={
-          <Button
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => setOpen(true)}
-          >
-            {t("tenants.newTenant")}
-          </Button>
+          writable ? (
+            <Button
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => setOpen(true)}
+            >
+              {t("tenants.newTenant")}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -136,12 +142,14 @@ export function TenantsPage() {
             title={t("tenants.empty.title")}
             description={t("tenants.empty.description")}
             action={
-              <Button
-                leftIcon={<Plus className="h-4 w-4" />}
-                onClick={() => setOpen(true)}
-              >
-                {t("tenants.empty.cta")}
-              </Button>
+              writable ? (
+                <Button
+                  leftIcon={<Plus className="h-4 w-4" />}
+                  onClick={() => setOpen(true)}
+                >
+                  {t("tenants.empty.cta")}
+                </Button>
+              ) : undefined
             }
           />
         )}

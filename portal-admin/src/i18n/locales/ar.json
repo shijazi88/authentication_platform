@@ -60,7 +60,8 @@
     "catalog": "كتالوج الخدمات",
     "transactions": "المعاملات",
     "reports": "التقارير",
-    "billing": "الفوترة"
+    "billing": "الفوترة",
+    "users": "المستخدمون"
   },
   "topbar": {
     "searchPlaceholder": "ابحث عن عملاء أو معاملات…",
@@ -310,5 +311,39 @@
       "description": "ستظهر المعاملات الناجحة القابلة للفوترة هنا فور تسجيلها."
     },
     "noPeriodEvents": "لا توجد أحداث فوترة في هذه الفترة."
+  },
+  "roles": {
+    "SUPER_ADMIN": "مدير عام",
+    "PLATFORM_OPS": "العمليات",
+    "FINANCE": "المالية",
+    "AUDITOR": "مدقق"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة حسابات المسؤولين وأدوارهم.",
+    "newUser": "مستخدم جديد",
+    "editUser": "تعديل المستخدم",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetPasswordFor": "إعادة تعيين كلمة المرور لـ {{email}}",
+    "activate": "تفعيل",
+    "deactivate": "إلغاء التفعيل",
+    "never": "أبداً",
+    "created": "تم إنشاء المستخدم",
+    "updated": "تم تحديث المستخدم",
+    "statusChanged": "تم تحديث الحالة",
+    "passwordReset": "تمت إعادة تعيين كلمة المرور",
+    "saveError": "تعذّر حفظ التغييرات",
+    "passwordHint": "8 أحرف على الأقل.",
+    "fields": {
+      "email": "البريد الإلكتروني",
+      "role": "الدور",
+      "password": "كلمة المرور",
+      "newPassword": "كلمة المرور الجديدة",
+      "lastLogin": "آخر دخول"
+    },
+    "empty": {
+      "title": "لا يوجد مستخدمون بعد",
+      "description": "أنشئ أول حساب مسؤول للبدء."
+    }
   }
 }

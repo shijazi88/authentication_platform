@@ -4,8 +4,12 @@ import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.iam.domain.AdminRole;
 import com.middleware.platform.iam.domain.AdminUser;
+import com.middleware.platform.iam.dto.AdminUserResponse;
+import com.middleware.platform.iam.dto.CreateAdminUserRequest;
 import com.middleware.platform.iam.dto.LoginRequest;
 import com.middleware.platform.iam.dto.LoginResponse;
+import com.middleware.platform.iam.dto.ResetPasswordRequest;
+import com.middleware.platform.iam.dto.UpdateAdminUserRequest;
 import com.middleware.platform.iam.repo.AdminUserRepository;
 import com.middleware.platform.iam.security.JwtService;
 import com.middleware.platform.iam.security.SecurityProperties;
@@ -18,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -67,5 +73,97 @@ public class AdminUserService {
         user.setLastLoginAt(Instant.now());
         String token = jwtService.issueAccessToken(user);
         return new LoginResponse(token, "Bearer", jwtService.accessTokenTtlSeconds(), user.getRole());
+    }
+
+    // ── Admin user management (SUPER_ADMIN only — enforced at the controller) ──
+
+    @Transactional(readOnly = true)
+    public List<AdminUserResponse> list() {
+        return userRepository.findAllByOrderByCreatedAtAsc().stream()
+                .map(AdminUserResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUserResponse get(UUID id) {
+        return AdminUserResponse.from(require(id));
+    }
+
+    @Transactional
+    public AdminUserResponse create(CreateAdminUserRequest req) {
+        assignableRole(req.role());
+        String email = req.email().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new ApplicationException(ErrorCode.CONFLICT, "A user with this email already exists");
+        }
+        AdminUser user = AdminUser.builder()
+                .email(email)
+                .passwordHash(passwordEncoder.encode(req.password()))
+                .displayName(blankToNull(req.displayName()))
+                .role(req.role())
+                .active(true)
+                .build();
+        userRepository.save(user);
+        log.info("Admin user created: {} ({})", email, req.role());
+        return AdminUserResponse.from(user);
+    }
+
+    @Transactional
+    public AdminUserResponse update(UUID id, UpdateAdminUserRequest req) {
+        assignableRole(req.role());
+        AdminUser user = require(id);
+        // Demoting the last active super-admin would lock everyone out of user management.
+        if (user.getRole() == AdminRole.SUPER_ADMIN && req.role() != AdminRole.SUPER_ADMIN) {
+            assertNotLastActiveSuperAdmin(user);
+        }
+        user.setDisplayName(blankToNull(req.displayName()));
+        user.setRole(req.role());
+        return AdminUserResponse.from(user);
+    }
+
+    @Transactional
+    public AdminUserResponse setActive(UUID id, boolean active, String currentUserEmail) {
+        AdminUser user = require(id);
+        if (!active) {
+            if (user.getEmail().equalsIgnoreCase(currentUserEmail)) {
+                throw new ApplicationException(ErrorCode.CONFLICT, "You cannot deactivate your own account");
+            }
+            if (user.getRole() == AdminRole.SUPER_ADMIN) {
+                assertNotLastActiveSuperAdmin(user);
+            }
+        }
+        user.setActive(active);
+        return AdminUserResponse.from(user);
+    }
+
+    @Transactional
+    public void resetPassword(UUID id, ResetPasswordRequest req) {
+        AdminUser user = require(id);
+        user.setPasswordHash(passwordEncoder.encode(req.password()));
+        log.info("Admin user password reset: {}", user.getEmail());
+    }
+
+    private AdminUser require(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, "User not found"));
+    }
+
+    /** AUDITOR is a legacy role that is no longer assignable through the portal. */
+    private void assignableRole(AdminRole role) {
+        if (role != AdminRole.SUPER_ADMIN && role != AdminRole.PLATFORM_OPS && role != AdminRole.FINANCE) {
+            throw new ApplicationException(ErrorCode.BAD_REQUEST, "Role is not assignable");
+        }
+    }
+
+    private void assertNotLastActiveSuperAdmin(AdminUser user) {
+        boolean lastOne = user.isActive()
+                && userRepository.countByRoleAndActiveTrue(AdminRole.SUPER_ADMIN) <= 1;
+        if (lastOne) {
+            throw new ApplicationException(ErrorCode.CONFLICT, "At least one active super-admin is required");
+        }
+    }
+
+    private static String blankToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
     }
 }

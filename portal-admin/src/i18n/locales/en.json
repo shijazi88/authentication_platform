@@ -60,7 +60,8 @@
     "catalog": "Service Catalog",
     "transactions": "Transactions",
     "reports": "Reports",
-    "billing": "Billing"
+    "billing": "Billing",
+    "users": "Users"
   },
   "topbar": {
     "searchPlaceholder": "Search clients, transactions…",
@@ -310,5 +311,39 @@
       "description": "Successful billable transactions will appear here as soon as they're recorded."
     },
     "noPeriodEvents": "No billing events in this period."
+  },
+  "roles": {
+    "SUPER_ADMIN": "Super Admin",
+    "PLATFORM_OPS": "Operation",
+    "FINANCE": "Finance",
+    "AUDITOR": "Auditor"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage admin accounts and their roles.",
+    "newUser": "New User",
+    "editUser": "Edit User",
+    "resetPassword": "Reset Password",
+    "resetPasswordFor": "Reset password for {{email}}",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "never": "Never",
+    "created": "User created",
+    "updated": "User updated",
+    "statusChanged": "Status updated",
+    "passwordReset": "Password reset",
+    "saveError": "Could not save changes",
+    "passwordHint": "At least 8 characters.",
+    "fields": {
+      "email": "Email",
+      "role": "Role",
+      "password": "Password",
+      "newPassword": "New Password",
+      "lastLogin": "Last Login"
+    },
+    "empty": {
+      "title": "No users yet",
+      "description": "Create the first admin account to get started."
+    }
   }
 }

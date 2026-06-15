@@ -9,8 +9,11 @@ import {
   Receipt,
   Library,
   BarChart3,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAuth } from "@/lib/auth";
+import { canAccess } from "@/lib/access";
 
 const navItems = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
@@ -21,10 +24,13 @@ const navItems = [
   { to: "/transactions", labelKey: "nav.transactions", icon: ScrollText },
   { to: "/reports", labelKey: "nav.reports", icon: BarChart3 },
   { to: "/billing", labelKey: "nav.billing", icon: Receipt },
+  { to: "/users", labelKey: "nav.users", icon: Users },
 ];
 
 export function Sidebar() {
   const { t } = useTranslation();
+  const role = useAuth((s) => s.role);
+  const visibleItems = navItems.filter((item) => canAccess(role, item.to));
 
   return (
     <aside className="w-64 shrink-0 h-screen sticky top-0 glass border-e border-border/10 flex flex-col">
@@ -49,7 +55,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, labelKey, icon: Icon, end }) => (
+        {visibleItems.map(({ to, labelKey, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}

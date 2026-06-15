@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,7 +19,21 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.http.HttpStatus;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
+
+    // Role groups for the /admin/** access matrix. hasAnyRole(...) prepends ROLE_.
+    // PLATFORM_OPS is surfaced in the portal as "Operation"; AUDITOR is a legacy
+    // read-only role (no longer assignable) kept here so existing accounts can
+    // still view data.
+    private static final String SUPER = "SUPER_ADMIN";
+    private static final String OPS = "PLATFORM_OPS";
+    private static final String FINANCE = "FINANCE";
+    private static final String AUDITOR = "AUDITOR";
+    /** Operational write roles. */
+    private static final String[] WRITE_ROLES = {SUPER, OPS};
+    /** Anyone who may read operational data. */
+    private static final String[] READ_ROLES = {SUPER, OPS, FINANCE, AUDITOR};
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -81,7 +96,23 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/admin/auth/login").permitAll()
-                        .requestMatchers("/admin/**").hasAnyRole("SUPER_ADMIN", "PLATFORM_OPS", "FINANCE", "AUDITOR")
+                        // User management — privileged (also guarded by @PreAuthorize).
+                        .requestMatchers("/admin/users/**").hasRole(SUPER)
+                        // Billing — finance + super only.
+                        .requestMatchers("/admin/billing/**").hasAnyRole(SUPER, FINANCE)
+                        // Service catalog + connector credentials — operational config.
+                        .requestMatchers("/admin/catalog/**", "/admin/moi-credentials/**").hasAnyRole(WRITE_ROLES)
+                        // Operational data: anyone may read, only super/ops may write.
+                        .requestMatchers(HttpMethod.GET,
+                                "/admin/tenants/**", "/admin/plans/**", "/admin/subscriptions/**").hasAnyRole(READ_ROLES)
+                        .requestMatchers(
+                                "/admin/tenants/**", "/admin/plans/**", "/admin/subscriptions/**").hasAnyRole(WRITE_ROLES)
+                        // Read-only surfaces (GET-only controllers).
+                        .requestMatchers(
+                                "/admin/transactions/**", "/admin/reports/**",
+                                "/admin/search/**", "/admin/audit/**").hasAnyRole(READ_ROLES)
+                        // Anything else under /admin is treated as an operational action.
+                        .requestMatchers("/admin/**").hasAnyRole(WRITE_ROLES)
                         .requestMatchers("/api/**").hasRole("TENANT")
                         .anyRequest().denyAll()
                 )

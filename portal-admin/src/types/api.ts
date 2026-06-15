@@ -34,6 +34,28 @@ export type LoginResponse = {
   role: AdminRole;
 };
 
+export type AdminUser = {
+  id: string;
+  email: string;
+  displayName: string | null;
+  role: AdminRole;
+  active: boolean;
+  createdAt: string;
+  lastLoginAt: string | null;
+};
+
+export type CreateUserRequest = {
+  email: string;
+  password: string;
+  displayName?: string;
+  role: AdminRole;
+};
+
+export type UpdateUserRequest = {
+  displayName?: string;
+  role: AdminRole;
+};
+
 export type Tenant = {
   id: string;
   code: string;

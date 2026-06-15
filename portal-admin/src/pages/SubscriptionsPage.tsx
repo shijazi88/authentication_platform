@@ -26,6 +26,8 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { canWrite } from "@/lib/access";
 import type { Subscription } from "@/types/api";
 
 type DialogState =
@@ -37,6 +39,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function SubscriptionsPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const role = useAuth((s) => s.role);
+  const writable = canWrite(role);
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
 
@@ -127,13 +131,15 @@ export function SubscriptionsPage() {
         title={t("subscriptions.title")}
         description={t("subscriptions.subtitle")}
         actions={
-          <Button
-            leftIcon={<Plus className="h-4 w-4" />}
-            disabled={!plansQ.data?.length || !tenantsQ.data?.length}
-            onClick={openCreate}
-          >
-            {t("subscriptions.newSubscription")}
-          </Button>
+          writable ? (
+            <Button
+              leftIcon={<Plus className="h-4 w-4" />}
+              disabled={!plansQ.data?.length || !tenantsQ.data?.length}
+              onClick={openCreate}
+            >
+              {t("subscriptions.newSubscription")}
+            </Button>
+          ) : undefined
         }
       />
 

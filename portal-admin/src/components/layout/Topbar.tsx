@@ -26,7 +26,7 @@ export function Topbar() {
         <LangToggle />
         <ThemeToggle />
         <div className="h-8 w-px bg-border/15 mx-1" />
-        <Badge tone="violet">{role ?? "—"}</Badge>
+        <Badge tone="violet">{role ? t(`roles.${role}`, role) : "—"}</Badge>
         <div className="text-xs text-text-muted hidden sm:block ms-2">
           {email}
         </div>

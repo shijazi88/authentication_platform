@@ -12,6 +12,8 @@ import {
   createPlan,
   listPlanSubscriberCounts,
 } from "@/api/plans";
+import { useAuth } from "@/lib/auth";
+import { canWrite } from "@/lib/access";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -38,6 +40,8 @@ export function PlansPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const role = useAuth((s) => s.role);
+  const writable = canWrite(role);
 
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
   const countsQ = useQuery({
@@ -74,12 +78,14 @@ export function PlansPage() {
         title={t("plans.title")}
         description={t("plans.subtitle")}
         actions={
-          <Button
-            leftIcon={<Plus className="h-4 w-4" />}
-            onClick={() => setOpen(true)}
-          >
-            {t("plans.newPlan")}
-          </Button>
+          writable ? (
+            <Button
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={() => setOpen(true)}
+            >
+              {t("plans.newPlan")}
+            </Button>
+          ) : undefined
         }
       />
 
