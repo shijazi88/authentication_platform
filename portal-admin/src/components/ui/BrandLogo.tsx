@@ -1,9 +1,9 @@
 import { cn } from "@/lib/cn";
 
 /**
- * MOTABIQ brand mark — the navy woven-diamond lattice with a centered
- * checkmark, on a rounded navy tile. Inline SVG keeps the network cost ~0
- * vs the bundled PNG (which is reserved for the marketing site's hero render).
+ * MOTABIQ brand mark — the official navy diamond from
+ * /public/motabiq-primary.svg. Single source of truth for the in-app logo
+ * (sidebar, login, landing header all render this).
  */
 export function BrandLogo({
   size = 36,
@@ -13,48 +13,12 @@ export function BrandLogo({
   className?: string;
 }) {
   return (
-    <svg
+    <img
+      src="/motabiq-primary.svg"
+      alt="MOTABIQ"
       width={size}
       height={size}
-      viewBox="0 0 44 44"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="MOTABIQ"
       className={cn("shrink-0", className)}
-    >
-      <rect width="44" height="44" rx="13" fill="#003b73" />
-      <g fill="#fff" transform="rotate(45 22 22)">
-        <rect x="6" y="7.5" width="5.6" height="2.6" rx="1.3" />
-        <rect x="14.1" y="6" width="2.6" height="5.6" rx="1.3" />
-        <rect x="19.2" y="7.5" width="5.6" height="2.6" rx="1.3" />
-        <rect x="27.3" y="6" width="2.6" height="5.6" rx="1.3" />
-        <rect x="32.4" y="7.5" width="5.6" height="2.6" rx="1.3" />
-        <rect x="7.5" y="12.6" width="2.6" height="5.6" rx="1.3" />
-        <rect x="12.6" y="14.1" width="5.6" height="2.6" rx="1.3" />
-        <rect x="20.7" y="12.6" width="2.6" height="5.6" rx="1.3" />
-        <rect x="25.8" y="14.1" width="5.6" height="2.6" rx="1.3" />
-        <rect x="33.9" y="12.6" width="2.6" height="5.6" rx="1.3" />
-        <rect x="6" y="20.7" width="5.6" height="2.6" rx="1.3" />
-        <rect x="32.4" y="20.7" width="5.6" height="2.6" rx="1.3" />
-        <rect x="7.5" y="25.8" width="2.6" height="5.6" rx="1.3" />
-        <rect x="12.6" y="27.3" width="5.6" height="2.6" rx="1.3" />
-        <rect x="20.7" y="25.8" width="2.6" height="5.6" rx="1.3" />
-        <rect x="25.8" y="27.3" width="5.6" height="2.6" rx="1.3" />
-        <rect x="33.9" y="25.8" width="2.6" height="5.6" rx="1.3" />
-        <rect x="6" y="33.9" width="5.6" height="2.6" rx="1.3" />
-        <rect x="14.1" y="32.4" width="2.6" height="5.6" rx="1.3" />
-        <rect x="19.2" y="33.9" width="5.6" height="2.6" rx="1.3" />
-        <rect x="27.3" y="32.4" width="2.6" height="5.6" rx="1.3" />
-        <rect x="32.4" y="33.9" width="5.6" height="2.6" rx="1.3" />
-      </g>
-      <path
-        d="M16 22.2 L20.4 26.6 L29 17.6"
-        fill="none"
-        stroke="#fff"
-        strokeWidth="3.1"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    />
   );
 }
