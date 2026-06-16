@@ -29,6 +29,7 @@ import { formatDate, shortId } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
 import { canManageBilling } from "@/lib/access";
 import { WalletCard } from "@/components/WalletCard";
+import { TenantPortalUsersCard } from "@/components/TenantPortalUsersCard";
 import type { ApiCredential } from "@/types/api";
 
 export function TenantDetailPage() {
@@ -213,6 +214,10 @@ export function TenantDetailPage() {
           <WalletCard tenantId={id} />
         </div>
       )}
+
+      <div className="mt-4">
+        <TenantPortalUsersCard tenantId={id} />
+      </div>
 
       <Dialog
         open={credDialogOpen}

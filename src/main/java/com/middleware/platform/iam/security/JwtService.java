@@ -1,6 +1,7 @@
 package com.middleware.platform.iam.security;
 
 import com.middleware.platform.iam.domain.AdminUser;
+import com.middleware.platform.iam.domain.TenantUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
@@ -45,6 +46,28 @@ public class JwtService {
 
     public long accessTokenTtlSeconds() {
         return props.jwt().accessTokenTtlMinutes() * 60L;
+    }
+
+    /** Role claim carried by tenant-portal tokens (→ ROLE_TENANT_USER). */
+    public static final String TENANT_USER_ROLE = "TENANT_USER";
+
+    /**
+     * Access token for a tenant-portal user. Carries the tenant id so requests
+     * can be scoped to that tenant, and a TENANT_USER role distinct from admins.
+     */
+    public String issueTenantToken(TenantUser user) {
+        Instant now = Instant.now();
+        Instant exp = now.plus(props.jwt().accessTokenTtlMinutes(), ChronoUnit.MINUTES);
+        return Jwts.builder()
+                .issuer(props.jwt().issuer())
+                .subject(user.getId().toString())
+                .claim("email", user.getEmail())
+                .claim("role", TENANT_USER_ROLE)
+                .claim("tenantId", user.getTenantId().toString())
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(exp))
+                .signWith(signingKey)
+                .compact();
     }
 
     /** Scope claim marking a short-lived step-up unlock token. */

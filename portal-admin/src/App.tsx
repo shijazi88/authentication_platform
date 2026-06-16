@@ -16,6 +16,12 @@ import { BillingPage } from "@/pages/BillingPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { PinGate } from "@/components/PinGate";
+import { PortalLayout } from "@/pages/portal/PortalLayout";
+import { PortalLoginPage } from "@/pages/portal/PortalLoginPage";
+import { PortalDashboardPage } from "@/pages/portal/PortalDashboardPage";
+import { PortalTransactionsPage } from "@/pages/portal/PortalTransactionsPage";
+import { PortalSubscriptionsPage } from "@/pages/portal/PortalSubscriptionsPage";
+import { PortalWalletPage } from "@/pages/portal/PortalWalletPage";
 
 export default function App() {
   return (
@@ -58,6 +64,15 @@ export default function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="users" element={<UsersPage />} />
+      </Route>
+
+      {/* Tenant-facing portal — separate auth, tenant-scoped data. */}
+      <Route path="/portal/login" element={<PortalLoginPage />} />
+      <Route path="/portal" element={<PortalLayout />}>
+        <Route index element={<PortalDashboardPage />} />
+        <Route path="transactions" element={<PortalTransactionsPage />} />
+        <Route path="subscriptions" element={<PortalSubscriptionsPage />} />
+        <Route path="wallet" element={<PortalWalletPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

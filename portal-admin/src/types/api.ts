@@ -56,6 +56,16 @@ export type UpdateUserRequest = {
   role: AdminRole;
 };
 
+export type TenantPortalUser = {
+  id: string;
+  tenantId: string;
+  email: string;
+  displayName: string | null;
+  active: boolean;
+  createdAt: string;
+  lastLoginAt: string | null;
+};
+
 export type Wallet = {
   tenantId: string;
   balanceMinor: number;

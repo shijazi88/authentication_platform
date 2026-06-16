@@ -96,6 +96,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/admin/auth/login").permitAll()
+                        // Tenant portal: public login, everything else needs a tenant token.
+                        .requestMatchers(HttpMethod.POST, "/portal-api/auth/login").permitAll()
+                        .requestMatchers("/portal-api/**").hasRole("TENANT_USER")
                         // Per-user PIN management — any authenticated admin.
                         .requestMatchers("/admin/auth/pin", "/admin/auth/pin/**").hasAnyRole(READ_ROLES)
                         // User management — privileged (also guarded by @PreAuthorize).

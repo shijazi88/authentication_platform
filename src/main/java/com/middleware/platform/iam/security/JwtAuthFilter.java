@@ -14,9 +14,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 /**
- * Authenticates requests against /admin/** using a Bearer JWT issued by the platform.
+ * Authenticates Bearer-JWT requests for the admin portal (/admin/**) and the
+ * tenant portal (/portal-api/**). Tenant tokens additionally carry a tenantId
+ * claim, stashed on the authentication details for request scoping.
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -30,8 +33,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !path.startsWith("/admin/")
-                || path.startsWith("/admin/auth/login");
+        boolean jwtPath = path.startsWith("/admin/") || path.startsWith("/portal-api/");
+        boolean loginPath = path.startsWith("/admin/auth/login")
+                || path.startsWith("/portal-api/auth/login");
+        return !jwtPath || loginPath;
     }
 
     @Override
@@ -50,6 +55,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String email = claims.get("email", String.class);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                     email, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+            // Tenant tokens carry the tenant id — stash it for request scoping.
+            String tenantId = claims.get("tenantId", String.class);
+            if (tenantId != null) {
+                auth.setDetails(UUID.fromString(tenantId));
+            }
             SecurityContextHolder.getContext().setAuthentication(auth);
         } catch (Exception ex) {
             log.debug("Invalid JWT: {}", ex.getMessage());

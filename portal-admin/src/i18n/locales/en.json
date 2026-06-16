@@ -318,6 +318,49 @@
     "FINANCE": "Finance",
     "AUDITOR": "Auditor"
   },
+  "tenantUsers": {
+    "title": "Portal Users",
+    "newUser": "New Portal User",
+    "resetPassword": "Reset Password",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "lastLogin": "Last login",
+    "never": "Never signed in",
+    "empty": "No portal users yet. Create one so this client can sign in.",
+    "created": "Portal user created",
+    "statusChanged": "Status updated",
+    "passwordReset": "Password reset",
+    "error": "Could not save changes"
+  },
+  "portal": {
+    "title": "Client Portal",
+    "logout": "Sign out",
+    "nav": {
+      "dashboard": "Dashboard",
+      "transactions": "Transactions",
+      "subscriptions": "Subscriptions",
+      "wallet": "Wallet"
+    },
+    "login": {
+      "title": "Client Portal",
+      "subtitle": "Sign in to view your transactions and wallet.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "failed": "Invalid email or password"
+    },
+    "dashboard": {
+      "title": "Overview",
+      "viewWallet": "View wallet",
+      "activeSubs": "Active subscriptions",
+      "totalTx": "Total transactions",
+      "recentTx": "Recent transactions",
+      "noTx": "No transactions yet."
+    },
+    "tx": { "amount": "Amount" },
+    "subs": { "empty": "No subscriptions yet." },
+    "wallet": { "topUpHint": "To add funds, contact your account manager." }
+  },
   "pin": {
     "enterTitle": "Enter your PIN",
     "enterSubtitle": "This page is protected. Enter your PIN to continue.",
