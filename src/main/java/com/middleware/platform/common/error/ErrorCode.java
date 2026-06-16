@@ -10,6 +10,8 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(1102, HttpStatus.UNAUTHORIZED, "Invalid credentials"),
     FORBIDDEN(1201, HttpStatus.FORBIDDEN, "Access denied"),
     ENTITLEMENT_DENIED(1202, HttpStatus.FORBIDDEN, "Subscription does not entitle this operation"),
+    PIN_UNLOCK_REQUIRED(1203, HttpStatus.LOCKED, "PIN unlock required"),
+    INVALID_PIN(1204, HttpStatus.UNAUTHORIZED, "Invalid PIN"),
     NOT_FOUND(1301, HttpStatus.NOT_FOUND, "Resource not found"),
     CONFLICT(1401, HttpStatus.CONFLICT, "Resource conflict"),
     QUOTA_EXCEEDED(1402, HttpStatus.TOO_MANY_REQUESTS, "Quota exceeded"),

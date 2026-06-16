@@ -8,8 +8,12 @@ import com.middleware.platform.iam.dto.AdminUserResponse;
 import com.middleware.platform.iam.dto.CreateAdminUserRequest;
 import com.middleware.platform.iam.dto.LoginRequest;
 import com.middleware.platform.iam.dto.LoginResponse;
+import com.middleware.platform.iam.dto.PinStatusResponse;
 import com.middleware.platform.iam.dto.ResetPasswordRequest;
+import com.middleware.platform.iam.dto.SetPinRequest;
+import com.middleware.platform.iam.dto.UnlockResponse;
 import com.middleware.platform.iam.dto.UpdateAdminUserRequest;
+import com.middleware.platform.iam.dto.VerifyPinRequest;
 import com.middleware.platform.iam.repo.AdminUserRepository;
 import com.middleware.platform.iam.security.JwtService;
 import com.middleware.platform.iam.security.SecurityProperties;
@@ -141,6 +145,44 @@ public class AdminUserService {
         AdminUser user = require(id);
         user.setPasswordHash(passwordEncoder.encode(req.password()));
         log.info("Admin user password reset: {}", user.getEmail());
+    }
+
+    // ── Step-up PIN (per-user, secures the Transactions page) ─────────────────
+
+    @Transactional(readOnly = true)
+    public PinStatusResponse pinStatus(String email) {
+        AdminUser user = requireByEmail(email);
+        return new PinStatusResponse(user.getPinHash() != null);
+    }
+
+    @Transactional
+    public void setPin(String email, SetPinRequest req) {
+        AdminUser user = requireByEmail(email);
+        // Changing an existing PIN requires the current one.
+        if (user.getPinHash() != null) {
+            if (req.currentPin() == null || !passwordEncoder.matches(req.currentPin(), user.getPinHash())) {
+                throw new ApplicationException(ErrorCode.INVALID_PIN, "Current PIN is incorrect");
+            }
+        }
+        user.setPinHash(passwordEncoder.encode(req.pin()));
+        log.info("Step-up PIN set for {}", email);
+    }
+
+    @Transactional(readOnly = true)
+    public UnlockResponse verifyPin(String email, VerifyPinRequest req) {
+        AdminUser user = requireByEmail(email);
+        if (user.getPinHash() == null) {
+            throw new ApplicationException(ErrorCode.BAD_REQUEST, "No PIN is set for this account");
+        }
+        if (!passwordEncoder.matches(req.pin(), user.getPinHash())) {
+            throw new ApplicationException(ErrorCode.INVALID_PIN, "Invalid PIN");
+        }
+        return new UnlockResponse(jwtService.issueUnlockToken(email), jwtService.unlockTtlSeconds());
+    }
+
+    private AdminUser requireByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.UNAUTHENTICATED, "Unknown user"));
     }
 
     private AdminUser require(UUID id) {

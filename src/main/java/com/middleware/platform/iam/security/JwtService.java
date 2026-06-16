@@ -47,6 +47,43 @@ public class JwtService {
         return props.jwt().accessTokenTtlMinutes() * 60L;
     }
 
+    /** Scope claim marking a short-lived step-up unlock token. */
+    public static final String UNLOCK_SCOPE = "txn-unlock";
+    private static final long UNLOCK_TTL_MINUTES = 15;
+
+    /**
+     * Issues a short-lived token proving the user passed a PIN step-up. Subject
+     * is the user's email so it can't be replayed for another account.
+     */
+    public String issueUnlockToken(String email) {
+        Instant now = Instant.now();
+        Instant exp = now.plus(UNLOCK_TTL_MINUTES, ChronoUnit.MINUTES);
+        return Jwts.builder()
+                .issuer(props.jwt().issuer())
+                .subject(email)
+                .claim("scope", UNLOCK_SCOPE)
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(exp))
+                .signWith(signingKey)
+                .compact();
+    }
+
+    public long unlockTtlSeconds() {
+        return UNLOCK_TTL_MINUTES * 60L;
+    }
+
+    /** True if {@code token} is a valid, unexpired unlock token for {@code email}. */
+    public boolean isValidUnlock(String token, String email) {
+        if (token == null || token.isBlank() || email == null) return false;
+        try {
+            Claims c = parse(token);
+            return UNLOCK_SCOPE.equals(c.get("scope", String.class))
+                    && email.equalsIgnoreCase(c.getSubject());
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
     public Claims parse(String token) {
         Jws<Claims> jws = Jwts.parser()
                 .verifyWith(signingKey)

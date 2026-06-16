@@ -1,6 +1,7 @@
 import axios, { type AxiosError } from "axios";
 import { toast } from "sonner";
 import { useAuth } from "./auth";
+import { getUnlockToken, clearUnlock, TXN_LOCKED_EVENT } from "./txnUnlock";
 
 /**
  * Single shared axios instance.
@@ -29,6 +30,11 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Attach the PIN step-up token on Transactions requests.
+  if (config.url?.includes("/admin/transactions")) {
+    const unlock = getUnlockToken();
+    if (unlock) config.headers["X-Txn-Unlock"] = unlock;
+  }
   return config;
 });
 
@@ -49,6 +55,12 @@ api.interceptors.response.use(
         window.location.pathname !== "/login"
       ) {
         window.location.href = "/login";
+      }
+    } else if (status === 423) {
+      // PIN unlock missing/expired — let the PinGate re-prompt; no toast.
+      clearUnlock();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event(TXN_LOCKED_EVENT));
       }
     } else if (status && status >= 500) {
       toast.error(`Server error (${status})`, { description: message });

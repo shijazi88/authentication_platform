@@ -318,6 +318,19 @@
     "FINANCE": "Finance",
     "AUDITOR": "Auditor"
   },
+  "pin": {
+    "enterTitle": "Enter your PIN",
+    "enterSubtitle": "This page is protected. Enter your PIN to continue.",
+    "setTitle": "Set a security PIN",
+    "setSubtitle": "Create a 4–8 digit PIN to protect access to transactions.",
+    "label": "PIN",
+    "confirmLabel": "Confirm PIN",
+    "unlock": "Unlock",
+    "setAndUnlock": "Set PIN & Unlock",
+    "invalid": "Invalid PIN",
+    "tooShort": "PIN must be at least 4 digits",
+    "mismatch": "PINs do not match"
+  },
   "wallet": {
     "title": "Wallet",
     "balance": "Balance",

@@ -27,6 +27,10 @@ public class AdminUser {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    /** BCrypt-hashed step-up PIN; null until the user sets one. */
+    @Column(name = "pin_hash", length = 255)
+    private String pinHash;
+
     @Column(name = "display_name", length = 255)
     private String displayName;
 

@@ -96,10 +96,12 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/admin/auth/login").permitAll()
+                        // Per-user PIN management — any authenticated admin.
+                        .requestMatchers("/admin/auth/pin", "/admin/auth/pin/**").hasAnyRole(READ_ROLES)
                         // User management — privileged (also guarded by @PreAuthorize).
                         .requestMatchers("/admin/users/**").hasRole(SUPER)
-                        // Billing — finance + super only.
-                        .requestMatchers("/admin/billing/**").hasAnyRole(SUPER, FINANCE)
+                        // Billing + wallets — finance + super only.
+                        .requestMatchers("/admin/billing/**", "/admin/wallets/**").hasAnyRole(SUPER, FINANCE)
                         // Service catalog + connector credentials — operational config.
                         .requestMatchers("/admin/catalog/**", "/admin/moi-credentials/**").hasAnyRole(WRITE_ROLES)
                         // Operational data: anyone may read, only super/ops may write.

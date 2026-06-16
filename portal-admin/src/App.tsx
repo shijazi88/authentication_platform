@@ -15,6 +15,7 @@ import { TransactionDetailPage } from "@/pages/TransactionDetailPage";
 import { BillingPage } from "@/pages/BillingPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { UsersPage } from "@/pages/UsersPage";
+import { PinGate } from "@/components/PinGate";
 
 export default function App() {
   return (
@@ -38,8 +39,22 @@ export default function App() {
         <Route path="plans/:id" element={<PlanDetailPage />} />
         <Route path="subscriptions" element={<SubscriptionsPage />} />
         <Route path="catalog" element={<CatalogPage />} />
-        <Route path="transactions" element={<TransactionsPage />} />
-        <Route path="transactions/:id" element={<TransactionDetailPage />} />
+        <Route
+          path="transactions"
+          element={
+            <PinGate>
+              <TransactionsPage />
+            </PinGate>
+          }
+        />
+        <Route
+          path="transactions/:id"
+          element={
+            <PinGate>
+              <TransactionDetailPage />
+            </PinGate>
+          }
+        />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="users" element={<UsersPage />} />

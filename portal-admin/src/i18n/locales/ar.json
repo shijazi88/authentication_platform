@@ -318,6 +318,19 @@
     "FINANCE": "المالية",
     "AUDITOR": "مدقق"
   },
+  "pin": {
+    "enterTitle": "أدخل رمز PIN",
+    "enterSubtitle": "هذه الصفحة محمية. أدخل رمز PIN للمتابعة.",
+    "setTitle": "إنشاء رمز PIN للحماية",
+    "setSubtitle": "أنشئ رمز PIN من 4 إلى 8 أرقام لحماية الوصول إلى المعاملات.",
+    "label": "رمز PIN",
+    "confirmLabel": "تأكيد رمز PIN",
+    "unlock": "فتح",
+    "setAndUnlock": "حفظ وفتح",
+    "invalid": "رمز PIN غير صحيح",
+    "tooShort": "يجب أن يكون رمز PIN 4 أرقام على الأقل",
+    "mismatch": "رمزا PIN غير متطابقين"
+  },
   "wallet": {
     "title": "المحفظة",
     "balance": "الرصيد",
