@@ -318,6 +318,24 @@
     "FINANCE": "المالية",
     "AUDITOR": "مدقق"
   },
+  "wallet": {
+    "title": "المحفظة",
+    "balance": "الرصيد",
+    "topUp": "شحن الرصيد",
+    "amount": "المبلغ ({{currency}})",
+    "willAdd": "سيضيف {{value}} إلى الرصيد",
+    "notePlaceholder": "مثال: مرجع التحويل البنكي رقم 1234",
+    "recentActivity": "النشاط الأخير",
+    "noActivity": "لا يوجد نشاط في المحفظة بعد.",
+    "toppedUp": "تم شحن المحفظة",
+    "error": "تعذّر إتمام عملية المحفظة",
+    "entryType": {
+      "TOPUP": "شحن",
+      "DEBIT": "خصم",
+      "REVERSAL": "استرداد",
+      "ADJUSTMENT": "تسوية"
+    }
+  },
   "users": {
     "title": "المستخدمون",
     "subtitle": "إدارة حسابات المسؤولين وأدوارهم.",

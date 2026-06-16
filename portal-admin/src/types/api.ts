@@ -56,6 +56,30 @@ export type UpdateUserRequest = {
   role: AdminRole;
 };
 
+export type Wallet = {
+  tenantId: string;
+  balanceMinor: number;
+  currency: string;
+  lowBalanceThresholdMinor: number | null;
+  updatedAt: string;
+};
+
+export type WalletEntryType = "TOPUP" | "DEBIT" | "REVERSAL" | "ADJUSTMENT";
+export type WalletEntrySource = "ADMIN" | "PAYMENT" | "SYSTEM";
+
+export type WalletLedgerEntry = {
+  id: string;
+  entryType: WalletEntryType;
+  amountMinor: number;
+  balanceAfterMinor: number;
+  currency: string;
+  source: WalletEntrySource;
+  reference: string | null;
+  note: string | null;
+  createdBy: string | null;
+  createdAt: string;
+};
+
 export type Tenant = {
   id: string;
   code: string;

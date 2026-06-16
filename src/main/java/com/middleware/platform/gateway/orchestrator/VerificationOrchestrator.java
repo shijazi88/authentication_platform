@@ -16,8 +16,10 @@ import com.middleware.platform.subscription.dto.ResolvedEntitlement;
 import com.middleware.platform.subscription.service.EntitlementService;
 import com.middleware.platform.transactions.domain.Transaction;
 import com.middleware.platform.transactions.service.TransactionService;
+import com.middleware.platform.wallet.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -40,6 +42,16 @@ public class VerificationOrchestrator {
     private final TransactionService transactionService;
     private final FieldProjector fieldProjector;
     private final RateLimiter rateLimiter;
+    private final WalletService walletService;
+
+    /**
+     * Prepaid enforcement is opt-in. When false (default) the wallet is never
+     * checked or debited and billing stays postpaid — so enabling wallets does
+     * not retroactively block tenants with an empty balance. Flip to true only
+     * after wallets are funded.
+     */
+    @Value("${platform.wallet.prepaid-enforced:false}")
+    private boolean prepaidEnforced;
 
     public OrchestrationResult execute(String serviceCode,
                                        String operationCode,
@@ -82,6 +94,17 @@ public class VerificationOrchestrator {
             throw new ApplicationException(ErrorCode.CONNECTOR_UNAVAILABLE, reason);
         }
 
+        // Prepaid gate: fail fast if the wallet clearly can't cover the call.
+        if (prepaidEnforced) {
+            try {
+                walletService.assertCanDebit(tenant.tenantId(), entitlement.unitPriceMinor());
+            } catch (ApplicationException ex) {
+                transactionService.rejectInsufficientFunds(tenant.tenantId(), tenant.credentialId(),
+                        service.getId(), operation.getId(), ex.getMessage());
+                throw ex;
+            }
+        }
+
         VerificationConnector connector = connectorRegistry.require(service.getConnectorKey());
 
         Transaction tx = transactionService.begin(
@@ -93,6 +116,20 @@ public class VerificationOrchestrator {
                 entitlement.unitPriceMinor(),
                 entitlement.currency()
         );
+
+        // Reserve (atomically debit) the unit price before invoking the backend.
+        // Authoritative balance check under a row lock; refunded if the call fails.
+        if (prepaidEnforced) {
+            try {
+                walletService.reserve(tenant.tenantId(), entitlement.unitPriceMinor(),
+                        entitlement.currency(), tx.getId());
+            } catch (ApplicationException ex) {
+                transactionService.completeFailed(tx, ErrorCode.INSUFFICIENT_FUNDS, ex.getMessage(),
+                        canonicalRequestPayload, errorBody(ErrorCode.INSUFFICIENT_FUNDS, ex.getMessage()),
+                        null, null);
+                throw ex;
+            }
+        }
 
         ConnectorRequest connectorRequest = new ConnectorRequest(
                 operationCode,
@@ -106,12 +143,15 @@ public class VerificationOrchestrator {
         try {
             connectorResponse = connector.invoke(connectorRequest);
         } catch (ApplicationException ex) {
+            // Backend failed — refund the reserved amount; the call wasn't billable.
+            if (prepaidEnforced) walletService.reverse(tenant.tenantId(), entitlement.unitPriceMinor(), tx.getId());
             transactionService.completeFailed(tx, ex.getErrorCode(), ex.getMessage(),
                     canonicalRequestPayload, errorBody(ex.getErrorCode(), ex.getMessage()),
                     connectorRequest, null);
             throw ex;
         } catch (Exception ex) {
             log.error("Connector {} failed", service.getConnectorKey(), ex);
+            if (prepaidEnforced) walletService.reverse(tenant.tenantId(), entitlement.unitPriceMinor(), tx.getId());
             transactionService.completeFailed(tx, ErrorCode.CONNECTOR_ERROR, ex.getMessage(),
                     canonicalRequestPayload, errorBody(ErrorCode.CONNECTOR_ERROR, ex.getMessage()),
                     connectorRequest, null);

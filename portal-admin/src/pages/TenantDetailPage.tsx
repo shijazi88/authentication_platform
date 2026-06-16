@@ -26,6 +26,9 @@ import { Input } from "@/components/ui/Input";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, shortId } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { canManageBilling } from "@/lib/access";
+import { WalletCard } from "@/components/WalletCard";
 import type { ApiCredential } from "@/types/api";
 
 export function TenantDetailPage() {
@@ -33,6 +36,7 @@ export function TenantDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const role = useAuth((s) => s.role);
 
   const tenantQ = useQuery({
     queryKey: ["tenant", id],
@@ -203,6 +207,12 @@ export function TenantDetailPage() {
           </CardBody>
         </Card>
       </div>
+
+      {canManageBilling(role) && (
+        <div className="mt-4">
+          <WalletCard tenantId={id} />
+        </div>
+      )}
 
       <Dialog
         open={credDialogOpen}

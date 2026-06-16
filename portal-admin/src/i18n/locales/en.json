@@ -318,6 +318,24 @@
     "FINANCE": "Finance",
     "AUDITOR": "Auditor"
   },
+  "wallet": {
+    "title": "Wallet",
+    "balance": "Balance",
+    "topUp": "Top Up",
+    "amount": "Amount ({{currency}})",
+    "willAdd": "Adds {{value}} to the balance",
+    "notePlaceholder": "e.g. Bank transfer ref #1234",
+    "recentActivity": "Recent activity",
+    "noActivity": "No wallet activity yet.",
+    "toppedUp": "Wallet topped up",
+    "error": "Could not complete the wallet operation",
+    "entryType": {
+      "TOPUP": "Top-up",
+      "DEBIT": "Charge",
+      "REVERSAL": "Refund",
+      "ADJUSTMENT": "Adjustment"
+    }
+  },
   "users": {
     "title": "Users",
     "subtitle": "Manage admin accounts and their roles.",

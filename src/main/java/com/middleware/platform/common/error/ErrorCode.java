@@ -13,6 +13,7 @@ public enum ErrorCode {
     NOT_FOUND(1301, HttpStatus.NOT_FOUND, "Resource not found"),
     CONFLICT(1401, HttpStatus.CONFLICT, "Resource conflict"),
     QUOTA_EXCEEDED(1402, HttpStatus.TOO_MANY_REQUESTS, "Quota exceeded"),
+    INSUFFICIENT_FUNDS(1403, HttpStatus.PAYMENT_REQUIRED, "Insufficient wallet balance"),
 
     // 5xx
     INTERNAL_ERROR(2001, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),

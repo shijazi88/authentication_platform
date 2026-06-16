@@ -54,3 +54,8 @@ export function canAccess(role: AdminRole | null, path: string): boolean {
 export function canWrite(role: AdminRole | null): boolean {
   return role === "SUPER_ADMIN" || role === "PLATFORM_OPS";
 }
+
+/** May this role view/manage wallets & billing? (Finance + Super.) */
+export function canManageBilling(role: AdminRole | null): boolean {
+  return role === "SUPER_ADMIN" || role === "FINANCE";
+}

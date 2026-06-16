@@ -100,6 +100,18 @@ public class TransactionService {
                 ErrorCode.CONNECTOR_UNAVAILABLE, message);
     }
 
+    /**
+     * Records a REJECTED transaction when the tenant's prepaid wallet can't
+     * cover the call. Distinct error code so reports can separate funding
+     * rejections from entitlement/quota ones.
+     */
+    @Transactional
+    public void rejectInsufficientFunds(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
+                                        String message) {
+        recordRejection(tenantId, credentialId, serviceId, operationId,
+                ErrorCode.INSUFFICIENT_FUNDS, message);
+    }
+
     private void recordRejection(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
                                  ErrorCode errorCode, String message) {
         Transaction tx = Transaction.builder()
