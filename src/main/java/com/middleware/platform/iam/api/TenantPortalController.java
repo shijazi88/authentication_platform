@@ -1,9 +1,16 @@
 package com.middleware.platform.iam.api;
 
 import com.middleware.platform.common.error.ApplicationException;
+import com.middleware.platform.iam.dto.CreateCredentialRequest;
+import com.middleware.platform.iam.dto.CredentialResponse;
+import com.middleware.platform.iam.dto.CredentialView;
+import com.middleware.platform.iam.dto.SubscriptionDetailResponse;
 import com.middleware.platform.iam.dto.TenantMeResponse;
 import com.middleware.platform.iam.security.CurrentTenant;
+import com.middleware.platform.iam.service.TenantPortalService;
 import com.middleware.platform.iam.service.TenantUserService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.service.SubscriptionService;
 import com.middleware.platform.transactions.domain.Transaction;
@@ -30,6 +37,7 @@ import java.util.UUID;
 public class TenantPortalController {
 
     private final TenantUserService tenantUserService;
+    private final TenantPortalService tenantPortalService;
     private final TransactionService transactionService;
     private final SubscriptionService subscriptionService;
     private final WalletService walletService;
@@ -59,6 +67,31 @@ public class TenantPortalController {
     @GetMapping("/subscriptions")
     public List<Subscription> subscriptions() {
         return subscriptionService.listByTenant(CurrentTenant.id());
+    }
+
+    @GetMapping("/subscriptions/{id}/details")
+    public SubscriptionDetailResponse subscriptionDetails(@PathVariable UUID id) {
+        return tenantPortalService.subscriptionDetails(CurrentTenant.id(), id);
+    }
+
+    // ── API credentials (keys) ────────────────────────────────────────────────
+
+    @GetMapping("/credentials")
+    public List<CredentialView> credentials() {
+        return tenantPortalService.listCredentials(CurrentTenant.id());
+    }
+
+    /** Issues a new key — the plaintext secret is in the response and shown once. */
+    @PostMapping("/credentials")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CredentialResponse createCredential(@Valid @RequestBody CreateCredentialRequest req) {
+        return tenantPortalService.issueCredential(CurrentTenant.id(), req);
+    }
+
+    @PostMapping("/credentials/{id}/revoke")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revokeCredential(@PathVariable UUID id) {
+        tenantPortalService.revokeCredential(CurrentTenant.id(), id);
     }
 
     @GetMapping("/wallet")

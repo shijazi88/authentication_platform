@@ -340,7 +340,42 @@
       "dashboard": "Dashboard",
       "transactions": "Transactions",
       "subscriptions": "Subscriptions",
-      "wallet": "Wallet"
+      "wallet": "Wallet",
+      "apiKeys": "API Keys"
+    },
+    "apiKeys": {
+      "title": "API Keys",
+      "intro": "Use these credentials (client ID + secret) to authenticate your API calls. The secret is shown only once when generated — store it securely.",
+      "generate": "Generate Key",
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "label": "Label",
+      "labelPlaceholder": "e.g. Production server",
+      "ipAllowlist": "IP allowlist (optional)",
+      "ipHint": "Comma-separated IPs or CIDR ranges allowed to use this key. Leave blank to allow any.",
+      "lastUsed": "Last used",
+      "never": "Never used",
+      "revoke": "Revoke",
+      "revoked": "Key revoked",
+      "revokedBadge": "Revoked",
+      "empty": "No API keys yet. Generate one to start calling the API.",
+      "issuedTitle": "Your new API key",
+      "issuedWarning": "Copy your client secret now — for security it cannot be shown again. If you lose it, revoke this key and generate a new one.",
+      "error": "Could not complete the request"
+    },
+    "subs": {
+      "empty": "No subscriptions yet.",
+      "baseFee": "Base fee",
+      "operations": "Available APIs",
+      "operation": "Operation",
+      "rate": "Rate limit",
+      "quota": "Monthly quota",
+      "price": "Price / call",
+      "perMin": "{{value}}/min",
+      "unlimited": "Unlimited",
+      "noOperations": "No operations entitled.",
+      "fields": "Visible fields",
+      "noFields": "No fields configured."
     },
     "login": {
       "title": "Client Portal",
@@ -359,7 +394,6 @@
       "noTx": "No transactions yet."
     },
     "tx": { "amount": "Amount" },
-    "subs": { "empty": "No subscriptions yet." },
     "wallet": { "topUpHint": "To add funds, contact your account manager." }
   },
   "pin": {

@@ -65,3 +65,77 @@ export async function getWalletLedger(page = 0, size = 20): Promise<Page<WalletL
   );
   return data;
 }
+
+// ── API credentials (keys) ────────────────────────────────────────────────
+
+export type CredentialView = {
+  id: string;
+  clientId: string;
+  label: string | null;
+  ipAllowlist: string | null;
+  active: boolean;
+  createdAt: string;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+};
+
+export type IssuedCredential = {
+  id: string;
+  tenantId: string;
+  clientId: string;
+  clientSecret: string;
+  label: string | null;
+  createdAt: string;
+};
+
+export async function listCredentials(): Promise<CredentialView[]> {
+  const { data } = await tenantApi.get<CredentialView[]>("/portal-api/credentials");
+  return data;
+}
+
+export async function createCredential(
+  label?: string,
+  ipAllowlist?: string,
+): Promise<IssuedCredential> {
+  const { data } = await tenantApi.post<IssuedCredential>("/portal-api/credentials", {
+    label,
+    ipAllowlist,
+  });
+  return data;
+}
+
+export async function revokeCredential(id: string): Promise<void> {
+  await tenantApi.post(`/portal-api/credentials/${id}/revoke`);
+}
+
+// ── Subscription / plan details ─────────────────────────────────────────────
+
+export type PlanOperationView = {
+  operationCode: string;
+  operationName: string | null;
+  rateLimitPerMinute: number | null;
+  monthlyQuota: number | null;
+  unitPriceMinor: number;
+  currency: string;
+};
+
+export type SubscriptionDetail = {
+  subscriptionId: string;
+  status: string;
+  startDate: string | null;
+  endDate: string | null;
+  planCode: string;
+  planName: string;
+  planDescription: string | null;
+  baseFeeMinor: number;
+  currency: string;
+  operations: PlanOperationView[];
+  visibleFields: string[];
+};
+
+export async function getSubscriptionDetails(id: string): Promise<SubscriptionDetail> {
+  const { data } = await tenantApi.get<SubscriptionDetail>(
+    `/portal-api/subscriptions/${id}/details`,
+  );
+  return data;
+}

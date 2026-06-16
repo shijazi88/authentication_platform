@@ -22,6 +22,7 @@ import { PortalDashboardPage } from "@/pages/portal/PortalDashboardPage";
 import { PortalTransactionsPage } from "@/pages/portal/PortalTransactionsPage";
 import { PortalSubscriptionsPage } from "@/pages/portal/PortalSubscriptionsPage";
 import { PortalWalletPage } from "@/pages/portal/PortalWalletPage";
+import { PortalApiKeysPage } from "@/pages/portal/PortalApiKeysPage";
 
 export default function App() {
   return (
@@ -73,6 +74,7 @@ export default function App() {
         <Route path="transactions" element={<PortalTransactionsPage />} />
         <Route path="subscriptions" element={<PortalSubscriptionsPage />} />
         <Route path="wallet" element={<PortalWalletPage />} />
+        <Route path="api-keys" element={<PortalApiKeysPage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
