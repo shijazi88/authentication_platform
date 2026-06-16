@@ -334,6 +334,7 @@
   },
   "portal": {
     "title": "بوابة العملاء",
+    "clientBadge": "عميل",
     "logout": "تسجيل الخروج",
     "nav": {
       "dashboard": "لوحة التحكم",
