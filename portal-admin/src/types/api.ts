@@ -96,7 +96,29 @@ export type Tenant = {
   legalName: string;
   contactEmail: string | null;
   status: TenantStatus;
+  requireEncryptedPii: boolean;
   createdAt: string;
+};
+
+export type EncryptionKeyStatus = "ACTIVE" | "RETIRING" | "REVOKED";
+
+export type EncryptionKey = {
+  kid: string;
+  algorithm: string;
+  status: EncryptionKeyStatus;
+  fingerprintSha256: string;
+  createdAt: string;
+  rotatedAt: string | null;
+  expiresAt: string | null;
+};
+
+export type EncryptionCertificate = {
+  kid: string;
+  algorithm: string;
+  encryption: string;
+  certificatePem: string;
+  fingerprintSha256: string;
+  expiresAt: string | null;
 };
 
 export type CreateTenantRequest = {

@@ -74,6 +74,26 @@ public class TenantKeyService {
     }
 
     @Transactional(readOnly = true)
+    public java.util.List<TenantEncryptionKey> listKeys(UUID tenantId) {
+        return keys.findByTenantId(tenantId);
+    }
+
+    /** Revoke a non-active key (e.g. a RETIRING one) by kid. */
+    @Transactional
+    public void revoke(UUID tenantId, String kid) {
+        TenantEncryptionKey key = keys.findByKid(kid)
+                .orElseThrow(() -> ApplicationException.notFound("Encryption key"));
+        if (!key.getTenantId().equals(tenantId)) {
+            throw ApplicationException.notFound("Encryption key");
+        }
+        if (key.getStatus() == EncryptionKeyStatus.ACTIVE) {
+            throw new ApplicationException(ErrorCode.CONFLICT,
+                    "Cannot revoke the active key — rotate first, then revoke the retiring one");
+        }
+        key.setStatus(EncryptionKeyStatus.REVOKED);
+    }
+
+    @Transactional(readOnly = true)
     public TenantEncryptionKey getByKid(String kid) {
         return keys.findByKid(kid)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.BAD_REQUEST, "Unknown encryption key id"));

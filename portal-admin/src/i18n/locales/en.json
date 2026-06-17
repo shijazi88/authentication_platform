@@ -332,6 +332,24 @@
     "passwordReset": "Password reset",
     "error": "Could not save changes"
   },
+  "tenantCrypto": {
+    "title": "PII Encryption",
+    "download": "Download .pem",
+    "rotate": "Rotate",
+    "rotateConfirm": "Rotate this tenant's encryption key? The client must switch to the new certificate; the old one keeps working only for in-flight requests.",
+    "rotated": "Encryption key rotated",
+    "revoke": "Revoke",
+    "revoked": "Key revoked",
+    "policyUpdated": "Encryption policy updated",
+    "error": "Could not complete the request",
+    "enforceTitle": "Require encrypted PII",
+    "enforceHint": "Reject plaintext verify requests — only the encrypted (JWE) envelope is accepted for this tenant.",
+    "enforced": "Required",
+    "enforceOff": "Not required",
+    "expires": "Expires",
+    "noKeys": "No encryption keys yet.",
+    "status": { "ACTIVE": "Active", "RETIRING": "Retiring", "REVOKED": "Revoked" }
+  },
   "portal": {
     "title": "Client Portal",
     "clientBadge": "Client",

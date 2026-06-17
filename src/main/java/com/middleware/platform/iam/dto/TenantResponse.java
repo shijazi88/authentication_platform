@@ -12,6 +12,7 @@ public record TenantResponse(
         String legalName,
         String contactEmail,
         TenantStatus status,
+        boolean requireEncryptedPii,
         Instant createdAt
 ) {
     public static TenantResponse from(Tenant t) {
@@ -21,6 +22,7 @@ public record TenantResponse(
                 t.getLegalName(),
                 t.getContactEmail(),
                 t.getStatus(),
+                t.isRequireEncryptedPii(),
                 t.getCreatedAt()
         );
     }
