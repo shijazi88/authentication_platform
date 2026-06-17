@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { KeyRound, Plus, ShieldAlert, Ban } from "lucide-react";
+import { KeyRound, Plus, ShieldAlert, Ban, ShieldCheck, Download, RefreshCw } from "lucide-react";
 import {
   listCredentials,
   createCredential,
   revokeCredential,
+  getCertificate,
+  rotateCertificate,
   type IssuedCredential,
 } from "@/api/tenant";
-import { Card, CardBody } from "@/components/ui/Card";
+import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Table, TBody, THead, Th, Td, Tr } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +26,28 @@ export function PortalApiKeysPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["t-credentials"], queryFn: listCredentials });
+  const certQ = useQuery({ queryKey: ["t-certificate"], queryFn: getCertificate });
+
+  const rotateMut = useMutation({
+    mutationFn: () => rotateCertificate(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["t-certificate"] });
+      toast.success(t("portal.cert.rotated"));
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? t("portal.apiKeys.error")),
+  });
+
+  function downloadCert() {
+    const cert = certQ.data;
+    if (!cert) return;
+    const blob = new Blob([cert.certificatePem], { type: "application/x-pem-file" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `motabiq-${cert.kid}.pem`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   const [createOpen, setCreateOpen] = useState(false);
   const [label, setLabel] = useState("");
@@ -63,6 +87,59 @@ export function PortalApiKeysPage() {
       </div>
 
       <p className="text-sm text-text-muted">{t("portal.apiKeys.intro")}</p>
+
+      {/* Encryption certificate */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-accent-emerald" />
+            <CardTitle>{t("portal.cert.title")}</CardTitle>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<Download className="h-3.5 w-3.5" />}
+              onClick={downloadCert}
+              disabled={!certQ.data}
+            >
+              {t("portal.cert.download")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+              loading={rotateMut.isPending}
+              onClick={() => {
+                if (confirm(t("portal.cert.rotateConfirm"))) rotateMut.mutate();
+              }}
+            >
+              {t("portal.cert.rotate")}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardBody>
+          <p className="text-xs text-text-muted mb-3">{t("portal.cert.intro")}</p>
+          {certQ.data && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <Field label={t("portal.cert.kid")} value={certQ.data.kid} mono />
+              <Field
+                label={t("portal.cert.algorithm")}
+                value={`${certQ.data.algorithm} · ${certQ.data.encryption}`}
+              />
+              <Field
+                label={t("portal.cert.fingerprint")}
+                value={certQ.data.fingerprintSha256}
+                mono
+              />
+              <Field
+                label={t("portal.cert.expires")}
+                value={certQ.data.expiresAt ? formatDate(certQ.data.expiresAt) : "—"}
+              />
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
       <Card>
         {q.isLoading ? (
@@ -196,6 +273,15 @@ export function PortalApiKeysPage() {
           </div>
         </div>
       </Dialog>
+    </div>
+  );
+}
+
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div>
+      <div className="text-xs text-text-dim">{label}</div>
+      <div className={`${mono ? "font-mono text-xs" : "text-sm"} text-text break-all`}>{value}</div>
     </div>
   );
 }

@@ -42,6 +42,12 @@ public class TenantController {
         return tenantService.setStatus(id, status);
     }
 
+    /** Toggle whether this tenant must send encrypted (JWE) verification PII. */
+    @PutMapping("/{id}/encryption-policy")
+    public TenantResponse setEncryptionPolicy(@PathVariable UUID id, @RequestParam boolean required) {
+        return tenantService.setEncryptionPolicy(id, required);
+    }
+
     @PostMapping("/{id}/credentials")
     @ResponseStatus(HttpStatus.CREATED)
     public CredentialResponse issueCredential(@PathVariable UUID id,

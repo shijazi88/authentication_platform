@@ -30,5 +30,7 @@
   <ItemGroup>
     <!-- System.Drawing.Common is Windows-only on net8 — that's fine, daemon is Windows-only -->
     <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <!-- JWE (RSA-OAEP-256 + A256GCM) for encrypting verification PII -->
+    <PackageReference Include="jose-jwt" Version="5.0.0" />
   </ItemGroup>
 </Project>

@@ -34,6 +34,10 @@ public class Tenant {
     @Column(name = "status", nullable = false, length = 32)
     private TenantStatus status;
 
+    /** When true, only encrypted (JWE) verification PII is accepted for this tenant. */
+    @Column(name = "require_encrypted_pii", nullable = false)
+    private boolean requireEncryptedPii;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

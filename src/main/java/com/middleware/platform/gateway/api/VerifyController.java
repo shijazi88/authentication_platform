@@ -7,6 +7,7 @@ import com.middleware.platform.connector.yemenid.YemenIdConnector;
 import com.middleware.platform.gateway.dto.VerifyIdentityRequest;
 import com.middleware.platform.gateway.dto.VerifyIdentityResponse;
 import com.middleware.platform.gateway.orchestrator.VerificationOrchestrator;
+import com.middleware.platform.iam.repo.TenantRepository;
 import com.middleware.platform.iam.service.PiiCryptoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +37,9 @@ public class VerifyController {
 
     private final VerificationOrchestrator orchestrator;
     private final PiiCryptoService piiCryptoService;
+    private final TenantRepository tenantRepository;
 
+    /** Global enforcement override; per-tenant flag applies on top. */
     @Value("${platform.crypto.require-encrypted-pii:false}")
     private boolean requireEncryptedPii;
 
@@ -62,7 +65,7 @@ public class VerifyController {
                 image = null;
             }
         } else {
-            if (requireEncryptedPii) {
+            if (encryptionRequired()) {
                 throw new ApplicationException(ErrorCode.BAD_REQUEST,
                         "Encrypted payload is required; plaintext requests are no longer accepted");
             }
@@ -94,6 +97,15 @@ public class VerifyController {
                 new VerifyIdentityResponse.Transaction(result.transactionId(), result.timestamp(), "OK"),
                 result.projected()
         );
+    }
+
+    /** Encrypted PII required if the global flag is on or this tenant opted in. */
+    private boolean encryptionRequired() {
+        if (requireEncryptedPii) return true;
+        UUID tenantId = TenantContext.currentTenantId();
+        return tenantId != null && tenantRepository.findById(tenantId)
+                .map(t -> t.isRequireEncryptedPii())
+                .orElse(false);
     }
 
     private static String asString(Object o) {

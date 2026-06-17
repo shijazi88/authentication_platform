@@ -139,3 +139,26 @@ export async function getSubscriptionDetails(id: string): Promise<SubscriptionDe
   );
   return data;
 }
+
+// ── Encryption certificate ──────────────────────────────────────────────────
+
+export type EncryptionCertificate = {
+  kid: string;
+  algorithm: string;
+  encryption: string;
+  certificatePem: string;
+  fingerprintSha256: string;
+  expiresAt: string | null;
+};
+
+export async function getCertificate(): Promise<EncryptionCertificate> {
+  const { data } = await tenantApi.get<EncryptionCertificate>("/portal-api/crypto/certificate");
+  return data;
+}
+
+export async function rotateCertificate(): Promise<EncryptionCertificate> {
+  const { data } = await tenantApi.post<EncryptionCertificate>(
+    "/portal-api/crypto/certificate/rotate",
+  );
+  return data;
+}

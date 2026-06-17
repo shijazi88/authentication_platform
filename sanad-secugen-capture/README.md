@@ -97,3 +97,46 @@ The simulator's provider abstraction is vendor-agnostic. To add (e.g.) Dermalog:
    pointing at its port.
 3. Flip its `hardwareReady: true`. The simulator's `HttpFingerprintProvider`
    talks to it without further changes.
+
+## Encrypting verification PII (MOTABIQ)
+
+The verification API accepts the national number + biometrics inside an
+encrypted envelope so the raw fingerprint is never exposed in transit or in
+logs/storage. Encryption is **per-tenant**: each tenant has its own X.509
+certificate; you encrypt to it and the gateway decrypts with the matching
+private key.
+
+**Scheme:** JWE compact, `alg = RSA-OAEP-256`, `enc = A256GCM`, with the
+certificate's key id in the JWE `kid` header. Plaintext is the JSON:
+
+```json
+{ "nationalNumber": "...", "biometrics": { "fingerPosition": 1, "image": "<wsqBase64>" } }
+```
+
+**1. Fetch your certificate** (cache it; rotate-aware via `kid`):
+
+```
+GET /api/v1/crypto/certificate        (HTTP Basic: clientId:clientSecret)
+→ { kid, algorithm, encryption, certificatePem, fingerprintSha256, expiresAt }
+```
+
+It is also downloadable from the client portal → **API Keys → Encryption Certificate**.
+
+**2. Build the encrypted payload** with the bundled [`MotabiqCrypto`](MotabiqCrypto.cs):
+
+```csharp
+var cert = await MotabiqCrypto.FetchCertificateAsync(http, baseUrl, clientId, clientSecret);
+string jwe = MotabiqCrypto.EncryptPii(cert.CertificatePem, cert.Kid,
+                 nationalNumber, fingerPosition, wsqBase64);
+```
+
+**3. Call verify** with the envelope (no plaintext PII in the body):
+
+```
+POST /api/v1/verify/identity          (HTTP Basic: clientId:clientSecret)
+{ "encryptedPayload": "<jwe compact>" }
+```
+
+During migration the API still accepts the legacy plaintext shape
+(`{ nationalNumber, biometrics }`); once `require-encrypted-pii` is enabled for
+your tenant, only the encrypted form is accepted.

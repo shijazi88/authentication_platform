@@ -394,7 +394,19 @@
       "noTx": "No transactions yet."
     },
     "tx": { "amount": "Amount" },
-    "wallet": { "topUpHint": "To add funds, contact your account manager." }
+    "wallet": { "topUpHint": "To add funds, contact your account manager." },
+    "cert": {
+      "title": "Encryption Certificate",
+      "intro": "Encrypt the verification PII (national number + biometrics) to this certificate before sending — JWE with RSA-OAEP-256 + A256GCM. Put the key id below in the JWE 'kid' header.",
+      "download": "Download .pem",
+      "rotate": "Rotate",
+      "rotateConfirm": "Rotate the encryption key? Clients must switch to the new certificate; the old one keeps working only for in-flight requests.",
+      "rotated": "Encryption key rotated",
+      "kid": "Key ID (kid)",
+      "algorithm": "Algorithm",
+      "fingerprint": "SHA-256 fingerprint",
+      "expires": "Expires"
+    }
   },
   "pin": {
     "enterTitle": "Enter your PIN",

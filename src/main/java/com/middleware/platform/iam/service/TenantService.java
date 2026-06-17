@@ -98,4 +98,12 @@ public class TenantService {
                 .orElseThrow(() -> ApplicationException.notFound("Credential"));
         cred.setActive(false);
     }
+
+    @Transactional
+    public TenantResponse setEncryptionPolicy(UUID tenantId, boolean required) {
+        Tenant t = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> ApplicationException.notFound("Tenant"));
+        t.setRequireEncryptedPii(required);
+        return TenantResponse.from(t);
+    }
 }
