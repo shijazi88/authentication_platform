@@ -1,0 +1,137 @@
+{
+  "info": {
+    "_postman_id": "motabiq-verify-encrypted-2026",
+    "name": "MOTABIQ — Verify API (Encrypted PII)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "End-to-end demo of the MOTABIQ identity verification API with **encrypted PII** for a client (sandbox: `TEST_BANK`).\n\n## What this collection shows\n1. **Authentication** — HTTP Basic with your API key (`clientId` / `clientSecret`).\n2. **Get your encryption certificate** — per-tenant X.509 cert used to encrypt the request.\n3. **Verify (encrypted)** — the national number + biometrics are wrapped in a **JWE** (`RSA-OAEP-256` + `A256GCM`); the pre-request script builds it for you from the certificate.\n4. **Verify (legacy plaintext)** — the old shape, kept only while encryption is not enforced.\n\n## How the encryption works\nThe sensitive fields are encrypted in your client *before* they are sent, and decrypted only inside the MOTABIQ gateway — so the raw fingerprint is never exposed in transit, logs, or storage.\n\n- **Scheme:** JWE compact, `alg = RSA-OAEP-256`, `enc = A256GCM`, with the certificate's key id in the `kid` header.\n- **Plaintext:** `{ \"nationalNumber\": \"…\", \"biometrics\": { \"fingerPosition\": 1, \"image\": \"<wsqBase64>\" } }`\n- **Per-tenant:** each client has its own certificate (`GET /api/v1/crypto/certificate`); the gateway decrypts with the matching private key. Keys rotate via `kid`.\n\n## Run order\n1. **Get Encryption Certificate** — saves `kid` + `certPem` into collection variables.\n2. **Verify Identity — Encrypted** — the pre-request script reads `certPem`/`kid`, encrypts the PII variables, and posts the JWE.\n\n> The encryption pre-request script uses Node's built-in `crypto` module, supported by the **Postman desktop app (v10+)** — no external packages, no setup. (It is not supported by the Newman CLI sandbox; for CI, pre-generate the JWE with the Node/Python/.NET examples in `docs/PII_ENCRYPTION.md`.)\n\n## Notes\n- Replace `biometricImage` with a real **WSQ** fingerprint (base64). The sample value is a placeholder and will be rejected by the backend with a format error.\n- The sandbox `TEST_BANK` has **encryption enforced**, so the legacy plaintext request is rejected by design — that demonstrates enforcement.\n- The prefilled key is a **sandbox** credential. Rotate it / use your own for production."
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{clientId}}", "type": "string" },
+      { "key": "password", "value": "{{clientSecret}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://sanad-api.promatrix.ai", "type": "default" },
+    { "key": "clientId", "value": "cli_Qnmms3FYfFpv7duW", "type": "default" },
+    { "key": "clientSecret", "value": "sec_o9w-29iN7C8qCy0flmlMV5VuOtjSLKVXA9QqcaS3rlo", "type": "secret" },
+    { "key": "kid", "value": "", "type": "default" },
+    { "key": "certPem", "value": "", "type": "default" },
+    { "key": "nationalNumber", "value": "01010101010", "type": "default" },
+    { "key": "fingerPosition", "value": "1", "type": "default" },
+    { "key": "biometricImage", "value": "REPLACE_WITH_WSQ_BASE64", "type": "default" },
+    { "key": "encryptedPayload", "value": "", "type": "default" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/actuator/health", "host": ["{{baseUrl}}"], "path": ["actuator", "health"] },
+        "description": "Public health check — no auth required."
+      }
+    },
+    {
+      "name": "Get Encryption Certificate",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const c = pm.response.json();",
+              "pm.test('has certificate', () => pm.expect(c.certificatePem).to.include('BEGIN CERTIFICATE'));",
+              "pm.collectionVariables.set('kid', c.kid);",
+              "pm.collectionVariables.set('certPem', c.certificatePem);",
+              "console.log('Saved certificate. kid =', c.kid, '| fingerprint =', c.fingerprintSha256);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/v1/crypto/certificate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "crypto", "certificate"] },
+        "description": "Returns this client's **active encryption certificate**: `kid`, `algorithm` (RSA-OAEP-256), `encryption` (A256GCM), `certificatePem`, `fingerprintSha256`, `expiresAt`.\n\nThe test script saves `kid` and `certPem` into collection variables for the encrypted verify request. Re-run this whenever the `kid` changes (after a key rotation)."
+      }
+    },
+    {
+      "name": "Verify Identity — Encrypted (recommended)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Builds the JWE (RSA-OAEP-256 + A256GCM) of the PII from the saved certificate.",
+              "// Uses Node's built-in 'crypto' module — supported by the Postman desktop app (v10+).",
+              "const crypto = require('crypto');",
+              "",
+              "const certPem = pm.collectionVariables.get('certPem');",
+              "const kid = pm.collectionVariables.get('kid');",
+              "if (!certPem || !kid) {",
+              "  throw new Error('Run \"Get Encryption Certificate\" first to populate certPem and kid.');",
+              "}",
+              "",
+              "const b64url = (buf) => Buffer.from(buf).toString('base64')",
+              "  .replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+$/, '');",
+              "",
+              "const plaintext = JSON.stringify({",
+              "  nationalNumber: pm.collectionVariables.get('nationalNumber'),",
+              "  biometrics: {",
+              "    fingerPosition: Number(pm.collectionVariables.get('fingerPosition')),",
+              "    image: pm.collectionVariables.get('biometricImage')",
+              "  }",
+              "});",
+              "",
+              "const header = { alg: 'RSA-OAEP-256', enc: 'A256GCM', kid: kid };",
+              "const protectedB64 = b64url(JSON.stringify(header));",
+              "",
+              "// Content encryption key (A256GCM = 32 bytes), wrapped with RSA-OAEP-256.",
+              "const cek = crypto.randomBytes(32);",
+              "const pub = crypto.createPublicKey(certPem);",
+              "const encryptedKey = crypto.publicEncrypt(",
+              "  { key: pub, padding: crypto.constants.RSA_PKCS1_OAEP_PADDING, oaepHash: 'sha256' }, cek);",
+              "",
+              "const iv = crypto.randomBytes(12);",
+              "const cipher = crypto.createCipheriv('aes-256-gcm', cek, iv);",
+              "cipher.setAAD(Buffer.from(protectedB64, 'ascii'));",
+              "const ciphertext = Buffer.concat([cipher.update(Buffer.from(plaintext, 'utf8')), cipher.final()]);",
+              "const tag = cipher.getAuthTag();",
+              "",
+              "const jwe = [protectedB64, b64url(encryptedKey), b64url(iv), b64url(ciphertext), b64url(tag)].join('.');",
+              "pm.collectionVariables.set('encryptedPayload', jwe);",
+              "console.log('Built JWE for kid', kid, '- length', jwe.length);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"encryptedPayload\": \"{{encryptedPayload}}\"\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/verify/identity", "host": ["{{baseUrl}}"], "path": ["api", "v1", "verify", "identity"] },
+        "description": "Verifies an identity with the PII sent as an **encrypted JWE envelope**.\n\nThe pre-request script encrypts `{nationalNumber, biometrics}` to your certificate and sets `encryptedPayload`. The gateway decrypts it server-side and forwards the biometrics to the Yemen ID backend.\n\n**Edit the collection variables** `nationalNumber`, `fingerPosition`, and `biometricImage` (a real WSQ base64) before sending."
+      }
+    },
+    {
+      "name": "Verify Identity — Legacy plaintext (deprecated)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nationalNumber\": \"{{nationalNumber}}\",\n  \"biometrics\": {\n    \"fingerPosition\": {{fingerPosition}},\n    \"image\": \"{{biometricImage}}\"\n  }\n}"
+        },
+        "url": { "raw": "{{baseUrl}}/api/v1/verify/identity", "host": ["{{baseUrl}}"], "path": ["api", "v1", "verify", "identity"] },
+        "description": "The legacy plaintext request shape. Accepted only while encryption is **not** enforced for the tenant. For `TEST_BANK` (enforcement on) this returns `400 — Encrypted payload is required`, which demonstrates enforcement. Use the **Encrypted** request instead."
+      }
+    }
+  ]
+}

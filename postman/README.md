@@ -69,3 +69,18 @@ python3 -m json.tool postman/Sannad-Verification-API.postman_collection.json > /
 - `clientSecret` in the environment files is marked as `type: "secret"` so Postman masks it in the UI and URL bars.
 - Saved example responses use realistic values that match what the WireMock stub returns in dev — keep them in sync if the canonical schema evolves.
 - The pre-request script depends on `crypto.getRandomValues`, which is available in Postman v9.0+. We don't support older Postman.
+
+## MOTABIQ-Verify-Encrypted.postman_collection.json
+
+End-to-end demo of the verification API with **encrypted PII** for a sandbox
+client (`TEST_BANK`). Import it and run, in order:
+
+1. **Get Encryption Certificate** — saves the client's `kid` + `certPem`.
+2. **Verify Identity — Encrypted** — a pre-request script builds the JWE
+   (RSA-OAEP-256 + A256GCM) from the certificate and posts `{ encryptedPayload }`.
+
+The pre-request encryption uses the Postman desktop app's built-in `crypto`
+module (v10+). Edit the `nationalNumber` / `fingerPosition` / `biometricImage`
+(real WSQ base64) collection variables before sending. The prefilled API key is
+a sandbox credential — rotate or replace it for production. Full scheme + Node /
+Python / .NET examples: [`docs/PII_ENCRYPTION.md`](../docs/PII_ENCRYPTION.md).
