@@ -3,10 +3,13 @@ package com.middleware.platform.iam.api;
 import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.iam.dto.CreateCredentialRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
+import com.middleware.platform.iam.dto.CertificateResponse;
 import com.middleware.platform.iam.dto.CredentialView;
 import com.middleware.platform.iam.dto.SubscriptionDetailResponse;
 import com.middleware.platform.iam.dto.TenantMeResponse;
+import com.middleware.platform.iam.domain.TenantEncryptionKey;
 import com.middleware.platform.iam.security.CurrentTenant;
+import com.middleware.platform.iam.service.TenantKeyService;
 import com.middleware.platform.iam.service.TenantPortalService;
 import com.middleware.platform.iam.service.TenantUserService;
 import jakarta.validation.Valid;
@@ -38,6 +41,7 @@ public class TenantPortalController {
 
     private final TenantUserService tenantUserService;
     private final TenantPortalService tenantPortalService;
+    private final TenantKeyService tenantKeyService;
     private final TransactionService transactionService;
     private final SubscriptionService subscriptionService;
     private final WalletService walletService;
@@ -92,6 +96,20 @@ public class TenantPortalController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void revokeCredential(@PathVariable UUID id) {
         tenantPortalService.revokeCredential(CurrentTenant.id(), id);
+    }
+
+    // ── Encryption certificate (for encrypting verification PII) ──────────────
+
+    @GetMapping("/crypto/certificate")
+    public CertificateResponse certificate() {
+        TenantEncryptionKey key = tenantKeyService.getOrCreateActive(CurrentTenant.id());
+        return CertificateResponse.of(key, tenantKeyService.fingerprint(key));
+    }
+
+    @PostMapping("/crypto/certificate/rotate")
+    public CertificateResponse rotateCertificate() {
+        TenantEncryptionKey key = tenantKeyService.rotate(CurrentTenant.id());
+        return CertificateResponse.of(key, tenantKeyService.fingerprint(key));
     }
 
     @GetMapping("/wallet")

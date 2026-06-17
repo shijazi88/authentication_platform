@@ -1,7 +1,8 @@
 package com.middleware.platform.transactions.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.common.util.Ids;
@@ -158,13 +159,42 @@ public class TransactionService {
         payloadRepository.save(payload);
     }
 
+    /** Field names whose values must never be persisted in clear. */
+    private static final java.util.Set<String> SENSITIVE_KEYS = java.util.Set.of(
+            "image", "nationalnumber", "fingerprint", "fingerprintimage", "photo", "biometricimage");
+    private static final String REDACTED = "***REDACTED***";
+
+    /**
+     * Serializes to JSON with sensitive PII fields (biometric image, national
+     * number, …) masked, so raw biometrics never land in transaction_payloads.
+     */
     private String toJson(Object o) {
         if (o == null) return null;
         try {
-            return objectMapper.writeValueAsString(o);
-        } catch (JsonProcessingException e) {
+            JsonNode node = objectMapper.valueToTree(o);
+            redact(node);
+            return objectMapper.writeValueAsString(node);
+        } catch (Exception e) {
             log.warn("Failed to serialize payload: {}", e.getMessage());
             return null;
+        }
+    }
+
+    private void redact(JsonNode node) {
+        if (node == null) return;
+        if (node.isObject()) {
+            ObjectNode obj = (ObjectNode) node;
+            obj.fieldNames().forEachRemaining(name -> {
+                JsonNode child = obj.get(name);
+                if (child != null && child.isValueNode()
+                        && SENSITIVE_KEYS.contains(name.toLowerCase().replace("_", ""))) {
+                    obj.put(name, REDACTED);
+                } else {
+                    redact(child);
+                }
+            });
+        } else if (node.isArray()) {
+            node.forEach(this::redact);
         }
     }
 
