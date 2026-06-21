@@ -43,14 +43,14 @@ This ICD covers the public, bank-facing verification surface only:
 
 ### 2.1 Base URL & environments
 
-| Environment | Base URL |
-|---|---|
-| Production | `https://sanad-api.promatrix.ai` |
+> **The base URL is shared together with your API keys after onboarding is completed.**
+> It is intentionally omitted from this document. Substitute it for `{baseUrl}` in all
+> examples below.
 
-There is no additional context path. The full endpoint URL is therefore:
+There is no additional context path. The full endpoint path appended to the base URL is:
 
 ```
-https://sanad-api.promatrix.ai/api/v1/verify/identity
+{baseUrl}/api/v1/verify/identity
 ```
 
 ### 2.2 Transport & encoding
@@ -190,7 +190,7 @@ certificate when it changes.
 
 ```http
 POST /api/v1/verify/identity HTTP/1.1
-Host: sanad-api.promatrix.ai
+Host: {baseUrl host}
 Authorization: Basic Y2xpX1lOLXRWRmdnUlFWUTFmT2Y6c2VjXzZG...
 Content-Type: application/json
 X-Request-Id: 019dece4-91a1-7877-a37d-ffb20006fcd1
@@ -604,8 +604,8 @@ enabling production credentials.
 
 ## 10. Reference materials
 
-- **OpenAPI / Swagger UI:** `https://sanad-api.promatrix.ai/swagger-ui.html`
-- **OpenAPI spec (service provider group):** `/v3/api-docs/service-provider`
+- **OpenAPI / Swagger UI:** `{baseUrl}/swagger-ui.html`
+- **OpenAPI spec (service provider group):** `{baseUrl}/v3/api-docs/service-provider`
 - **Postman collection:** `postman/Sannad-Verification-API.postman_collection.json` (auto-generates `X-Request-Id`, stores `lastTransactionId`).
 - **Encrypted Postman collection:** `postman/MOTABIQ-Verify-Encrypted.postman_collection.json` — fetches the certificate and builds the `encryptedPayload` automatically (§4.2.4).
 - **Payload encryption guide (Node / Python / .NET):** `docs/PII_ENCRYPTION.md`.
@@ -615,7 +615,7 @@ enabling production credentials.
 ## Appendix A — Quick integration checklist
 
 1. Obtain Client ID / Client Secret over a secure channel.
-2. Register your egress IP(s)/CIDR(s) in the **mandatory** IP allow-list, and confirm network egress can reach `https://sanad-api.promatrix.ai`.
+2. Register your egress IP(s)/CIDR(s) in the **mandatory** IP allow-list, and confirm network egress can reach the base URL (shared with your API keys after onboarding).
 3. Build the `Authorization: Basic` header from `clientId:clientSecret`.
 4. Generate a UUIDv7 `X-Request-Id` per call and log it.
 5. Send a test call to a valid test NID (provided separately during onboarding); expect `200 OK`.
@@ -634,3 +634,4 @@ enabling production credentials.
 | v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
 | v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
 | v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |
+| v1.6 | 2026-06-17 | Removed all environment URLs; the base URL is shared with the API keys after onboarding. Examples use a `{baseUrl}` placeholder (§2.1). |
