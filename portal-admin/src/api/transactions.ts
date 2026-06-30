@@ -4,6 +4,9 @@ import type { Page, Transaction, TransactionDetail } from "@/types/api";
 export async function listTransactions(params: {
   tenantId?: string;
   status?: string;
+  errorCode?: number;
+  billable?: boolean;
+  q?: string; // transaction id (full or partial)
   from?: string; // yyyy-MM-dd
   to?: string; // yyyy-MM-dd
   page?: number;
@@ -13,6 +16,9 @@ export async function listTransactions(params: {
     params: {
       ...(params.tenantId ? { tenantId: params.tenantId } : {}),
       ...(params.status ? { status: params.status } : {}),
+      ...(params.errorCode != null ? { errorCode: params.errorCode } : {}),
+      ...(params.billable != null ? { billable: params.billable } : {}),
+      ...(params.q ? { q: params.q } : {}),
       ...(params.from ? { from: params.from } : {}),
       ...(params.to ? { to: params.to } : {}),
       page: params.page ?? 0,

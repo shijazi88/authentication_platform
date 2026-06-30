@@ -24,13 +24,19 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
      */
     @Query("""
             select t from Transaction t
-             where (:tenantId is null or t.tenantId = :tenantId)
-               and (:status   is null or t.status   = :status)
-               and (:from     is null or t.createdAt >= :from)
-               and (:to       is null or t.createdAt <  :to)
+             where (:tenantId  is null or t.tenantId  = :tenantId)
+               and (:status    is null or t.status    = :status)
+               and (:errorCode is null or t.errorCode = :errorCode)
+               and (:billable  is null or t.billable  = :billable)
+               and (:idq       is null or lower(cast(t.id as string)) like lower(concat('%', :idq, '%')))
+               and (:from      is null or t.createdAt >= :from)
+               and (:to        is null or t.createdAt <  :to)
             """)
     Page<Transaction> filter(@Param("tenantId") UUID tenantId,
                              @Param("status") TransactionStatus status,
+                             @Param("errorCode") Integer errorCode,
+                             @Param("billable") Boolean billable,
+                             @Param("idq") String idq,
                              @Param("from") Instant from,
                              @Param("to") Instant to,
                              Pageable pageable);

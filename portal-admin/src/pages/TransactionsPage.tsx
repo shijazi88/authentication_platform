@@ -26,12 +26,35 @@ const STATUSES: TransactionStatus[] = [
   "INITIATED",
 ];
 
+// MOTABIQ response (error) codes — see the ICD error catalog.
+const ERROR_CODES: { code: number; label: string }[] = [
+  { code: 1001, label: "1001 · Bad request" },
+  { code: 1002, label: "1002 · Validation failed" },
+  { code: 1101, label: "1101 · Unauthenticated" },
+  { code: 1102, label: "1102 · Invalid credentials" },
+  { code: 1201, label: "1201 · Forbidden" },
+  { code: 1202, label: "1202 · Entitlement denied" },
+  { code: 1203, label: "1203 · PIN unlock required" },
+  { code: 1204, label: "1204 · Invalid PIN" },
+  { code: 1301, label: "1301 · Not found" },
+  { code: 1401, label: "1401 · Conflict" },
+  { code: 1402, label: "1402 · Quota exceeded" },
+  { code: 1403, label: "1403 · Insufficient funds" },
+  { code: 2001, label: "2001 · Internal error" },
+  { code: 2101, label: "2101 · Connector error" },
+  { code: 2102, label: "2102 · Connector timeout" },
+  { code: 2103, label: "2103 · Connector unavailable" },
+];
+
 export function TransactionsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [status, setStatus] = useState<TransactionStatus | null>(null);
+  const [errorCode, setErrorCode] = useState<number | null>(null);
+  const [billable, setBillable] = useState<boolean | null>(null);
+  const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(0);
@@ -45,21 +68,32 @@ export function TransactionsPage() {
     };
   }
 
-  const hasFilters = tenantId !== null || status !== null || from !== "" || to !== "";
+  const hasFilters =
+    tenantId !== null || status !== null || errorCode !== null ||
+    billable !== null || q !== "" || from !== "" || to !== "";
   function clearFilters() {
     setTenantId(null);
     setStatus(null);
+    setErrorCode(null);
+    setBillable(null);
+    setQ("");
     setFrom("");
     setTo("");
     setPage(0);
   }
 
   const txQ = useQuery({
-    queryKey: ["transactions", tenantId ?? "all", status ?? "any", from, to, page, size],
+    queryKey: [
+      "transactions", tenantId ?? "all", status ?? "any",
+      errorCode ?? "any", billable ?? "any", q, from, to, page, size,
+    ],
     queryFn: () =>
       listTransactions({
         tenantId: tenantId ?? undefined,
         status: status ?? undefined,
+        errorCode: errorCode ?? undefined,
+        billable: billable ?? undefined,
+        q: q || undefined,
         from: from || undefined,
         to: to || undefined,
         page,
@@ -109,6 +143,42 @@ export function TransactionsPage() {
                 { value: "__all__", label: t("transactions.allStatuses") },
                 ...STATUSES.map((s) => ({ value: s, label: t(`status.${s}`, s) })),
               ]}
+            />
+          </div>
+          <div className="w-56">
+            <Label>{t("transactions.responseCode")}</Label>
+            <Select
+              value={errorCode != null ? String(errorCode) : "__all__"}
+              onChange={onFilterChange((v) =>
+                setErrorCode(v === "__all__" ? null : Number(v)),
+              )}
+              options={[
+                { value: "__all__", label: t("transactions.allResponseCodes") },
+                ...ERROR_CODES.map((e) => ({ value: String(e.code), label: e.label })),
+              ]}
+            />
+          </div>
+          <div className="w-36">
+            <Label>{t("transactions.fields.billable")}</Label>
+            <Select
+              value={billable === null ? "__all__" : billable ? "true" : "false"}
+              onChange={onFilterChange((v) =>
+                setBillable(v === "__all__" ? null : v === "true"),
+              )}
+              options={[
+                { value: "__all__", label: t("transactions.allStatuses") },
+                { value: "true", label: t("common.yes") },
+                { value: "false", label: t("common.no") },
+              ]}
+            />
+          </div>
+          <div className="w-64">
+            <Label htmlFor="txid">{t("transactions.fields.transactionId")}</Label>
+            <Input
+              id="txid"
+              placeholder={t("transactions.searchIdPlaceholder")}
+              value={q}
+              onChange={(e) => onFilterChange(setQ)(e.target.value)}
             />
           </div>
           <div>

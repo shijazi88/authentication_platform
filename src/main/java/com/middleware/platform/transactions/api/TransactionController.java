@@ -33,6 +33,9 @@ public class TransactionController {
     @GetMapping
     public Page<Transaction> list(@RequestParam(required = false) UUID tenantId,
                                   @RequestParam(required = false) TransactionStatus status,
+                                  @RequestParam(required = false) Integer errorCode,
+                                  @RequestParam(required = false) Boolean billable,
+                                  @RequestParam(required = false) String q,
                                   @RequestParam(required = false)
                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
                                   @RequestParam(required = false)
@@ -43,7 +46,7 @@ public class TransactionController {
         // Inclusive date range: [from 00:00 UTC, to+1day 00:00 UTC).
         Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
         Instant toInstant = to != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : null;
-        return transactionService.filter(tenantId, status, fromInstant, toInstant, pr);
+        return transactionService.filter(tenantId, status, errorCode, billable, q, fromInstant, toInstant, pr);
     }
 
     /**

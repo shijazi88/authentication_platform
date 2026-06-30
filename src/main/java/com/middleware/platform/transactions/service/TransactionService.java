@@ -141,11 +141,13 @@ public class TransactionService {
         return transactionRepository.findAll(pageable);
     }
 
-    /** Admin listing with optional client / status / date-range filters. */
+    /** Admin listing with optional client / status / response-code / billable / id / date filters. */
     @Transactional(readOnly = true)
-    public Page<Transaction> filter(UUID tenantId, TransactionStatus status,
+    public Page<Transaction> filter(UUID tenantId, TransactionStatus status, Integer errorCode,
+                                    Boolean billable, String idQuery,
                                     Instant from, Instant to, Pageable pageable) {
-        return transactionRepository.filter(tenantId, status, from, to, pageable);
+        String idq = (idQuery == null || idQuery.isBlank()) ? null : idQuery.trim();
+        return transactionRepository.filter(tenantId, status, errorCode, billable, idq, from, to, pageable);
     }
 
     @Transactional(readOnly = true)
