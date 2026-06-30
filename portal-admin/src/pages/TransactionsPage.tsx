@@ -46,6 +46,7 @@ const ERROR_CODES: { code: number; label: string }[] = [
   { code: 2102, label: "2102 · Connector timeout" },
   { code: 2103, label: "2103 · Connector unavailable" },
 ];
+const ERROR_CODE_LABEL = new Map(ERROR_CODES.map((e) => [e.code, e.label]));
 
 export function TransactionsPage() {
   const { t } = useTranslation();
@@ -224,6 +225,7 @@ export function TransactionsPage() {
                     <Th>{t("transactions.fields.transactionId")}</Th>
                     {showClientCol && <Th>{t("subscriptions.fields.tenant")}</Th>}
                     <Th>{t("common.status")}</Th>
+                    <Th>{t("transactions.responseCode")}</Th>
                     <Th>{t("transactions.fields.latency")}</Th>
                     <Th>{t("transactions.fields.price")}</Th>
                     <Th>{t("transactions.fields.billable")}</Th>
@@ -265,6 +267,18 @@ export function TransactionsPage() {
                         <Badge tone={statusTone(tx.status)}>
                           {t(`status.${tx.status}`, tx.status)}
                         </Badge>
+                      </Td>
+                      <Td className="text-xs">
+                        {tx.errorCode != null ? (
+                          <span
+                            className="font-mono text-accent-rose"
+                            title={ERROR_CODE_LABEL.get(tx.errorCode) ?? undefined}
+                          >
+                            {tx.errorCode}
+                          </span>
+                        ) : (
+                          <span className="text-text-dim">—</span>
+                        )}
                       </Td>
                       <Td className="text-text-muted text-xs">
                         {tx.latencyMs != null ? `${tx.latencyMs} ms` : "—"}
