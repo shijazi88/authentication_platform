@@ -1,38 +1,67 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ScrollText, ChevronLeft, ChevronRight } from "lucide-react";
+import { ScrollText, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { listTenants } from "@/api/tenants";
 import { listTransactions } from "@/api/transactions";
 import { PageHeader } from "@/components/ui/PageHeader";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/Card";
+import { Card, CardBody } from "@/components/ui/Card";
 import { Table, TBody, THead, Th, Td, Tr } from "@/components/ui/Table";
 import { Badge, statusTone } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, formatMoneyMinor, shortId } from "@/lib/format";
+import type { TransactionStatus } from "@/types/api";
+
+const STATUSES: TransactionStatus[] = [
+  "SUCCESS",
+  "FAILED",
+  "TIMEOUT",
+  "REJECTED",
+  "INITIATED",
+];
 
 export function TransactionsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [status, setStatus] = useState<TransactionStatus | null>(null);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [page, setPage] = useState(0);
   const size = 50;
 
+  // Any filter change resets to the first page.
+  function onFilterChange<T>(setter: (v: T) => void) {
+    return (v: T) => {
+      setter(v);
+      setPage(0);
+    };
+  }
+
+  const hasFilters = tenantId !== null || status !== null || from !== "" || to !== "";
+  function clearFilters() {
+    setTenantId(null);
+    setStatus(null);
+    setFrom("");
+    setTo("");
+    setPage(0);
+  }
+
   const txQ = useQuery({
-    queryKey: ["transactions", tenantId ?? "all", page, size],
+    queryKey: ["transactions", tenantId ?? "all", status ?? "any", from, to, page, size],
     queryFn: () =>
       listTransactions({
         tenantId: tenantId ?? undefined,
+        status: status ?? undefined,
+        from: from || undefined,
+        to: to || undefined,
         page,
         size,
       }),
@@ -52,15 +81,12 @@ export function TransactionsPage() {
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>{t("common.filter")}</CardTitle>
-          <div className="w-72">
+        <div className="p-4 border-b border-border/10 flex flex-wrap items-end gap-3">
+          <div className="w-60">
+            <Label>{t("subscriptions.fields.tenant")}</Label>
             <Select
               value={tenantId ?? "__all__"}
-              onChange={(v) => {
-                setTenantId(v === "__all__" ? null : v);
-                setPage(0);
-              }}
+              onChange={onFilterChange((v) => setTenantId(v === "__all__" ? null : v))}
               placeholder={t("transactions.allClients")}
               options={[
                 { value: "__all__", label: t("transactions.allClients") },
@@ -72,7 +98,50 @@ export function TransactionsPage() {
               ]}
             />
           </div>
-        </CardHeader>
+          <div className="w-44">
+            <Label>{t("common.status")}</Label>
+            <Select
+              value={status ?? "__all__"}
+              onChange={onFilterChange((v) =>
+                setStatus(v === "__all__" ? null : (v as TransactionStatus)),
+              )}
+              options={[
+                { value: "__all__", label: t("transactions.allStatuses") },
+                ...STATUSES.map((s) => ({ value: s, label: t(`status.${s}`, s) })),
+              ]}
+            />
+          </div>
+          <div>
+            <Label htmlFor="from">{t("transactions.fromDate")}</Label>
+            <Input
+              id="from"
+              type="date"
+              value={from}
+              max={to || undefined}
+              onChange={(e) => onFilterChange(setFrom)(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="to">{t("transactions.toDate")}</Label>
+            <Input
+              id="to"
+              type="date"
+              value={to}
+              min={from || undefined}
+              onChange={(e) => onFilterChange(setTo)(e.target.value)}
+            />
+          </div>
+          {hasFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              leftIcon={<X className="h-3.5 w-3.5" />}
+              onClick={clearFilters}
+            >
+              {t("transactions.clearFilters")}
+            </Button>
+          )}
+        </div>
         <CardBody className="p-0">
           {txQ.isLoading ? (
             <PageLoader />

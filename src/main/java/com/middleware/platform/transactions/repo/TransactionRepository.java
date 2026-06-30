@@ -1,6 +1,7 @@
 package com.middleware.platform.transactions.repo;
 
 import com.middleware.platform.transactions.domain.Transaction;
+import com.middleware.platform.transactions.domain.TransactionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,24 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     Page<Transaction> findByTenantId(UUID tenantId, Pageable pageable);
     Page<Transaction> findByTenantIdAndCreatedAtBetween(UUID tenantId, Instant from, Instant to,
                                                        Pageable pageable);
+
+    /**
+     * Admin transaction listing with optional filters. Any parameter left null
+     * is ignored, so this single query serves all filter combinations (client,
+     * status, and a [from, to) date range). Sorting/paging come from {@code Pageable}.
+     */
+    @Query("""
+            select t from Transaction t
+             where (:tenantId is null or t.tenantId = :tenantId)
+               and (:status   is null or t.status   = :status)
+               and (:from     is null or t.createdAt >= :from)
+               and (:to       is null or t.createdAt <  :to)
+            """)
+    Page<Transaction> filter(@Param("tenantId") UUID tenantId,
+                             @Param("status") TransactionStatus status,
+                             @Param("from") Instant from,
+                             @Param("to") Instant to,
+                             Pageable pageable);
     long countByTenantIdAndCreatedAtBetween(UUID tenantId, Instant from, Instant to);
 
     /**

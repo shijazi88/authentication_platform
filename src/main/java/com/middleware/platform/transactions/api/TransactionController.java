@@ -2,6 +2,7 @@ package com.middleware.platform.transactions.api;
 
 import com.middleware.platform.transactions.domain.Transaction;
 import com.middleware.platform.transactions.domain.TransactionPayload;
+import com.middleware.platform.transactions.domain.TransactionStatus;
 import com.middleware.platform.transactions.dto.TransactionDetail;
 import com.middleware.platform.transactions.repo.TransactionPayloadRepository;
 import com.middleware.platform.transactions.service.TransactionService;
@@ -9,12 +10,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 @RestController
@@ -27,12 +32,18 @@ public class TransactionController {
 
     @GetMapping
     public Page<Transaction> list(@RequestParam(required = false) UUID tenantId,
+                                  @RequestParam(required = false) TransactionStatus status,
+                                  @RequestParam(required = false)
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+                                  @RequestParam(required = false)
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
                                   @RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "50") int size) {
         PageRequest pr = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return tenantId != null
-                ? transactionService.listByTenant(tenantId, pr)
-                : transactionService.listAll(pr);
+        // Inclusive date range: [from 00:00 UTC, to+1day 00:00 UTC).
+        Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
+        Instant toInstant = to != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : null;
+        return transactionService.filter(tenantId, status, fromInstant, toInstant, pr);
     }
 
     /**

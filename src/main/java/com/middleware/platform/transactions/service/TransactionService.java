@@ -141,6 +141,13 @@ public class TransactionService {
         return transactionRepository.findAll(pageable);
     }
 
+    /** Admin listing with optional client / status / date-range filters. */
+    @Transactional(readOnly = true)
+    public Page<Transaction> filter(UUID tenantId, TransactionStatus status,
+                                    Instant from, Instant to, Pageable pageable) {
+        return transactionRepository.filter(tenantId, status, from, to, pageable);
+    }
+
     @Transactional(readOnly = true)
     public Transaction get(UUID id) {
         return transactionRepository.findById(id)

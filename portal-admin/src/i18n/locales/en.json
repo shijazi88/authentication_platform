@@ -218,6 +218,10 @@
     "title": "Transactions",
     "subtitle": "Every verification call routed through the platform. Failures, timeouts, and entitlement rejections are also recorded here.",
     "allClients": "All clients",
+    "allStatuses": "All statuses",
+    "fromDate": "From",
+    "toDate": "To",
+    "clearFilters": "Clear filters",
     "fields": {
       "transactionId": "Transaction ID",
       "latency": "Latency",

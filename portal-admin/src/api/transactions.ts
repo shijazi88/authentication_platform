@@ -3,12 +3,18 @@ import type { Page, Transaction, TransactionDetail } from "@/types/api";
 
 export async function listTransactions(params: {
   tenantId?: string;
+  status?: string;
+  from?: string; // yyyy-MM-dd
+  to?: string; // yyyy-MM-dd
   page?: number;
   size?: number;
 }): Promise<Page<Transaction>> {
   const { data } = await api.get<Page<Transaction>>("/admin/transactions", {
     params: {
       ...(params.tenantId ? { tenantId: params.tenantId } : {}),
+      ...(params.status ? { status: params.status } : {}),
+      ...(params.from ? { from: params.from } : {}),
+      ...(params.to ? { to: params.to } : {}),
       page: params.page ?? 0,
       size: params.size ?? 50,
     },
