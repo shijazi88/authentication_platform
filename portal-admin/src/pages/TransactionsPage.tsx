@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/Label";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageLoader } from "@/components/ui/Spinner";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { formatDate, formatMoneyMinor, shortId } from "@/lib/format";
 import type { TransactionStatus } from "@/types/api";
 
@@ -237,8 +238,13 @@ export function TransactionsPage() {
                       className="cursor-pointer"
                     >
                       <Td>
-                        <div className="font-mono text-xs text-text">
-                          {shortId(tx.id, 14)}
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-xs text-text break-all">
+                            {tx.id}
+                          </span>
+                          <span onClick={(e) => e.stopPropagation()}>
+                            <CopyButton value={tx.id} />
+                          </span>
                         </div>
                         {tx.errorMessage && (
                           <div className="text-xs text-accent-rose mt-0.5 line-clamp-1">
