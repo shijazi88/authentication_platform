@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, ScrollText, ListChecks, Wallet, KeyRound, Fingerprint, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LayoutDashboard, ScrollText, ListChecks, Wallet, KeyRound, Fingerprint, User, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useTenantAuth } from "@/lib/tenantAuth";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +17,7 @@ const navItems = [
   { to: "/portal/wallet", labelKey: "portal.nav.wallet", icon: Wallet },
   { to: "/portal/api-keys", labelKey: "portal.nav.apiKeys", icon: KeyRound },
   { to: "/portal/devices", labelKey: "portal.nav.devices", icon: Fingerprint },
+  { to: "/portal/profile", labelKey: "portal.nav.profile", icon: User },
 ];
 
 export function PortalLayout() {
@@ -142,7 +143,13 @@ export function PortalLayout() {
           <ThemeToggle />
           <div className="h-8 w-px bg-border/15 mx-1" />
           <Badge tone="violet">{t("portal.clientBadge")}</Badge>
-          <div className="text-xs text-text-muted hidden sm:block ms-2">{email}</div>
+          <NavLink
+            to="/portal/profile"
+            className="text-xs text-text-muted hover:text-text hidden sm:block ms-2"
+            title={t("portal.nav.profile")}
+          >
+            {email}
+          </NavLink>
           <div className="h-8 w-px bg-border/15 mx-1" />
           <Button variant="ghost" size="sm" leftIcon={<LogOut className="h-4 w-4" />} onClick={logout}>
             {t("portal.logout")}

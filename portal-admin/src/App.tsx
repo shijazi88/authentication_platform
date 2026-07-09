@@ -24,6 +24,7 @@ import { PortalSubscriptionsPage } from "@/pages/portal/PortalSubscriptionsPage"
 import { PortalWalletPage } from "@/pages/portal/PortalWalletPage";
 import { PortalApiKeysPage } from "@/pages/portal/PortalApiKeysPage";
 import { PortalDevicesPage } from "@/pages/portal/PortalDevicesPage";
+import { PortalProfilePage } from "@/pages/portal/PortalProfilePage";
 
 export default function App() {
   return (
@@ -77,6 +78,7 @@ export default function App() {
         <Route path="wallet" element={<PortalWalletPage />} />
         <Route path="api-keys" element={<PortalApiKeysPage />} />
         <Route path="devices" element={<PortalDevicesPage />} />
+        <Route path="profile" element={<PortalProfilePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

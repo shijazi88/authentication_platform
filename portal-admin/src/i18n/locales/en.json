@@ -37,7 +37,8 @@
     "done": "Done",
     "copy": "Copy",
     "copied": "Copied",
-    "optional": "optional"
+    "optional": "optional",
+    "error": "Something went wrong"
   },
   "status": {
     "PENDING": "Pending",
@@ -379,7 +380,11 @@
     "enforceOff": "Not required",
     "expires": "Expires",
     "noKeys": "No encryption keys yet.",
-    "status": { "ACTIVE": "Active", "RETIRING": "Retiring", "REVOKED": "Revoked" }
+    "status": {
+      "ACTIVE": "Active",
+      "RETIRING": "Retiring",
+      "REVOKED": "Revoked"
+    }
   },
   "portal": {
     "title": "Client Portal",
@@ -391,7 +396,8 @@
       "subscriptions": "Subscriptions",
       "wallet": "Wallet",
       "apiKeys": "API Keys",
-      "devices": "Devices"
+      "devices": "Devices",
+      "profile": "Profile"
     },
     "devices": {
       "search": "Search by name, model, type, or serial…",
@@ -449,8 +455,12 @@
       "recentTx": "Recent transactions",
       "noTx": "No transactions yet."
     },
-    "tx": { "amount": "Amount" },
-    "wallet": { "topUpHint": "To add funds, contact your account manager." },
+    "tx": {
+      "amount": "Amount"
+    },
+    "wallet": {
+      "topUpHint": "To add funds, contact your account manager."
+    },
     "topup": {
       "request": "Request Top-up",
       "hint": "Request a wallet charge — an admin will review and approve it.",
@@ -460,7 +470,11 @@
       "submit": "Submit request",
       "dialogHint": "Enter the amount you'd like added. Your request goes to the platform team for approval.",
       "notePlaceholder": "e.g. Bank transfer ref #1234",
-      "status": { "PENDING": "Pending", "APPROVED": "Approved", "REJECTED": "Rejected" }
+      "status": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected"
+      }
     },
     "guide": {
       "title": "How to use your API key & certificate",
@@ -488,6 +502,23 @@
       "algorithm": "Algorithm",
       "fingerprint": "SHA-256 fingerprint",
       "expires": "Expires"
+    },
+    "profile": {
+      "personalInfo": "Personal information",
+      "displayName": "Full name",
+      "displayNamePlaceholder": "Your name",
+      "email": "Email",
+      "emailNote": "Your sign-in email. Contact your administrator to change it.",
+      "organization": "Organization",
+      "saved": "Profile updated",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordHint": "At least 8 characters.",
+      "passwordMismatch": "Passwords do not match.",
+      "passwordChanged": "Password changed",
+      "passwordError": "Could not change password. Check your current password."
     }
   },
   "pin": {

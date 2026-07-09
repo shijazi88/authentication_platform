@@ -4,6 +4,7 @@ import type {
   WalletTopUpRequest,
   Subscription,
   Transaction,
+  TransactionStatus,
   Wallet,
   WalletLedgerEntry,
 } from "@/types/api";
@@ -44,10 +45,46 @@ export async function getMe(): Promise<TenantMe> {
   return data;
 }
 
-export async function listTransactions(page = 0, size = 20): Promise<Page<Transaction>> {
-  const { data } = await tenantApi.get<Page<Transaction>>(
-    `/portal-api/transactions?page=${page}&size=${size}`,
-  );
+/** Update the signed-in user's own display name. */
+export async function updateProfile(displayName: string | null): Promise<TenantMe> {
+  const { data } = await tenantApi.put<TenantMe>("/portal-api/me", { displayName });
+  return data;
+}
+
+/** Change the signed-in user's own password (requires the current one). */
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await tenantApi.post("/portal-api/me/password", { currentPassword, newPassword });
+}
+
+export type TransactionFilters = {
+  status?: TransactionStatus;
+  errorCode?: number;
+  billable?: boolean;
+  q?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  size?: number;
+};
+
+export async function listTransactions(
+  params: TransactionFilters = {},
+): Promise<Page<Transaction>> {
+  const { data } = await tenantApi.get<Page<Transaction>>("/portal-api/transactions", {
+    params: {
+      status: params.status,
+      errorCode: params.errorCode,
+      billable: params.billable,
+      q: params.q || undefined,
+      from: params.from || undefined,
+      to: params.to || undefined,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  });
   return data;
 }
 

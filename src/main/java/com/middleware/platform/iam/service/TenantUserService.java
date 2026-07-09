@@ -58,6 +58,30 @@ public class TenantUserService {
                 tenant.getId(), tenant.getCode(), tenant.getLegalName());
     }
 
+    /** Self-service: update the signed-in user's own display name. */
+    @Transactional
+    public TenantMeResponse updateProfile(String email, UpdateProfileRequest req) {
+        TenantUser user = users.findByEmail(email)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.UNAUTHENTICATED, "Unknown user"));
+        user.setDisplayName(blankToNull(req.displayName()));
+        Tenant tenant = tenants.findById(user.getTenantId())
+                .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, "Tenant not found"));
+        return new TenantMeResponse(user.getEmail(), user.getDisplayName(),
+                tenant.getId(), tenant.getCode(), tenant.getLegalName());
+    }
+
+    /** Self-service: change the signed-in user's own password (requires the current one). */
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest req) {
+        TenantUser user = users.findByEmail(email)
+                .orElseThrow(() -> new ApplicationException(ErrorCode.UNAUTHENTICATED, "Unknown user"));
+        if (!passwordEncoder.matches(req.currentPassword(), user.getPasswordHash())) {
+            throw new ApplicationException(ErrorCode.INVALID_CREDENTIALS, "Current password is incorrect");
+        }
+        user.setPasswordHash(passwordEncoder.encode(req.newPassword()));
+        log.info("Tenant user changed own password: {}", user.getEmail());
+    }
+
     // ── Admin-side management ─────────────────────────────────────────────────
 
     @Transactional(readOnly = true)

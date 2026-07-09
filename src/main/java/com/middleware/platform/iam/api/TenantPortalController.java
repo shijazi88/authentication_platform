@@ -1,12 +1,14 @@
 package com.middleware.platform.iam.api;
 
 import com.middleware.platform.common.error.ApplicationException;
+import com.middleware.platform.iam.dto.ChangePasswordRequest;
 import com.middleware.platform.iam.dto.CreateCredentialRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.CertificateResponse;
 import com.middleware.platform.iam.dto.CredentialView;
 import com.middleware.platform.iam.dto.SubscriptionDetailResponse;
 import com.middleware.platform.iam.dto.TenantMeResponse;
+import com.middleware.platform.iam.dto.UpdateProfileRequest;
 import com.middleware.platform.iam.domain.TenantEncryptionKey;
 import com.middleware.platform.iam.security.CurrentTenant;
 import com.middleware.platform.iam.service.TenantKeyService;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.service.SubscriptionService;
 import com.middleware.platform.transactions.domain.Transaction;
+import com.middleware.platform.transactions.domain.TransactionStatus;
 import com.middleware.platform.transactions.service.TransactionService;
 import com.middleware.platform.wallet.dto.TopUpRequest;
 import com.middleware.platform.wallet.dto.TopUpRequestResponse;
@@ -30,8 +33,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,12 +65,39 @@ public class TenantPortalController {
         return tenantUserService.me(CurrentTenant.email());
     }
 
+    /** Self-service: update the signed-in user's own profile (display name). */
+    @PutMapping("/me")
+    public TenantMeResponse updateProfile(@Valid @RequestBody UpdateProfileRequest req) {
+        return tenantUserService.updateProfile(CurrentTenant.email(), req);
+    }
+
+    /** Self-service: change the signed-in user's own password. */
+    @PostMapping("/me/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changePassword(@Valid @RequestBody ChangePasswordRequest req) {
+        tenantUserService.changePassword(CurrentTenant.email(), req);
+    }
+
     @GetMapping("/transactions")
-    public Page<Transaction> transactions(@RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "20") int size) {
+    public Page<Transaction> transactions(
+            @RequestParam(required = false) TransactionStatus status,
+            @RequestParam(required = false) Integer errorCode,
+            @RequestParam(required = false) Boolean billable,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
         PageRequest pr = PageRequest.of(page, Math.min(size, 100),
                 Sort.by(Sort.Direction.DESC, "createdAt"));
-        return transactionService.listByTenant(CurrentTenant.id(), pr);
+        // Inclusive date range: [from 00:00 UTC, to+1day 00:00 UTC). Tenant is
+        // always forced to the caller — a client only ever sees its own data.
+        Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
+        Instant toInstant = to != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : null;
+        return transactionService.filter(CurrentTenant.id(), status, errorCode, billable, q,
+                fromInstant, toInstant, pr);
     }
 
     @GetMapping("/transactions/{id}")

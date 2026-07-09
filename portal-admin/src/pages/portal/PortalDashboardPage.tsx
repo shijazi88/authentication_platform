@@ -11,7 +11,7 @@ import { formatMoneyMinor, formatDate } from "@/lib/format";
 export function PortalDashboardPage() {
   const { t } = useTranslation();
   const walletQ = useQuery({ queryKey: ["t-wallet"], queryFn: getWallet });
-  const txQ = useQuery({ queryKey: ["t-tx", 0, 5], queryFn: () => listTransactions(0, 5) });
+  const txQ = useQuery({ queryKey: ["t-tx", 0, 5], queryFn: () => listTransactions({ page: 0, size: 5 }) });
   const subsQ = useQuery({ queryKey: ["t-subs"], queryFn: listSubscriptions });
 
   const balance = walletQ.data?.balanceMinor ?? 0;
