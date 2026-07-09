@@ -20,9 +20,12 @@ import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.service.SubscriptionService;
 import com.middleware.platform.transactions.domain.Transaction;
 import com.middleware.platform.transactions.service.TransactionService;
+import com.middleware.platform.wallet.dto.TopUpRequest;
+import com.middleware.platform.wallet.dto.TopUpRequestResponse;
 import com.middleware.platform.wallet.dto.WalletLedgerEntryResponse;
 import com.middleware.platform.wallet.dto.WalletResponse;
 import com.middleware.platform.wallet.service.WalletService;
+import com.middleware.platform.wallet.service.WalletTopUpRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -48,6 +51,7 @@ public class TenantPortalController {
     private final TransactionService transactionService;
     private final SubscriptionService subscriptionService;
     private final WalletService walletService;
+    private final WalletTopUpRequestService topUpRequestService;
 
     @GetMapping("/me")
     public TenantMeResponse me() {
@@ -124,6 +128,17 @@ public class TenantPortalController {
     @GetMapping("/wallet")
     public WalletResponse wallet() {
         return WalletResponse.from(walletService.getOrCreate(CurrentTenant.id(), "YER"));
+    }
+
+    @PostMapping("/wallet/topup-request")
+    @ResponseStatus(HttpStatus.CREATED)
+    public TopUpRequestResponse requestTopUp(@Valid @RequestBody TopUpRequest req) {
+        return topUpRequestService.create(CurrentTenant.id(), req.amountMinor(), req.note(), CurrentTenant.email());
+    }
+
+    @GetMapping("/wallet/topup-requests")
+    public List<TopUpRequestResponse> myTopUpRequests() {
+        return topUpRequestService.listByTenant(CurrentTenant.id());
     }
 
     @GetMapping("/wallet/ledger")

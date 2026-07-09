@@ -451,6 +451,17 @@
     },
     "tx": { "amount": "Amount" },
     "wallet": { "topUpHint": "To add funds, contact your account manager." },
+    "topup": {
+      "request": "Request Top-up",
+      "hint": "Request a wallet charge — an admin will review and approve it.",
+      "myRequests": "My top-up requests",
+      "submitted": "Request submitted",
+      "error": "Could not submit the request",
+      "submit": "Submit request",
+      "dialogHint": "Enter the amount you'd like added. Your request goes to the platform team for approval.",
+      "notePlaceholder": "e.g. Bank transfer ref #1234",
+      "status": { "PENDING": "Pending", "APPROVED": "Approved", "REJECTED": "Rejected" }
+    },
     "guide": {
       "title": "How to use your API key & certificate",
       "intro": "Every request authenticates with your Client ID + Secret (HTTP Basic). The national number and fingerprint must be encrypted to your certificate before they are sent.",
@@ -502,6 +513,11 @@
     "recentActivity": "Recent activity",
     "noActivity": "No wallet activity yet.",
     "toppedUp": "Wallet topped up",
+    "pendingRequests": "Top-up requests ({{count}})",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reqApproved": "Request approved — wallet credited",
+    "reqRejected": "Request rejected",
     "error": "Could not complete the wallet operation",
     "entryType": {
       "TOPUP": "Top-up",

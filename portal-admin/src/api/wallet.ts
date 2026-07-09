@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Wallet, WalletLedgerEntry } from "@/types/api";
+import type { Wallet, WalletLedgerEntry, WalletTopUpRequest } from "@/types/api";
 
 type Page<T> = { content: T[]; totalElements: number; number: number; size: number };
 
@@ -28,5 +28,36 @@ export async function topUpWallet(
     amountMinor,
     note,
   });
+  return data;
+}
+
+export async function listTopUpRequests(tenantId: string): Promise<WalletTopUpRequest[]> {
+  const { data } = await api.get<WalletTopUpRequest[]>(
+    `/admin/wallets/${tenantId}/topup-requests`,
+  );
+  return data;
+}
+
+export async function approveTopUpRequest(
+  tenantId: string,
+  id: string,
+  note?: string,
+): Promise<WalletTopUpRequest> {
+  const { data } = await api.post<WalletTopUpRequest>(
+    `/admin/wallets/${tenantId}/topup-requests/${id}/approve`,
+    { note },
+  );
+  return data;
+}
+
+export async function rejectTopUpRequest(
+  tenantId: string,
+  id: string,
+  note?: string,
+): Promise<WalletTopUpRequest> {
+  const { data } = await api.post<WalletTopUpRequest>(
+    `/admin/wallets/${tenantId}/topup-requests/${id}/reject`,
+    { note },
+  );
   return data;
 }

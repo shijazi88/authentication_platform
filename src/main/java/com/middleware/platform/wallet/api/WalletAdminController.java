@@ -1,10 +1,13 @@
 package com.middleware.platform.wallet.api;
 
 import com.middleware.platform.wallet.domain.WalletEntrySource;
+import com.middleware.platform.wallet.dto.TopUpDecisionRequest;
 import com.middleware.platform.wallet.dto.TopUpRequest;
+import com.middleware.platform.wallet.dto.TopUpRequestResponse;
 import com.middleware.platform.wallet.dto.WalletLedgerEntryResponse;
 import com.middleware.platform.wallet.dto.WalletResponse;
 import com.middleware.platform.wallet.service.WalletService;
+import com.middleware.platform.wallet.service.WalletTopUpRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,6 +31,7 @@ import java.util.UUID;
 public class WalletAdminController {
 
     private final WalletService walletService;
+    private final WalletTopUpRequestService topUpRequestService;
 
     @GetMapping("/{tenantId}")
     public WalletResponse get(@PathVariable UUID tenantId) {
@@ -49,5 +54,28 @@ public class WalletAdminController {
         return WalletResponse.from(walletService.credit(
                 tenantId, req.amountMinor(), WalletEntrySource.ADMIN,
                 null, req.note(), authentication.getName()));
+    }
+
+    // ── Client top-up requests ────────────────────────────────────────────────
+
+    @GetMapping("/{tenantId}/topup-requests")
+    public List<TopUpRequestResponse> topUpRequests(@PathVariable UUID tenantId) {
+        return topUpRequestService.listByTenant(tenantId);
+    }
+
+    @PostMapping("/{tenantId}/topup-requests/{id}/approve")
+    public TopUpRequestResponse approveRequest(@PathVariable UUID tenantId, @PathVariable UUID id,
+                                               @RequestBody(required = false) TopUpDecisionRequest req,
+                                               Authentication authentication) {
+        return topUpRequestService.approve(tenantId, id, authentication.getName(),
+                req != null ? req.note() : null);
+    }
+
+    @PostMapping("/{tenantId}/topup-requests/{id}/reject")
+    public TopUpRequestResponse rejectRequest(@PathVariable UUID tenantId, @PathVariable UUID id,
+                                              @RequestBody(required = false) TopUpDecisionRequest req,
+                                              Authentication authentication) {
+        return topUpRequestService.reject(tenantId, id, authentication.getName(),
+                req != null ? req.note() : null);
     }
 }

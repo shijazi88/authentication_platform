@@ -74,6 +74,22 @@ export type Wallet = {
   updatedAt: string;
 };
 
+export type TopUpRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type WalletTopUpRequest = {
+  id: string;
+  tenantId: string;
+  amountMinor: number;
+  currency: string;
+  note: string | null;
+  status: TopUpRequestStatus;
+  requestedBy: string | null;
+  decidedBy: string | null;
+  decidedNote: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+};
+
 export type WalletEntryType = "TOPUP" | "DEBIT" | "REVERSAL" | "ADJUSTMENT";
 export type WalletEntrySource = "ADMIN" | "PAYMENT" | "SYSTEM";
 

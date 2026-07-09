@@ -1,6 +1,7 @@
 import { tenantApi } from "@/lib/tenantApi";
 import type {
   FingerprintDevice,
+  WalletTopUpRequest,
   Subscription,
   Transaction,
   Wallet,
@@ -168,5 +169,20 @@ export async function rotateCertificate(): Promise<EncryptionCertificate> {
 
 export async function listMyDevices(): Promise<FingerprintDevice[]> {
   const { data } = await tenantApi.get<FingerprintDevice[]>("/portal-api/devices");
+  return data;
+}
+
+// ── Wallet top-up requests (client asks, admin approves) ────────────────────
+
+export async function requestTopUp(amountMinor: number, note?: string): Promise<WalletTopUpRequest> {
+  const { data } = await tenantApi.post<WalletTopUpRequest>("/portal-api/wallet/topup-request", {
+    amountMinor,
+    note,
+  });
+  return data;
+}
+
+export async function listMyTopUpRequests(): Promise<WalletTopUpRequest[]> {
+  const { data } = await tenantApi.get<WalletTopUpRequest[]>("/portal-api/wallet/topup-requests");
   return data;
 }
