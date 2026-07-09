@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { KeyRound, Plus, ShieldAlert, Ban, ShieldCheck, Download, RefreshCw } from "lucide-react";
+import { KeyRound, Plus, ShieldAlert, Ban, ShieldCheck, Download, RefreshCw, BookOpen } from "lucide-react";
 import {
   listCredentials,
   createCredential,
@@ -27,6 +27,12 @@ export function PortalApiKeysPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["t-credentials"], queryFn: listCredentials });
   const certQ = useQuery({ queryKey: ["t-certificate"], queryFn: getCertificate });
+
+  // API host mirrors the portal host: portal.<domain> → api.<domain>.
+  const apiBase =
+    typeof window !== "undefined"
+      ? `https://${window.location.hostname.replace("portal", "api")}`
+      : "https://api.motabiq.ai";
 
   const rotateMut = useMutation({
     mutationFn: () => rotateCertificate(),
@@ -198,6 +204,66 @@ export function PortalApiKeysPage() {
         )}
       </Card>
 
+      {/* Integration guide */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-text-muted" />
+            <CardTitle>{t("portal.guide.title")}</CardTitle>
+          </div>
+        </CardHeader>
+        <CardBody className="space-y-5 text-sm">
+          <p className="text-text-muted">{t("portal.guide.intro")}</p>
+
+          <div>
+            <div className="text-xs text-text-dim mb-1">{t("portal.guide.baseUrl")}</div>
+            <div className="flex items-center gap-2">
+              <code className="font-mono text-xs bg-bg-elevated/60 rounded-lg px-3 py-2">
+                {apiBase}
+              </code>
+              <CopyButton value={apiBase} />
+            </div>
+          </div>
+
+          <div>
+            <div className="font-semibold mb-1">{t("portal.guide.step1Title")}</div>
+            <p className="text-text-muted text-xs mb-2">{t("portal.guide.step1")}</p>
+            <CodeBlock code={'Authorization: Basic base64(clientId + ":" + clientSecret)'} />
+          </div>
+
+          <div>
+            <div className="font-semibold mb-1">{t("portal.guide.step2Title")}</div>
+            <p className="text-text-muted text-xs mb-2">{t("portal.guide.step2")}</p>
+            <CodeBlock
+              code={`{
+  "nationalNumber": "…",
+  "biometrics": { "fingerPosition": 1, "image": "<wsqBase64>" }
+}`}
+            />
+            <p className="text-text-dim text-xs mt-1.5">
+              {t("portal.guide.step2Note", { kid: certQ.data?.kid ?? "…" })}
+            </p>
+          </div>
+
+          <div>
+            <div className="font-semibold mb-1">{t("portal.guide.step3Title")}</div>
+            <p className="text-text-muted text-xs mb-2">{t("portal.guide.step3")}</p>
+            <CodeBlock
+              code={`curl -X POST "${apiBase}/api/v1/verify/identity" \\
+  -u "CLIENT_ID:CLIENT_SECRET" \\
+  -H "Content-Type: application/json" \\
+  -d '{"encryptedPayload":"<JWE>"}'`}
+            />
+          </div>
+
+          <div className="rounded-lg border border-accent-amber/30 bg-accent-amber/[0.06] p-3 text-xs text-text-muted space-y-1">
+            <div>• {t("portal.guide.noteSecret")}</div>
+            <div>• {t("portal.guide.noteIp")}</div>
+            <div>• {t("portal.guide.noteCert")}</div>
+          </div>
+        </CardBody>
+      </Card>
+
       {/* Generate dialog */}
       <Dialog
         open={createOpen}
@@ -282,6 +348,19 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
     <div>
       <div className="text-xs text-text-dim">{label}</div>
       <div className={`${mono ? "font-mono text-xs" : "text-sm"} text-text break-all`}>{value}</div>
+    </div>
+  );
+}
+
+function CodeBlock({ code }: { code: string }) {
+  return (
+    <div className="relative">
+      <pre className="font-mono text-xs bg-bg-elevated/60 rounded-lg p-3 overflow-x-auto whitespace-pre text-text">
+        {code}
+      </pre>
+      <div className="absolute top-1.5 end-1.5">
+        <CopyButton value={code} />
+      </div>
     </div>
   );
 }

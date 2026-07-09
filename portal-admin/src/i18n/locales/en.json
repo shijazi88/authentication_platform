@@ -444,6 +444,21 @@
     },
     "tx": { "amount": "Amount" },
     "wallet": { "topUpHint": "To add funds, contact your account manager." },
+    "guide": {
+      "title": "How to use your API key & certificate",
+      "intro": "Every request authenticates with your Client ID + Secret (HTTP Basic). The national number and fingerprint must be encrypted to your certificate before they are sent.",
+      "baseUrl": "Base URL",
+      "step1Title": "1. Authenticate",
+      "step1": "Send your credentials as HTTP Basic auth on every request:",
+      "step2Title": "2. Encrypt the data",
+      "step2": "Encrypt this JSON into a JWE (RSA-OAEP-256 + A256GCM) using your certificate above:",
+      "step2Note": "Put your certificate's Key ID ({{kid}}) in the JWE header. Download the certificate above, or fetch it from GET /api/v1/crypto/certificate.",
+      "step3Title": "3. Call verify",
+      "step3": "Send only the encrypted envelope — no plaintext PII — to the verification endpoint:",
+      "noteSecret": "Your Client Secret is shown only once when a key is generated — store it securely and rotate it if lost.",
+      "noteIp": "Requests are only accepted from your registered IP allow-list.",
+      "noteCert": "After rotating the certificate, re-download it and encrypt to the new Key ID."
+    },
     "cert": {
       "title": "Encryption Certificate",
       "intro": "Encrypt the verification PII (national number + biometrics) to this certificate before sending — JWE with RSA-OAEP-256 + A256GCM. Put the key id below in the JWE 'kid' header.",
