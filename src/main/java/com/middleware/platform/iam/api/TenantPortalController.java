@@ -12,6 +12,8 @@ import com.middleware.platform.iam.security.CurrentTenant;
 import com.middleware.platform.iam.service.TenantKeyService;
 import com.middleware.platform.iam.service.TenantPortalService;
 import com.middleware.platform.iam.service.TenantUserService;
+import com.middleware.platform.device.dto.DeviceResponse;
+import com.middleware.platform.device.service.FingerprintDeviceService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import com.middleware.platform.subscription.domain.Subscription;
@@ -42,6 +44,7 @@ public class TenantPortalController {
     private final TenantUserService tenantUserService;
     private final TenantPortalService tenantPortalService;
     private final TenantKeyService tenantKeyService;
+    private final FingerprintDeviceService deviceService;
     private final TransactionService transactionService;
     private final SubscriptionService subscriptionService;
     private final WalletService walletService;
@@ -110,6 +113,12 @@ public class TenantPortalController {
     public CertificateResponse rotateCertificate() {
         TenantEncryptionKey key = tenantKeyService.rotate(CurrentTenant.id());
         return CertificateResponse.of(key, tenantKeyService.fingerprint(key));
+    }
+
+    /** Read-only list of this tenant's fingerprint devices (managed by admins). */
+    @GetMapping("/devices")
+    public List<DeviceResponse> devices() {
+        return deviceService.list(CurrentTenant.id());
     }
 
     @GetMapping("/wallet")

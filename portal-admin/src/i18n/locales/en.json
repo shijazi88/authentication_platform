@@ -390,7 +390,14 @@
       "transactions": "Transactions",
       "subscriptions": "Subscriptions",
       "wallet": "Wallet",
-      "apiKeys": "API Keys"
+      "apiKeys": "API Keys",
+      "devices": "Devices"
+    },
+    "devices": {
+      "search": "Search by name, model, type, or serial…",
+      "empty": "No devices registered yet.",
+      "noMatch": "No devices match your search.",
+      "managedNote": "Devices are registered and managed by MOTABIQ. Contact your account manager to add or change devices."
     },
     "apiKeys": {
       "title": "API Keys",

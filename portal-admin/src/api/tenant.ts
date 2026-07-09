@@ -1,5 +1,6 @@
 import { tenantApi } from "@/lib/tenantApi";
 import type {
+  FingerprintDevice,
   Subscription,
   Transaction,
   Wallet,
@@ -160,5 +161,12 @@ export async function rotateCertificate(): Promise<EncryptionCertificate> {
   const { data } = await tenantApi.post<EncryptionCertificate>(
     "/portal-api/crypto/certificate/rotate",
   );
+  return data;
+}
+
+// ── Fingerprint devices (read-only; managed by admins) ──────────────────────
+
+export async function listMyDevices(): Promise<FingerprintDevice[]> {
+  const { data } = await tenantApi.get<FingerprintDevice[]>("/portal-api/devices");
   return data;
 }

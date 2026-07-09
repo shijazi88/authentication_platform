@@ -1,6 +1,6 @@
 import { NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LayoutDashboard, ScrollText, ListChecks, Wallet, KeyRound, LogOut } from "lucide-react";
+import { LayoutDashboard, ScrollText, ListChecks, Wallet, KeyRound, Fingerprint, LogOut } from "lucide-react";
 import { useTenantAuth } from "@/lib/tenantAuth";
 import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/portal/subscriptions", labelKey: "portal.nav.subscriptions", icon: ListChecks },
   { to: "/portal/wallet", labelKey: "portal.nav.wallet", icon: Wallet },
   { to: "/portal/api-keys", labelKey: "portal.nav.apiKeys", icon: KeyRound },
+  { to: "/portal/devices", labelKey: "portal.nav.devices", icon: Fingerprint },
 ];
 
 export function PortalLayout() {
