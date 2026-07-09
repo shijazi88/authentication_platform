@@ -100,6 +100,24 @@ export type Tenant = {
   createdAt: string;
 };
 
+export type FingerprintDevice = {
+  id: string;
+  tenantId: string;
+  name: string;
+  model: string | null;
+  type: string | null;
+  serialNumber: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DeviceImportResult = {
+  created: number;
+  skipped: number;
+  errors: { row: number; message: string }[];
+};
+
 export type EncryptionKeyStatus = "ACTIVE" | "RETIRING" | "REVOKED";
 
 export type EncryptionKey = {

@@ -339,6 +339,30 @@
     "passwordReset": "تمت إعادة تعيين كلمة المرور",
     "error": "تعذّر حفظ التغييرات"
   },
+  "devices": {
+    "title": "أجهزة البصمة",
+    "newDevice": "إضافة جهاز",
+    "editDevice": "تعديل الجهاز",
+    "import": "استيراد Excel",
+    "template": "القالب",
+    "empty": "لا توجد أجهزة مسجّلة. أضف جهازاً أو استورد من Excel.",
+    "typePlaceholder": "مثال: بصري، سعوي",
+    "created": "تمت إضافة الجهاز",
+    "updated": "تم تحديث الجهاز",
+    "deleted": "تمت إزالة الجهاز",
+    "deleteConfirm": "إزالة الجهاز \"{{name}}\"؟",
+    "error": "تعذّر حفظ التغييرات",
+    "importDone": "تم استيراد {{created}} جهاز، وتم تخطي {{skipped}}",
+    "importResult": "نتيجة الاستيراد",
+    "importCreated": "{{value}} تم إنشاؤها",
+    "importSkipped": "{{value}} تم تخطيها",
+    "rowLabel": "الصف {{row}}:",
+    "fields": {
+      "model": "الطراز",
+      "type": "النوع",
+      "serial": "الرقم التسلسلي"
+    }
+  },
   "tenantCrypto": {
     "title": "تشفير البيانات الحساسة",
     "download": "تنزيل .pem",

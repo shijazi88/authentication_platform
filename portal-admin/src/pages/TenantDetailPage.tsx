@@ -31,6 +31,7 @@ import { canManageBilling } from "@/lib/access";
 import { WalletCard } from "@/components/WalletCard";
 import { TenantPortalUsersCard } from "@/components/TenantPortalUsersCard";
 import { TenantEncryptionCard } from "@/components/TenantEncryptionCard";
+import { FingerprintDevicesCard } from "@/components/FingerprintDevicesCard";
 import type { ApiCredential } from "@/types/api";
 
 export function TenantDetailPage() {
@@ -225,6 +226,10 @@ export function TenantDetailPage() {
           tenantId={id}
           requireEncryptedPii={tenantQ.data?.requireEncryptedPii ?? false}
         />
+      </div>
+
+      <div className="mt-4">
+        <FingerprintDevicesCard tenantId={id} />
       </div>
 
       <Dialog

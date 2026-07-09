@@ -339,6 +339,30 @@
     "passwordReset": "Password reset",
     "error": "Could not save changes"
   },
+  "devices": {
+    "title": "Fingerprint Devices",
+    "newDevice": "Add Device",
+    "editDevice": "Edit Device",
+    "import": "Import Excel",
+    "template": "Template",
+    "empty": "No devices registered. Add one or import from Excel.",
+    "typePlaceholder": "e.g. optical, capacitive",
+    "created": "Device added",
+    "updated": "Device updated",
+    "deleted": "Device removed",
+    "deleteConfirm": "Remove device \"{{name}}\"?",
+    "error": "Could not save changes",
+    "importDone": "Imported {{created}} device(s), {{skipped}} skipped",
+    "importResult": "Import result",
+    "importCreated": "{{value}} created",
+    "importSkipped": "{{value}} skipped",
+    "rowLabel": "Row {{row}}:",
+    "fields": {
+      "model": "Model",
+      "type": "Type",
+      "serial": "Serial number"
+    }
+  },
   "tenantCrypto": {
     "title": "PII Encryption",
     "download": "Download .pem",

@@ -112,6 +112,18 @@
             <version>1.78.1</version>
         </dependency>
 
+        <!-- Lightweight XLSX read/write for the fingerprint-device import/template -->
+        <dependency>
+            <groupId>org.dhatim</groupId>
+            <artifactId>fastexcel</artifactId>
+            <version>0.18.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dhatim</groupId>
+            <artifactId>fastexcel-reader</artifactId>
+            <version>0.18.4</version>
+        </dependency>
+
         <!-- Resilience -->
         <dependency>
             <groupId>io.github.resilience4j</groupId>
