@@ -161,6 +161,19 @@ public class MoiYemenIdConnector implements VerificationConnector {
             }
 
             Map<String, Object> canonical = parseBody(respBody);
+
+            // MOI returns HTTP 200 even when the fingerprint does NOT match: the body
+            // carries verification.verification = NO_MATCH (and still includes the
+            // person's demographics). Relaying that as a 2xx would let a wrong finger
+            // look "accepted" and would leak demographics on a non-match. Enforce the
+            // match result here — fail closed: only an explicit MATCH is a success.
+            String matchResult = extractMatchResult(canonical);
+            if (!"MATCH".equalsIgnoreCase(matchResult)) {
+                audit.record(auditBuilder.errorMessage(
+                        "Biometric did not match (verification=" + matchResult + ")").build());
+                throw new ApplicationException(ErrorCode.BIOMETRIC_NO_MATCH,
+                        "Fingerprint did not match the national ID");
+            }
             audit.record(auditBuilder.build());
 
             return new ConnectorResponse(status, providerReqId, canonical, latency);
@@ -221,6 +234,22 @@ public class MoiYemenIdConnector implements VerificationConnector {
             throw new ApplicationException(ErrorCode.CONNECTOR_ERROR,
                     "MOI response was not JSON: " + ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Pulls the biometric match result out of MOI's 200 body. Real MOI shape is
+     * {@code {"verification":{"verification":"MATCH"|"NO_MATCH", ...}}}; the
+     * legacy/mock shape used {@code verification.status}. Returns null if neither
+     * is present (treated as a non-match by the caller — fail closed).
+     */
+    private static String extractMatchResult(Map<String, Object> canonical) {
+        Object v = canonical != null ? canonical.get("verification") : null;
+        if (v instanceof Map<?, ?> vm) {
+            Object r = vm.get("verification");
+            if (r == null) r = vm.get("status");
+            if (r != null) return r.toString();
+        }
+        return null;
     }
 
     private String serialize(Object o) {

@@ -13,6 +13,7 @@ public enum ErrorCode {
     PIN_UNLOCK_REQUIRED(1203, HttpStatus.LOCKED, "PIN unlock required"),
     INVALID_PIN(1204, HttpStatus.UNAUTHORIZED, "Invalid PIN"),
     NOT_FOUND(1301, HttpStatus.NOT_FOUND, "Resource not found"),
+    BIOMETRIC_NO_MATCH(1302, HttpStatus.UNPROCESSABLE_ENTITY, "Fingerprint did not match the national ID"),
     CONFLICT(1401, HttpStatus.CONFLICT, "Resource conflict"),
     QUOTA_EXCEEDED(1402, HttpStatus.TOO_MANY_REQUESTS, "Quota exceeded"),
     INSUFFICIENT_FUNDS(1403, HttpStatus.PAYMENT_REQUIRED, "Insufficient wallet balance"),

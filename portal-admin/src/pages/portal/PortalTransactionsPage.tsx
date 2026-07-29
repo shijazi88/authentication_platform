@@ -28,6 +28,7 @@ const ERROR_CODES: { code: number; label: string }[] = [
   { code: 1203, label: "1203 · PIN unlock required" },
   { code: 1204, label: "1204 · Invalid PIN" },
   { code: 1301, label: "1301 · Not found" },
+  { code: 1302, label: "1302 · No biometric match" },
   { code: 1401, label: "1401 · Conflict" },
   { code: 1402, label: "1402 · Quota exceeded" },
   { code: 1403, label: "1403 · Insufficient funds" },
