@@ -65,8 +65,37 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(ec.status())
                 .header("X-Error-Code", String.valueOf(ec.code()))
-                .header("X-Error-Msg", body.message())
+                .header("X-Error-Msg", headerSafe(body.message()))
                 .header("X-Request-Id", requestId == null ? "" : requestId)
                 .body(body);
     }
+
+    /**
+     * Make a message safe to put in an HTTP response header.
+     *
+     * <p>Error messages are not always ours: {@code MoiYemenIdConnector} builds
+     * VALIDATION_FAILED from MOI's {@code X-Error-Message} header, so upstream
+     * text lands here verbatim. Header values are single-line ISO-8859-1 — a
+     * message carrying Arabic, a newline, or a control character produces a
+     * malformed response that the upstream proxy rejects, and the caller sees a
+     * bare 502 instead of this JSON error (the app stays healthy, so nothing
+     * looks wrong server-side). A newline would also allow response splitting
+     * from an upstream-controlled value.
+     *
+     * <p>The header is a convenience mirror; the full, correctly UTF-8 encoded
+     * message is always in the JSON body, so nothing is lost by sanitising here.
+     */
+    private static String headerSafe(String message) {
+        if (message == null || message.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder(Math.min(message.length(), MAX_HEADER_MSG));
+        for (int i = 0; i < message.length() && sb.length() < MAX_HEADER_MSG; i++) {
+            char c = message.charAt(i);
+            if (c == '\r' || c == '\n' || c == '\t') sb.append(' ');
+            else if (c >= 0x20 && c <= 0x7E) sb.append(c);
+            else sb.append('?');
+        }
+        return sb.toString().trim();
+    }
+
+    private static final int MAX_HEADER_MSG = 200;
 }
