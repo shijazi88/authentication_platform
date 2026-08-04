@@ -55,6 +55,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # nginx/nginx.conf is bind-mounted from the Droplet's disk
+      # (docker-compose.prod.yml), not baked into an image — so image pulls
+      # alone never update it. Without this step a change to that file goes
+      # green in CI while production keeps serving the old config.
+      - name: Upload nginx config to Droplet
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: nginx/nginx.conf
+          target: /opt/sanad/.deploy-staging
+          overwrite: true
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -62,6 +79,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
+            set -e
             cd /opt/sanad
 
             # Pull latest images
@@ -70,6 +88,29 @@ jobs:
 
             # Restart with new images (zero-downtime: old container runs until new one is healthy)
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+            # ── nginx config: swap in, validate, reload — restore on failure ──
+            # The running nginx keeps its current config in memory until a
+            # reload, so an invalid file on disk cannot break live traffic; we
+            # still restore the previous one immediately so a later container
+            # restart can't pick up a broken config.
+            STAGED=/opt/sanad/.deploy-staging/nginx/nginx.conf
+            if [ -f "$STAGED" ] && ! cmp -s "$STAGED" nginx/nginx.conf; then
+              echo "nginx config changed — applying"
+              cp nginx/nginx.conf nginx/nginx.conf.bak
+              cp "$STAGED" nginx/nginx.conf
+              if docker compose -f docker-compose.prod.yml exec -T nginx nginx -t; then
+                docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload
+                echo "✓ nginx reloaded"
+              else
+                echo "✗ nginx config invalid — restoring previous config"
+                cp nginx/nginx.conf.bak nginx/nginx.conf
+                exit 1
+              fi
+            else
+              echo "nginx config unchanged — skipping reload"
+            fi
+            rm -rf /opt/sanad/.deploy-staging
 
             # Clean old images
             docker image prune -f
