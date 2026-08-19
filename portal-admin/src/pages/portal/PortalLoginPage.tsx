@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/Label";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { LangToggle } from "@/components/ui/LangToggle";
+import { Eye, EyeOff } from "lucide-react";
 
 export function PortalLoginPage() {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export function PortalLoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,13 +75,25 @@ export function PortalLoginPage() {
               </div>
               <div>
                 <Label htmlFor="password">{t("portal.login.password")}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    className="pe-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute end-2 top-1/2 -translate-y-1/2 text-text-dim hover:text-text-muted focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               {error && <p className="text-xs text-accent-rose">{error}</p>}
               <Button type="submit" className="w-full" loading={busy} disabled={!email || !password}>
