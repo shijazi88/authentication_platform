@@ -62,7 +62,8 @@
     "transactions": "Transactions",
     "reports": "Reports",
     "billing": "Billing",
-    "users": "Users"
+    "users": "Users",
+    "support": "Support"
   },
   "topbar": {
     "searchPlaceholder": "Search clients, transactions…",

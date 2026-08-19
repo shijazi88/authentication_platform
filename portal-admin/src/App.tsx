@@ -15,6 +15,7 @@ import { TransactionDetailPage } from "@/pages/TransactionDetailPage";
 import { BillingPage } from "@/pages/BillingPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { UsersPage } from "@/pages/UsersPage";
+import { SupportPage } from "@/pages/SupportPage";
 import { PinGate } from "@/components/PinGate";
 import { PortalLayout } from "@/pages/portal/PortalLayout";
 import { PortalLoginPage } from "@/pages/portal/PortalLoginPage";
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="support" element={<SupportPage />} />
       </Route>
 
       {/* Tenant-facing portal — separate auth, tenant-scoped data. */}

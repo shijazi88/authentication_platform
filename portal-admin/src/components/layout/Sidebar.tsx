@@ -10,6 +10,7 @@ import {
   Library,
   BarChart3,
   Users,
+  LifeBuoy,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
@@ -25,6 +26,7 @@ const navItems = [
   { to: "/reports", labelKey: "nav.reports", icon: BarChart3 },
   { to: "/billing", labelKey: "nav.billing", icon: Receipt },
   { to: "/users", labelKey: "nav.users", icon: Users },
+  { to: "/support", labelKey: "nav.support", icon: LifeBuoy },
 ];
 
 export function Sidebar() {

@@ -62,7 +62,8 @@
     "transactions": "المعاملات",
     "reports": "التقارير",
     "billing": "الفوترة",
-    "users": "المستخدمون"
+    "users": "المستخدمون",
+    "support": "الدعم"
   },
   "topbar": {
     "searchPlaceholder": "ابحث عن عملاء أو معاملات…",

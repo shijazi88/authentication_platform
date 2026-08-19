@@ -34,6 +34,7 @@ const routeAccess: Record<string, AdminRole[]> = {
   catalog: ["SUPER_ADMIN", "PLATFORM_OPS"],
   billing: ["SUPER_ADMIN", "FINANCE"],
   users: ["SUPER_ADMIN"],
+  support: ALL_ROLES,
 };
 
 function segmentOf(path: string): string {
