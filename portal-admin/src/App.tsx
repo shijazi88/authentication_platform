@@ -16,6 +16,7 @@ import { BillingPage } from "@/pages/BillingPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { SupportPage } from "@/pages/SupportPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import { PinGate } from "@/components/PinGate";
 import { PortalLayout } from "@/pages/portal/PortalLayout";
 import { PortalLoginPage } from "@/pages/portal/PortalLoginPage";
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="billing" element={<BillingPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="support" element={<SupportPage />} />
       </Route>
 

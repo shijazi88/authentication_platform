@@ -63,7 +63,8 @@
     "reports": "التقارير",
     "billing": "الفوترة",
     "users": "المستخدمون",
-    "support": "الدعم"
+    "support": "الدعم",
+    "settings": "الإعدادات"
   },
   "topbar": {
     "searchPlaceholder": "ابحث عن عملاء أو معاملات…",
@@ -597,5 +598,22 @@
     "WORN_PRINTS": "بصمات متآكلة",
     "MEDICAL": "حالة طبية",
     "OTHER": "أخرى"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "subtitle": "الإشراف على المنصّة وإعداداتها.",
+    "tabs": {
+      "exceptions": "بحث الاستثناءات"
+    },
+    "exceptions": {
+      "reason": "السبب",
+      "allReasons": "كل الأسباب",
+      "note": "ملاحظة",
+      "total": "استثناء",
+      "empty": {
+        "title": "لا توجد عمليات تحقّق استثنائية",
+        "description": "ستظهر هنا طلبات استثناء البصمة."
+      }
+    }
   }
 }

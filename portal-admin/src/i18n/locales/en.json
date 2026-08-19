@@ -63,7 +63,8 @@
     "reports": "Reports",
     "billing": "Billing",
     "users": "Users",
-    "support": "Support"
+    "support": "Support",
+    "settings": "Settings"
   },
   "topbar": {
     "searchPlaceholder": "Search clients, transactions…",
@@ -597,5 +598,22 @@
     "WORN_PRINTS": "Worn prints",
     "MEDICAL": "Medical",
     "OTHER": "Other"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Platform oversight and configuration.",
+    "tabs": {
+      "exceptions": "Exception lookup"
+    },
+    "exceptions": {
+      "reason": "Reason",
+      "allReasons": "All reasons",
+      "note": "Note",
+      "total": "exceptions",
+      "empty": {
+        "title": "No exception verifications",
+        "description": "Fingerprint-exception requests will appear here."
+      }
+    }
   }
 }

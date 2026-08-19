@@ -36,6 +36,7 @@ const routeAccess: Record<string, AdminRole[]> = {
   catalog: ["SUPER_ADMIN", "PLATFORM_OPS"],
   billing: ["SUPER_ADMIN", "FINANCE"],
   users: ["SUPER_ADMIN"],
+  settings: ["SUPER_ADMIN", "PLATFORM_OPS"],
   support: ALL_ROLES,
 };
 
