@@ -65,9 +65,13 @@ export function SupportPage() {
     [q],
   );
 
-  function exportPdf() {
-    setQuery(""); // export the full playbook, not just the filtered view
-    setTimeout(() => window.print(), 60);
+  function downloadPdf() {
+    const a = document.createElement("a");
+    a.href = `/motabiq-support-playbook-${lang}.pdf`;
+    a.download = `MOTABIQ-Support-Error-Playbook-${lang.toUpperCase()}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   }
 
   return (
@@ -79,9 +83,8 @@ export function SupportPage() {
           <Button
             variant="secondary"
             size="sm"
-            className="no-print"
             leftIcon={<FileDown className="h-4 w-4" />}
-            onClick={exportPdf}
+            onClick={downloadPdf}
           >
             {UI.exportPdf[lang]}
           </Button>
