@@ -21,13 +21,14 @@ import java.util.UUID;
 
 /**
  * Admin wallet management — viewing balances, recording top-ups and reading the
- * ledger. Financial surface, so restricted to Finance and Super Admin (mirrored
- * in SecurityConfig for /admin/wallets/**).
+ * ledger. Reads are open to Support (read-only, to answer billing tickets);
+ * every write (top-up, approve/reject) stays Finance + Super Admin. Mirrored in
+ * SecurityConfig for /admin/wallets/**.
  */
 @RestController
 @RequestMapping("/admin/wallets")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE','SUPPORT')")
 public class WalletAdminController {
 
     private final WalletService walletService;
@@ -48,6 +49,7 @@ public class WalletAdminController {
     }
 
     @PostMapping("/{tenantId}/topup")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE')")
     public WalletResponse topUp(@PathVariable UUID tenantId,
                                 @Valid @RequestBody TopUpRequest req,
                                 Authentication authentication) {
@@ -64,6 +66,7 @@ public class WalletAdminController {
     }
 
     @PostMapping("/{tenantId}/topup-requests/{id}/approve")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE')")
     public TopUpRequestResponse approveRequest(@PathVariable UUID tenantId, @PathVariable UUID id,
                                                @RequestBody(required = false) TopUpDecisionRequest req,
                                                Authentication authentication) {
@@ -72,6 +75,7 @@ public class WalletAdminController {
     }
 
     @PostMapping("/{tenantId}/topup-requests/{id}/reject")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE')")
     public TopUpRequestResponse rejectRequest(@PathVariable UUID tenantId, @PathVariable UUID id,
                                               @RequestBody(required = false) TopUpDecisionRequest req,
                                               Authentication authentication) {

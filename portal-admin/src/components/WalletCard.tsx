@@ -17,6 +17,8 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Badge } from "@/components/ui/Badge";
+import { useAuth } from "@/lib/auth";
+import { canManageBilling } from "@/lib/access";
 import { formatMoneyMinor, formatDate } from "@/lib/format";
 import type { WalletEntryType } from "@/types/api";
 
@@ -26,6 +28,7 @@ const CREDIT_TYPES: WalletEntryType[] = ["TOPUP", "REVERSAL"];
 export function WalletCard({ tenantId }: { tenantId: string }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const canManage = canManageBilling(useAuth((s) => s.role));
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
@@ -85,14 +88,16 @@ export function WalletCard({ tenantId }: { tenantId: string }) {
           <WalletIcon className="h-4 w-4 text-text-muted" />
           <CardTitle>{t("wallet.title")}</CardTitle>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          leftIcon={<Plus className="h-3.5 w-3.5" />}
-          onClick={() => setOpen(true)}
-        >
-          {t("wallet.topUp")}
-        </Button>
+        {canManage && (
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={<Plus className="h-3.5 w-3.5" />}
+            onClick={() => setOpen(true)}
+          >
+            {t("wallet.topUp")}
+          </Button>
+        )}
       </CardHeader>
       <CardBody>
         <div className="mb-1 text-xs text-text-muted">{t("wallet.balance")}</div>
@@ -119,26 +124,28 @@ export function WalletCard({ tenantId }: { tenantId: string }) {
                       {r.requestedBy}{r.note ? ` · ${r.note}` : ""}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={<Check className="h-3.5 w-3.5 text-accent-emerald" />}
-                      loading={approveMut.isPending && approveMut.variables === r.id}
-                      onClick={() => approveMut.mutate(r.id)}
-                    >
-                      {t("wallet.approve")}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      leftIcon={<X className="h-3.5 w-3.5 text-accent-rose" />}
-                      loading={rejectMut.isPending && rejectMut.variables === r.id}
-                      onClick={() => rejectMut.mutate(r.id)}
-                    >
-                      {t("wallet.reject")}
-                    </Button>
-                  </div>
+                  {canManage && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<Check className="h-3.5 w-3.5 text-accent-emerald" />}
+                        loading={approveMut.isPending && approveMut.variables === r.id}
+                        onClick={() => approveMut.mutate(r.id)}
+                      >
+                        {t("wallet.approve")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        leftIcon={<X className="h-3.5 w-3.5 text-accent-rose" />}
+                        loading={rejectMut.isPending && rejectMut.variables === r.id}
+                        onClick={() => rejectMut.mutate(r.id)}
+                      >
+                        {t("wallet.reject")}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

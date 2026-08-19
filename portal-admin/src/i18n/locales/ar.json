@@ -325,6 +325,7 @@
     "SUPER_ADMIN": "مدير عام",
     "PLATFORM_OPS": "العمليات",
     "FINANCE": "المالية",
+    "SUPPORT": "الدعم",
     "AUDITOR": "مدقق"
   },
   "tenantUsers": {

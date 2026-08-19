@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type AdminRole = "SUPER_ADMIN" | "PLATFORM_OPS" | "FINANCE" | "AUDITOR";
+export type AdminRole = "SUPER_ADMIN" | "PLATFORM_OPS" | "FINANCE" | "SUPPORT" | "AUDITOR";
 
 export type AuthState = {
   token: string | null;

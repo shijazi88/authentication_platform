@@ -4,5 +4,6 @@ public enum AdminRole {
     SUPER_ADMIN,
     PLATFORM_OPS,
     FINANCE,
+    SUPPORT,
     AUDITOR
 }

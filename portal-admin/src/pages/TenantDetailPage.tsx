@@ -27,7 +27,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, shortId } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
-import { canManageBilling } from "@/lib/access";
+import { canViewWallet } from "@/lib/access";
 import { WalletCard } from "@/components/WalletCard";
 import { TenantPortalUsersCard } from "@/components/TenantPortalUsersCard";
 import { TenantEncryptionCard } from "@/components/TenantEncryptionCard";
@@ -211,7 +211,7 @@ export function TenantDetailPage() {
         </Card>
       </div>
 
-      {canManageBilling(role) && (
+      {canViewWallet(role) && (
         <div className="mt-4">
           <WalletCard tenantId={id} />
         </div>

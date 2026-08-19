@@ -325,6 +325,7 @@
     "SUPER_ADMIN": "Super Admin",
     "PLATFORM_OPS": "Operation",
     "FINANCE": "Finance",
+    "SUPPORT": "Support",
     "AUDITOR": "Auditor"
   },
   "tenantUsers": {

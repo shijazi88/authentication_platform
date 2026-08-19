@@ -29,11 +29,12 @@ public class SecurityConfig {
     private static final String SUPER = "SUPER_ADMIN";
     private static final String OPS = "PLATFORM_OPS";
     private static final String FINANCE = "FINANCE";
+    private static final String SUPPORT = "SUPPORT";
     private static final String AUDITOR = "AUDITOR";
     /** Operational write roles. */
     private static final String[] WRITE_ROLES = {SUPER, OPS};
-    /** Anyone who may read operational data. */
-    private static final String[] READ_ROLES = {SUPER, OPS, FINANCE, AUDITOR};
+    /** Anyone who may read operational data (incl. read-only Support). */
+    private static final String[] READ_ROLES = {SUPER, OPS, FINANCE, SUPPORT, AUDITOR};
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -103,7 +104,10 @@ public class SecurityConfig {
                         .requestMatchers("/admin/auth/pin", "/admin/auth/pin/**").hasAnyRole(READ_ROLES)
                         // User management — privileged (also guarded by @PreAuthorize).
                         .requestMatchers("/admin/users/**").hasRole(SUPER)
-                        // Billing + wallets — finance + super only.
+                        // Wallets — Support may read balances/ledger (GET) to answer
+                        // "insufficient funds" tickets, but never top up.
+                        .requestMatchers(HttpMethod.GET, "/admin/wallets/**").hasAnyRole(SUPER, FINANCE, SUPPORT)
+                        // Billing + wallets (writes) — finance + super only.
                         .requestMatchers("/admin/billing/**", "/admin/wallets/**").hasAnyRole(SUPER, FINANCE)
                         // Service catalog + connector credentials — operational config.
                         .requestMatchers("/admin/catalog/**", "/admin/moi-credentials/**").hasAnyRole(WRITE_ROLES)

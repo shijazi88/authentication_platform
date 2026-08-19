@@ -14,12 +14,14 @@ export const OFFERED_ROLES: AdminRole[] = [
   "SUPER_ADMIN",
   "PLATFORM_OPS",
   "FINANCE",
+  "SUPPORT",
 ];
 
 const ALL_ROLES: AdminRole[] = [
   "SUPER_ADMIN",
   "PLATFORM_OPS",
   "FINANCE",
+  "SUPPORT",
   "AUDITOR",
 ];
 
@@ -54,6 +56,11 @@ export function canAccess(role: AdminRole | null, path: string): boolean {
  */
 export function canWrite(role: AdminRole | null): boolean {
   return role === "SUPER_ADMIN" || role === "PLATFORM_OPS";
+}
+
+/** May this role view a wallet (read-only)? Finance + Super manage it; Support can look. */
+export function canViewWallet(role: AdminRole | null): boolean {
+  return role === "SUPER_ADMIN" || role === "FINANCE" || role === "SUPPORT";
 }
 
 /** May this role view/manage wallets & billing? (Finance + Super.) */
