@@ -83,6 +83,7 @@ public class TenantPortalController {
             @RequestParam(required = false) TransactionStatus status,
             @RequestParam(required = false) Integer errorCode,
             @RequestParam(required = false) Boolean billable,
+            @RequestParam(required = false) Boolean exception,
             @RequestParam(required = false) String q,
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -96,7 +97,7 @@ public class TenantPortalController {
         // always forced to the caller — a client only ever sees its own data.
         Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
         Instant toInstant = to != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : null;
-        return transactionService.filter(CurrentTenant.id(), status, errorCode, billable, q,
+        return transactionService.filter(CurrentTenant.id(), status, errorCode, billable, exception, q,
                 fromInstant, toInstant, pr);
     }
 

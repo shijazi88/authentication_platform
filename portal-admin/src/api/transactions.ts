@@ -6,6 +6,7 @@ export async function listTransactions(params: {
   status?: string;
   errorCode?: number;
   billable?: boolean;
+  exception?: boolean;
   q?: string; // transaction id (full or partial)
   from?: string; // yyyy-MM-dd
   to?: string; // yyyy-MM-dd
@@ -18,6 +19,7 @@ export async function listTransactions(params: {
       ...(params.status ? { status: params.status } : {}),
       ...(params.errorCode != null ? { errorCode: params.errorCode } : {}),
       ...(params.billable != null ? { billable: params.billable } : {}),
+      ...(params.exception != null ? { exception: params.exception } : {}),
       ...(params.q ? { q: params.q } : {}),
       ...(params.from ? { from: params.from } : {}),
       ...(params.to ? { to: params.to } : {}),

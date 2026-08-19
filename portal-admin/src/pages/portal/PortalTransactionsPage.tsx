@@ -44,6 +44,7 @@ export function PortalTransactionsPage() {
   const [status, setStatus] = useState<TransactionStatus | null>(null);
   const [errorCode, setErrorCode] = useState<number | null>(null);
   const [billable, setBillable] = useState<boolean | null>(null);
+  const [exception, setException] = useState<boolean | null>(null);
   const [q, setQ] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -59,12 +60,13 @@ export function PortalTransactionsPage() {
   }
 
   const hasFilters =
-    status !== null || errorCode !== null || billable !== null ||
+    status !== null || errorCode !== null || billable !== null || exception !== null ||
     q !== "" || from !== "" || to !== "";
   function clearFilters() {
     setStatus(null);
     setErrorCode(null);
     setBillable(null);
+    setException(null);
     setQ("");
     setFrom("");
     setTo("");
@@ -73,13 +75,14 @@ export function PortalTransactionsPage() {
 
   const txQ = useQuery({
     queryKey: [
-      "t-tx", status ?? "any", errorCode ?? "any", billable ?? "any", q, from, to, page, size,
+      "t-tx", status ?? "any", errorCode ?? "any", billable ?? "any", exception ?? "any", q, from, to, page, size,
     ],
     queryFn: () =>
       listTransactions({
         status: status ?? undefined,
         errorCode: errorCode ?? undefined,
         billable: billable ?? undefined,
+        exception: exception ?? undefined,
         q: q || undefined,
         from: from || undefined,
         to: to || undefined,
@@ -135,6 +138,20 @@ export function PortalTransactionsPage() {
                 { value: "__all__", label: t("transactions.allStatuses") },
                 { value: "true", label: t("common.yes") },
                 { value: "false", label: t("common.no") },
+              ]}
+            />
+          </div>
+          <div className="w-44">
+            <Label>{t("transactions.fields.exception")}</Label>
+            <Select
+              value={exception === null ? "__all__" : exception ? "true" : "false"}
+              onChange={onFilterChange((v) =>
+                setException(v === "__all__" ? null : v === "true"),
+              )}
+              options={[
+                { value: "__all__", label: t("transactions.allStatuses") },
+                { value: "true", label: t("transactions.exceptionsOnly") },
+                { value: "false", label: t("transactions.normalOnly") },
               ]}
             />
           </div>
@@ -210,7 +227,19 @@ export function PortalTransactionsPage() {
                         )}
                       </Td>
                       <Td>
-                        <Badge tone={statusTone(tx.status)}>{t(`status.${tx.status}`, tx.status)}</Badge>
+                        <div className="flex flex-col items-start gap-1">
+                          <Badge tone={statusTone(tx.status)}>{t(`status.${tx.status}`, tx.status)}</Badge>
+                          {tx.exception && (
+                            <span title={tx.exceptionNote ?? undefined}>
+                              <Badge tone="violet">
+                                {t("transactions.exception")}
+                                {tx.exceptionReason
+                                  ? ` · ${t(`exceptionReason.${tx.exceptionReason}`, tx.exceptionReason)}`
+                                  : ""}
+                              </Badge>
+                            </span>
+                          )}
+                        </div>
                       </Td>
                       <Td className="text-xs">
                         {tx.errorCode != null ? (

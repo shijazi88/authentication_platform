@@ -23,12 +23,21 @@ import jakarta.validation.constraints.Size;
 public record VerifyIdentityRequest(
         @Size(max = 32) String nationalNumber,
         @Valid Biometrics biometrics,
+        Exception exception,
         String encryptedPayload
 ) {
     public record Biometrics(
             @Min(1) @Max(10) Integer fingerPosition,
             String image
     ) {}
+
+    /**
+     * Fingerprint-exception marker: when present, the request is verified WITHOUT
+     * a fingerprint (person physically cannot provide one). Biometrics are ignored
+     * and never sent to the backend. {@code reason} must be a valid
+     * {@link BiometricExceptionReason}.
+     */
+    public record Exception(String reason, String note) {}
 
     public boolean isEncrypted() {
         return encryptedPayload != null && !encryptedPayload.isBlank();

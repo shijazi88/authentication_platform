@@ -64,6 +64,16 @@ public class Transaction {
     @Column(name = "billable", nullable = false)
     private boolean billable;
 
+    /** True when this verification was done without a fingerprint (biometric exemption). */
+    @Column(name = "is_exception", nullable = false)
+    private boolean exception;
+
+    @Column(name = "exception_reason", length = 48)
+    private String exceptionReason;
+
+    @Column(name = "exception_note", length = 512)
+    private String exceptionNote;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }

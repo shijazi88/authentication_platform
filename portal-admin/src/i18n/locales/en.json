@@ -231,7 +231,8 @@
       "transactionId": "Transaction ID",
       "latency": "Latency",
       "price": "Price",
-      "billable": "Billable"
+      "billable": "Billable",
+      "exception": "Fingerprint exception"
     },
     "empty": {
       "title": "No transactions",
@@ -252,7 +253,10 @@
       "moiCalls": "MOI HTTP calls",
       "noPayload": "Not recorded for this transaction.",
       "noMoiCalls": "No MOI calls captured for this transaction yet."
-    }
+    },
+    "exception": "Exception",
+    "exceptionsOnly": "Exceptions only",
+    "normalOnly": "Normal only"
   },
   "moi": {
     "calls": {
@@ -586,5 +590,12 @@
       "title": "No users yet",
       "description": "Create the first admin account to get started."
     }
+  },
+  "exceptionReason": {
+    "HAND_INJURY": "Hand injury",
+    "AMPUTATION": "Amputation",
+    "WORN_PRINTS": "Worn prints",
+    "MEDICAL": "Medical",
+    "OTHER": "Other"
   }
 }

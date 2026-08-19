@@ -117,6 +117,16 @@ public class VerificationOrchestrator {
                 entitlement.currency()
         );
 
+        // Flag fingerprint-exception requests so they're recorded and searchable.
+        // The fingerprint is never present in the payload for these.
+        if (canonicalRequestPayload.get("exception") instanceof Map<?, ?> exc) {
+            tx.setException(true);
+            Object reason = exc.get("reason");
+            Object note = exc.get("note");
+            tx.setExceptionReason(reason == null ? null : String.valueOf(reason));
+            tx.setExceptionNote(note == null ? null : String.valueOf(note));
+        }
+
         // Reserve (atomically debit) the unit price before invoking the backend.
         // Authoritative balance check under a row lock; refunded if the call fails.
         if (prepaidEnforced) {

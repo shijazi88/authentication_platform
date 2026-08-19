@@ -282,6 +282,9 @@ export type Transaction = {
   unitPriceMinor: number | null;
   currency: string | null;
   billable: boolean;
+  exception: boolean;
+  exceptionReason: string | null;
+  exceptionNote?: string | null;
   createdAt: string;
 };
 

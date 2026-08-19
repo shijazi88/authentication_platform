@@ -162,17 +162,32 @@ public class MoiYemenIdConnector implements VerificationConnector {
 
             Map<String, Object> canonical = parseBody(respBody);
 
-            // MOI returns HTTP 200 even when the fingerprint does NOT match: the body
-            // carries verification.verification = NO_MATCH (and still includes the
-            // person's demographics). Relaying that as a 2xx would let a wrong finger
-            // look "accepted" and would leak demographics on a non-match. Enforce the
-            // match result here — fail closed: only an explicit MATCH is a success.
-            String matchResult = extractMatchResult(canonical);
-            if (!"MATCH".equalsIgnoreCase(matchResult)) {
-                audit.record(auditBuilder.errorMessage(
-                        "Biometric did not match (verification=" + matchResult + ")").build());
-                throw new ApplicationException(ErrorCode.BIOMETRIC_NO_MATCH,
-                        "Fingerprint did not match the national ID");
+            // Fingerprint-exception requests carry no biometrics and are an ID-only
+            // lookup: MOI checks the national number only. We deliberately do NOT
+            // enforce a biometric match for these — the person couldn't provide a
+            // print — and mark the result as EXEMPT instead.
+            boolean isException = request.payload().get("exception") != null;
+            if (isException) {
+                if (canonical.get("verification") instanceof Map<?, ?> v) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> vm = (Map<String, Object>) v;
+                    vm.put("verification", "EXEMPT");
+                } else {
+                    canonical.put("verification", Map.of("verification", "EXEMPT"));
+                }
+            } else {
+                // MOI returns HTTP 200 even when the fingerprint does NOT match: the body
+                // carries verification.verification = NO_MATCH (and still includes the
+                // person's demographics). Relaying that as a 2xx would let a wrong finger
+                // look "accepted" and would leak demographics on a non-match. Enforce the
+                // match result here — fail closed: only an explicit MATCH is a success.
+                String matchResult = extractMatchResult(canonical);
+                if (!"MATCH".equalsIgnoreCase(matchResult)) {
+                    audit.record(auditBuilder.errorMessage(
+                            "Biometric did not match (verification=" + matchResult + ")").build());
+                    throw new ApplicationException(ErrorCode.BIOMETRIC_NO_MATCH,
+                            "Fingerprint did not match the national ID");
+                }
             }
             audit.record(auditBuilder.build());
 

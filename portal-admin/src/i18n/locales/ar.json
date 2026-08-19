@@ -231,7 +231,8 @@
       "transactionId": "رقم المعاملة",
       "latency": "زمن الاستجابة",
       "price": "السعر",
-      "billable": "قابلة للفوترة"
+      "billable": "قابلة للفوترة",
+      "exception": "استثناء البصمة"
     },
     "empty": {
       "title": "لا توجد معاملات",
@@ -252,7 +253,10 @@
       "moiCalls": "استدعاءات MOI",
       "noPayload": "غير مسجَّل لهذه المعاملة.",
       "noMoiCalls": "لا توجد استدعاءات MOI لهذه المعاملة بعد."
-    }
+    },
+    "exception": "استثناء",
+    "exceptionsOnly": "الاستثناءات فقط",
+    "normalOnly": "العادية فقط"
   },
   "moi": {
     "calls": {
@@ -586,5 +590,12 @@
       "title": "لا يوجد مستخدمون بعد",
       "description": "أنشئ أول حساب مسؤول للبدء."
     }
+  },
+  "exceptionReason": {
+    "HAND_INJURY": "إصابة في اليد",
+    "AMPUTATION": "بتر",
+    "WORN_PRINTS": "بصمات متآكلة",
+    "MEDICAL": "حالة طبية",
+    "OTHER": "أخرى"
   }
 }

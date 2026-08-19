@@ -63,6 +63,7 @@ export type TransactionFilters = {
   status?: TransactionStatus;
   errorCode?: number;
   billable?: boolean;
+  exception?: boolean;
   q?: string;
   from?: string;
   to?: string;
@@ -78,6 +79,7 @@ export async function listTransactions(
       status: params.status,
       errorCode: params.errorCode,
       billable: params.billable,
+      exception: params.exception,
       q: params.q || undefined,
       from: params.from || undefined,
       to: params.to || undefined,
