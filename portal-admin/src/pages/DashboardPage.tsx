@@ -21,6 +21,8 @@ import { listTenants } from "@/api/tenants";
 import { listPlans } from "@/api/plans";
 import { listTransactions } from "@/api/transactions";
 import { getBillingSummary } from "@/api/billing";
+import { useAuth } from "@/lib/auth";
+import { canManageBilling } from "@/lib/access";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MetricCard } from "@/components/viz/MetricCard";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -30,6 +32,9 @@ import { PageLoader } from "@/components/ui/Spinner";
 
 export function DashboardPage() {
   const { t } = useTranslation();
+  // Billing/revenue is Finance + Super only. Skip the call for other roles
+  // (e.g. Support) so a forbidden response never surfaces on the dashboard.
+  const canBilling = canManageBilling(useAuth((s) => s.role));
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
 
@@ -43,6 +48,7 @@ export function DashboardPage() {
   const summaryQ = useQuery({
     queryKey: ["billing-summary", "all", period],
     queryFn: () => getBillingSummary({ period }),
+    enabled: canBilling,
   });
 
   if (tenantsQ.isLoading) return <PageLoader />;
@@ -82,21 +88,25 @@ export function DashboardPage() {
           icon={<CreditCard className="h-4 w-4" />}
           accentClass="from-accent-cyan to-accent-emerald"
         />
-        <MetricCard
-          label={t("dashboard.metric.txThisPeriod", { period })}
-          value={totalTxCount}
-          icon={<Activity className="h-4 w-4" />}
-          accentClass="from-accent-emerald to-accent-cyan"
-        />
-        <MetricCard
-          label={t("dashboard.metric.revenueThisPeriod")}
-          value={formatMoneyMinor(
-            totalRevenueMinor,
-            summaryQ.data?.[0]?.currency ?? "YER",
-          )}
-          icon={<TrendingUp className="h-4 w-4" />}
-          accentClass="from-accent-cyan to-accent-violet"
-        />
+        {canBilling && (
+          <>
+            <MetricCard
+              label={t("dashboard.metric.txThisPeriod", { period })}
+              value={totalTxCount}
+              icon={<Activity className="h-4 w-4" />}
+              accentClass="from-accent-emerald to-accent-cyan"
+            />
+            <MetricCard
+              label={t("dashboard.metric.revenueThisPeriod")}
+              value={formatMoneyMinor(
+                totalRevenueMinor,
+                summaryQ.data?.[0]?.currency ?? "YER",
+              )}
+              icon={<TrendingUp className="h-4 w-4" />}
+              accentClass="from-accent-cyan to-accent-violet"
+            />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

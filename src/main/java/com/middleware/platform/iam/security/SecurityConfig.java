@@ -128,7 +128,17 @@ public class SecurityConfig {
                 .addFilterBefore(clientFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(eh -> eh
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                        // Unauthenticated (missing/invalid token) → 401.
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        // Authenticated but lacking the role → 403 (NOT 401), so a
+                        // permission gap never looks like a dead session / logs the
+                        // user out. Body mirrors the ApiError shape.
+                        .accessDeniedHandler((request, response, ex) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType("application/json");
+                            response.getWriter().write(
+                                    "{\"errorCode\":1201,\"error\":\"FORBIDDEN\",\"message\":\"Access denied\"}");
+                        }))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable);
         return http.build();
