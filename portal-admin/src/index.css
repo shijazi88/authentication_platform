@@ -195,3 +195,51 @@
 [dir="rtl"] .rtl-flip {
   transform: scaleX(-1);
 }
+
+/* =========================================================================
+ * Print / Export-to-PDF.
+ * Used by the Support playbook "Export PDF" action (window.print()). Forces a
+ * clean light page regardless of the on-screen theme, drops the app chrome,
+ * and keeps cards from splitting across pages.
+ * ========================================================================= */
+@media print {
+  /* Force the light palette so nothing prints on a dark ground. */
+  :root,
+  :root.dark {
+    --bg: 255 255 255;
+    --bg-surface: 255 255 255;
+    --bg-elevated: 248 249 252;
+    --bg-hover: 241 243 249;
+    --border: 15 18 24;
+    --border-strong: 15 18 24;
+    --text: 15 18 24;
+    --text-muted: 70 76 96;
+    --text-dim: 110 116 136;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Drop app chrome + interactive controls. */
+  aside,
+  .no-print,
+  .bg-gradient-mesh,
+  .bg-grid-pattern {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+  /* Keep each playbook card whole on the page. */
+  .print-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

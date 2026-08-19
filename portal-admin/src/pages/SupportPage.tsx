@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Search, Check, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Search, Check, AlertTriangle, ShieldAlert, FileDown } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { cn } from "@/lib/cn";
@@ -64,12 +65,31 @@ export function SupportPage() {
     [q],
   );
 
+  function exportPdf() {
+    setQuery(""); // export the full playbook, not just the filtered view
+    setTimeout(() => window.print(), 60);
+  }
+
   return (
     <div>
-      <PageHeader title={UI.title[lang]} description={UI.subtitle[lang]} />
+      <PageHeader
+        title={UI.title[lang]}
+        description={UI.subtitle[lang]}
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            className="no-print"
+            leftIcon={<FileDown className="h-4 w-4" />}
+            onClick={exportPdf}
+          >
+            {UI.exportPdf[lang]}
+          </Button>
+        }
+      />
 
       {/* Search */}
-      <div className="mb-6 flex items-center gap-3 flex-wrap">
+      <div className="no-print mb-6 flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[240px] max-w-lg">
           <Search className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-dim" />
           <Input
@@ -143,7 +163,7 @@ export function SupportPage() {
                 {items.map((e) => {
                   const s = SEV[e.severity];
                   return (
-                    <Card key={e.code} className="relative overflow-hidden">
+                    <Card key={e.code} className="print-avoid relative overflow-hidden">
                       <span className={cn("absolute inset-y-0 start-0 w-1", s.bar)} aria-hidden="true" />
                       {/* head */}
                       <div className="flex flex-wrap items-center gap-4 px-5 py-4">
@@ -177,7 +197,7 @@ export function SupportPage() {
                           <Lbl>{UI.reply[lang]}</Lbl>
                           <div className={cn("relative rounded-lg border p-3 pe-10", s.soft)}>
                             <p className="m-0 text-[14px] leading-relaxed text-text">“{e.reply[lang]}”</p>
-                            <span className="absolute end-2 top-2">
+                            <span className="no-print absolute end-2 top-2">
                               <CopyButton value={e.reply[lang]} />
                             </span>
                           </div>

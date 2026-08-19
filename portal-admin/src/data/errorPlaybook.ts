@@ -204,6 +204,7 @@ export const UI = {
     ar: "كل خطأ تُرجعه واجهة التحقّق وما العمل حياله — المعنى، والإجراء، والرد المُرسَل للعميل، وهل يُصعَّد.",
   },
   search: { en: "Search a code or keyword — e.g. 1302, wallet, timeout", ar: "ابحث برمز أو كلمة — مثل 1302 أو محفظة أو مهلة" },
+  exportPdf: { en: "Export PDF", ar: "تصدير PDF" },
   codes: { en: "codes", ar: "رمز" },
   legendGuide: { en: "Guide the customer — they can fix it", ar: "أرشِد العميل — يمكنه إصلاحه" },
   legendAccount: { en: "Account / config — you or ops act", ar: "الحساب/الإعداد — أنت أو التشغيل" },

@@ -19,7 +19,7 @@ export function Topbar() {
   }
 
   return (
-    <div className="h-16 sticky top-0 z-30 border-b border-border/10 glass flex items-center justify-between px-6 gap-4">
+    <div className="no-print h-16 sticky top-0 z-30 border-b border-border/10 glass flex items-center justify-between px-6 gap-4">
       <GlobalSearch />
 
       <div className="flex items-center gap-2">
