@@ -25,11 +25,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate } from "@/lib/format";
 
-const ROLE_TONE: Record<AdminRole, "violet" | "cyan" | "emerald" | "amber" | "neutral"> = {
+const ROLE_TONE: Record<AdminRole, "violet" | "cyan" | "emerald" | "amber" | "rose" | "neutral"> = {
   SUPER_ADMIN: "violet",
   PLATFORM_OPS: "cyan",
   FINANCE: "emerald",
   SUPPORT: "amber",
+  CENTRAL_BANK: "rose",
   AUDITOR: "neutral",
 };
 

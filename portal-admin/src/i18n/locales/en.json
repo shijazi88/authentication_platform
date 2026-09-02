@@ -331,6 +331,7 @@
     "PLATFORM_OPS": "Operation",
     "FINANCE": "Finance",
     "SUPPORT": "Support",
+    "CENTRAL_BANK": "Central Bank",
     "AUDITOR": "Auditor"
   },
   "tenantUsers": {

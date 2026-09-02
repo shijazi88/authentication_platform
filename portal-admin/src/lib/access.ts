@@ -15,6 +15,7 @@ export const OFFERED_ROLES: AdminRole[] = [
   "PLATFORM_OPS",
   "FINANCE",
   "SUPPORT",
+  "CENTRAL_BANK",
 ];
 
 const ALL_ROLES: AdminRole[] = [
@@ -22,8 +23,16 @@ const ALL_ROLES: AdminRole[] = [
   "PLATFORM_OPS",
   "FINANCE",
   "SUPPORT",
+  "CENTRAL_BANK",
   "AUDITOR",
 ];
+
+/**
+ * Internal staff roles — everyone except the external CENTRAL_BANK regulator.
+ * Used to keep internal-only tooling (e.g. the Support playbook) out of the
+ * regulator's view.
+ */
+const STAFF_ROLES: AdminRole[] = ALL_ROLES.filter((r) => r !== "CENTRAL_BANK");
 
 /** First path segment → roles allowed to open that route. */
 const routeAccess: Record<string, AdminRole[]> = {
@@ -37,7 +46,8 @@ const routeAccess: Record<string, AdminRole[]> = {
   billing: ["SUPER_ADMIN", "FINANCE"],
   users: ["SUPER_ADMIN"],
   settings: ["SUPER_ADMIN", "PLATFORM_OPS"],
-  support: ALL_ROLES,
+  // Internal support playbook — staff only, not the central-bank regulator.
+  support: STAFF_ROLES,
 };
 
 function segmentOf(path: string): string {

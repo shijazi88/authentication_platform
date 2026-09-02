@@ -31,10 +31,15 @@ public class SecurityConfig {
     private static final String FINANCE = "FINANCE";
     private static final String SUPPORT = "SUPPORT";
     private static final String AUDITOR = "AUDITOR";
+    /** External regulator (central bank): read-only oversight of clients,
+     *  transactions (PII redacted), reports and subscriptions. */
+    private static final String CENTRAL_BANK = "CENTRAL_BANK";
     /** Operational write roles. */
     private static final String[] WRITE_ROLES = {SUPER, OPS};
-    /** Anyone who may read operational data (incl. read-only Support). */
-    private static final String[] READ_ROLES = {SUPER, OPS, FINANCE, SUPPORT, AUDITOR};
+    /** Anyone who may read operational data (incl. read-only Support + the
+     *  central-bank regulator). Note: wallets/billing are gated separately,
+     *  so CENTRAL_BANK never sees financial data. */
+    private static final String[] READ_ROLES = {SUPER, OPS, FINANCE, SUPPORT, AUDITOR, CENTRAL_BANK};
 
     @Bean
     public PasswordEncoder passwordEncoder() {

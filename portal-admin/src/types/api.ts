@@ -25,6 +25,7 @@ export type AdminRole =
   | "PLATFORM_OPS"
   | "FINANCE"
   | "SUPPORT"
+  | "CENTRAL_BANK"
   | "AUDITOR";
 
 export type LoginRequest = { email: string; password: string };

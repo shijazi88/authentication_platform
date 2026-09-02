@@ -193,7 +193,8 @@ public class AdminUserService {
     /** AUDITOR is a legacy role that is no longer assignable through the portal. */
     private void assignableRole(AdminRole role) {
         if (role != AdminRole.SUPER_ADMIN && role != AdminRole.PLATFORM_OPS
-                && role != AdminRole.FINANCE && role != AdminRole.SUPPORT) {
+                && role != AdminRole.FINANCE && role != AdminRole.SUPPORT
+                && role != AdminRole.CENTRAL_BANK) {
             throw new ApplicationException(ErrorCode.BAD_REQUEST, "Role is not assignable");
         }
     }
