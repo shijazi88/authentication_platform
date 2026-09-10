@@ -3,6 +3,7 @@ import type {
   ApiCredential,
   CreateCredentialRequest,
   CreateTenantRequest,
+  IpPolicy,
   Tenant,
   TenantStatus,
 } from "@/types/api";
@@ -45,4 +46,17 @@ export async function issueCredential(
 
 export async function revokeCredential(credentialId: string): Promise<void> {
   await api.delete(`/admin/tenants/credentials/${credentialId}`);
+}
+
+/** Approve which source IPs may call the bank API for this client. */
+export async function setIpPolicy(
+  tenantId: string,
+  mode: IpPolicy,
+  allowlist: string[],
+): Promise<Tenant> {
+  const { data } = await api.put<Tenant>(`/admin/tenants/${tenantId}/ip-policy`, {
+    mode,
+    allowlist,
+  });
+  return data;
 }

@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { KeyRound, Plus, ShieldAlert, Ban, ShieldCheck, Download, RefreshCw, BookOpen } from "lucide-react";
+import { KeyRound, Plus, ShieldAlert, Ban, ShieldCheck, Download, RefreshCw, BookOpen, Globe } from "lucide-react";
 import {
   listCredentials,
   createCredential,
   revokeCredential,
   getCertificate,
   rotateCertificate,
+  getIpPolicy,
   type IssuedCredential,
 } from "@/api/tenant";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -27,6 +28,7 @@ export function PortalApiKeysPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["t-credentials"], queryFn: listCredentials });
   const certQ = useQuery({ queryKey: ["t-certificate"], queryFn: getCertificate });
+  const ipQ = useQuery({ queryKey: ["t-ip-policy"], queryFn: getIpPolicy });
 
   // API host mirrors the portal host: portal.<domain> → api.<domain>.
   const apiBase =
@@ -144,6 +146,41 @@ export function PortalApiKeysPage() {
               />
             </div>
           )}
+        </CardBody>
+      </Card>
+
+      {/* Approved source IPs (managed by the platform team) */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-accent-cyan" />
+            <CardTitle>{t("portal.ipAccess.title")}</CardTitle>
+          </div>
+          {ipQ.data && (
+            <Badge tone={ipQ.data.mode === "RESTRICTED" ? "amber" : "emerald"}>
+              {ipQ.data.mode === "RESTRICTED"
+                ? t("portal.ipAccess.restricted")
+                : t("portal.ipAccess.all")}
+            </Badge>
+          )}
+        </CardHeader>
+        <CardBody>
+          <p className="text-xs text-text-muted mb-3">{t("portal.ipAccess.intro")}</p>
+          {ipQ.data?.mode === "RESTRICTED" ? (
+            <div className="flex flex-wrap gap-1.5" dir="ltr">
+              {ipQ.data.allowlist.map((ip) => (
+                <code
+                  key={ip}
+                  className="font-mono text-xs bg-bg-elevated/60 rounded-md px-2 py-1"
+                >
+                  {ip}
+                </code>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-text">{t("portal.ipAccess.allHint")}</p>
+          )}
+          <p className="text-xs text-text-dim mt-3">{t("portal.ipAccess.contact")}</p>
         </CardBody>
       </Card>
 

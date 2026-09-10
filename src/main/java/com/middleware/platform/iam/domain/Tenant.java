@@ -38,6 +38,15 @@ public class Tenant {
     @Column(name = "require_encrypted_pii", nullable = false)
     private boolean requireEncryptedPii;
 
+    /** ALL = any source IP; RESTRICTED = only {@link #ipAllowlist}. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ip_policy", nullable = false, length = 16)
+    private IpPolicy ipPolicy;
+
+    /** Comma-separated approved IPv4 addresses / CIDRs (used when RESTRICTED). */
+    @Column(name = "ip_allowlist", length = 2048)
+    private String ipAllowlist;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -50,6 +59,7 @@ public class Tenant {
         this.createdAt = now;
         this.updatedAt = now;
         if (status == null) status = TenantStatus.PENDING;
+        if (ipPolicy == null) ipPolicy = IpPolicy.ALL;
     }
 
     @PreUpdate

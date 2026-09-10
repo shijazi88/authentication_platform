@@ -2,6 +2,7 @@ package com.middleware.platform.iam.security;
 
 import com.middleware.platform.common.tenant.TenantContext;
 import com.middleware.platform.iam.domain.ApiCredential;
+import com.middleware.platform.iam.domain.IpPolicy;
 import com.middleware.platform.iam.domain.Tenant;
 import com.middleware.platform.iam.domain.TenantStatus;
 import com.middleware.platform.iam.event.CredentialUsedEvent;
@@ -109,16 +110,23 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        // IP allowlist enforcement — if the credential has an allowlist,
-        // the caller's IP must match one of the CIDRs.
-        if (cred.getIpAllowlist() != null && !cred.getIpAllowlist().isBlank()) {
-            String callerIp = resolveCallerIp(request);
-            if (!isIpAllowed(callerIp, cred.getIpAllowlist())) {
-                log.debug("Auth: IP {} not in allowlist for clientId={} (allowlist={})",
-                        callerIp, clientId, cred.getIpAllowlist());
-                chain.doFilter(request, response);
-                return;
-            }
+        // request.getRemoteAddr() is the trustworthy client IP: with
+        // server.forward-headers-strategy=framework, Spring's
+        // ForwardedHeaderFilter has already resolved X-Forwarded-For from the
+        // trusted proxy. We deliberately do NOT parse the raw X-Forwarded-For
+        // header here — a caller could spoof it to defeat the allowlist.
+        // SECURITY ASSUMPTION: the app must only be reachable through a proxy
+        // that overwrites (not appends) X-Forwarded-For; direct exposure would
+        // re-open the spoofing path regardless of how the IP is read.
+        String callerIp = request.getRemoteAddr();
+
+        // Per-credential IP allowlist — if the key has one, the caller must match.
+        if (cred.getIpAllowlist() != null && !cred.getIpAllowlist().isBlank()
+                && !IpAllowlist.matches(callerIp, cred.getIpAllowlist())) {
+            log.debug("Auth: IP {} not in credential allowlist for clientId={} (allowlist={})",
+                    callerIp, clientId, cred.getIpAllowlist());
+            chain.doFilter(request, response);
+            return;
         }
 
         Optional<Tenant> tenantOpt = tenantRepository.findById(cred.getTenantId());
@@ -132,6 +140,16 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
         if (tenant.getStatus() != TenantStatus.ACTIVE) {
             log.debug("Auth: tenant {} ({}) is not active (status={})",
                     tenant.getId(), tenant.getCode(), tenant.getStatus());
+            chain.doFilter(request, response);
+            return;
+        }
+
+        // Tenant-level IP policy — approved by admins; applies to every key of
+        // the tenant regardless of the per-credential allowlist above.
+        if (tenant.getIpPolicy() == IpPolicy.RESTRICTED
+                && !IpAllowlist.matches(callerIp, tenant.getIpAllowlist())) {
+            log.info("Auth: IP {} rejected by tenant {} IP policy (allowlist={})",
+                    callerIp, tenant.getCode(), tenant.getIpAllowlist());
             chain.doFilter(request, response);
             return;
         }
@@ -154,58 +172,5 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
             TenantContext.clear();
             SecurityContextHolder.clearContext();
         }
-    }
-
-    /**
-     * Resolves the caller's real IP, respecting X-Forwarded-For when the app
-     * sits behind a reverse proxy / load balancer.
-     */
-    private String resolveCallerIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
-        return request.getRemoteAddr();
-    }
-
-    /**
-     * Checks if {@code callerIp} is within any of the comma-separated CIDRs
-     * in {@code allowlist}. Supports both plain IPs ({@code 192.168.1.1}) and
-     * CIDRs ({@code 10.0.0.0/8}). IPv6 addresses are compared literally.
-     */
-    private boolean isIpAllowed(String callerIp, String allowlist) {
-        for (String entry : allowlist.split(",")) {
-            String cidr = entry.trim();
-            if (cidr.isEmpty()) continue;
-            if (cidr.contains("/")) {
-                if (matchesCidr(callerIp, cidr)) return true;
-            } else {
-                if (cidr.equals(callerIp)) return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean matchesCidr(String ip, String cidr) {
-        try {
-            String[] parts = cidr.split("/");
-            int prefixLen = Integer.parseInt(parts[1]);
-            long cidrAddr = ipToLong(parts[0]);
-            long ipAddr = ipToLong(ip);
-            long mask = prefixLen == 0 ? 0L : -1L << (32 - prefixLen);
-            return (cidrAddr & mask) == (ipAddr & mask);
-        } catch (Exception e) {
-            log.debug("Invalid CIDR '{}', skipping", cidr);
-            return false;
-        }
-    }
-
-    private long ipToLong(String ip) {
-        String[] octets = ip.split("\\.");
-        if (octets.length != 4) return -1;
-        return ((long) Integer.parseInt(octets[0]) << 24)
-                | ((long) Integer.parseInt(octets[1]) << 16)
-                | ((long) Integer.parseInt(octets[2]) << 8)
-                | (long) Integer.parseInt(octets[3]);
     }
 }

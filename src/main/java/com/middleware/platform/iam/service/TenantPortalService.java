@@ -6,6 +6,7 @@ import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.iam.domain.ApiCredential;
 import com.middleware.platform.iam.dto.*;
 import com.middleware.platform.iam.repo.ApiCredentialRepository;
+import com.middleware.platform.iam.repo.TenantRepository;
 import com.middleware.platform.subscription.domain.Plan;
 import com.middleware.platform.subscription.domain.Subscription;
 import com.middleware.platform.subscription.repo.PlanEntitlementRepository;
@@ -32,12 +33,20 @@ import java.util.stream.Collectors;
 public class TenantPortalService {
 
     private final ApiCredentialRepository credentials;
+    private final TenantRepository tenants;
     private final TenantService tenantService;
     private final SubscriptionRepository subscriptions;
     private final PlanRepository plans;
     private final PlanEntitlementRepository planEntitlements;
     private final PlanFieldEntitlementRepository planFieldEntitlements;
     private final ServiceOperationRepository operations;
+
+    /** The source-IP policy admins have approved for this tenant (read-only). */
+    @Transactional(readOnly = true)
+    public IpPolicyResponse ipPolicy(UUID tenantId) {
+        return tenants.findById(tenantId).map(IpPolicyResponse::from)
+                .orElseThrow(() -> ApplicationException.notFound("Tenant"));
+    }
 
     @Transactional(readOnly = true)
     public List<CredentialView> listCredentials(UUID tenantId) {

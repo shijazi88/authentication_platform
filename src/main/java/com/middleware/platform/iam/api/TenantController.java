@@ -5,6 +5,7 @@ import com.middleware.platform.iam.dto.CreateCredentialRequest;
 import com.middleware.platform.iam.dto.CreateTenantRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.TenantResponse;
+import com.middleware.platform.iam.dto.UpdateIpPolicyRequest;
 import com.middleware.platform.iam.service.TenantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,13 @@ public class TenantController {
     @PutMapping("/{id}/encryption-policy")
     public TenantResponse setEncryptionPolicy(@PathVariable UUID id, @RequestParam boolean required) {
         return tenantService.setEncryptionPolicy(id, required);
+    }
+
+    /** Approve which source IPs may call the bank API: ALL, or a RESTRICTED list. */
+    @PutMapping("/{id}/ip-policy")
+    public TenantResponse setIpPolicy(@PathVariable UUID id,
+                                      @Valid @RequestBody UpdateIpPolicyRequest req) {
+        return tenantService.setIpPolicy(id, req);
     }
 
     @PostMapping("/{id}/credentials")

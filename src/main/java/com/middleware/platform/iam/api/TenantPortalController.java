@@ -6,6 +6,7 @@ import com.middleware.platform.iam.dto.CreateCredentialRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.CertificateResponse;
 import com.middleware.platform.iam.dto.CredentialView;
+import com.middleware.platform.iam.dto.IpPolicyResponse;
 import com.middleware.platform.iam.dto.SubscriptionDetailResponse;
 import com.middleware.platform.iam.dto.TenantMeResponse;
 import com.middleware.platform.iam.dto.UpdateProfileRequest;
@@ -138,6 +139,12 @@ public class TenantPortalController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void revokeCredential(@PathVariable UUID id) {
         tenantPortalService.revokeCredential(CurrentTenant.id(), id);
+    }
+
+    /** Which source IPs the platform accepts this tenant's API calls from. */
+    @GetMapping("/ip-policy")
+    public IpPolicyResponse ipPolicy() {
+        return tenantPortalService.ipPolicy(CurrentTenant.id());
     }
 
     // ── Encryption certificate (for encrypting verification PII) ──────────────

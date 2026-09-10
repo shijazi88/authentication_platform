@@ -22,8 +22,13 @@ portal-admin/dist/
 NOTES.local.md
 BANK_HANDOVER.md
 TESTBANK_HANDOVER.md
+ALQUTAIBI_HANDOVER.md
 TEAM_ACCOUNTS.md
+TEST_ACCOUNTS.md
 MOI_EMAIL_DRAFT.md
 postman/*.local.*.json
 test*.json
 postman/Archive.zip
+MOTABIQ_DROPLET.md
+DEPLOYMENT_RUNBOOK.md
+MOTABIQ_INFRA_BACKUP/

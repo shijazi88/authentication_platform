@@ -149,6 +149,15 @@ export async function revokeCredential(id: string): Promise<void> {
   await tenantApi.post(`/portal-api/credentials/${id}/revoke`);
 }
 
+// ── IP access policy (approved by platform admins; read-only here) ─────────
+
+export type IpPolicyView = { mode: "ALL" | "RESTRICTED"; allowlist: string[] };
+
+export async function getIpPolicy(): Promise<IpPolicyView> {
+  const { data } = await tenantApi.get<IpPolicyView>("/portal-api/ip-policy");
+  return data;
+}
+
 // ── Subscription / plan details ─────────────────────────────────────────────
 
 export type PlanOperationView = {

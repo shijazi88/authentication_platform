@@ -4,12 +4,15 @@ import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.common.util.Ids;
 import com.middleware.platform.iam.domain.ApiCredential;
+import com.middleware.platform.iam.domain.IpPolicy;
 import com.middleware.platform.iam.domain.Tenant;
 import com.middleware.platform.iam.domain.TenantStatus;
 import com.middleware.platform.iam.dto.CreateCredentialRequest;
 import com.middleware.platform.iam.dto.CreateTenantRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.TenantResponse;
+import com.middleware.platform.iam.dto.UpdateIpPolicyRequest;
+import com.middleware.platform.iam.security.IpAllowlist;
 import com.middleware.platform.iam.repo.ApiCredentialRepository;
 import com.middleware.platform.iam.repo.TenantRepository;
 import lombok.RequiredArgsConstructor;
@@ -104,6 +107,29 @@ public class TenantService {
         Tenant t = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> ApplicationException.notFound("Tenant"));
         t.setRequireEncryptedPii(required);
+        return TenantResponse.from(t);
+    }
+
+    /**
+     * Sets the tenant's source-IP policy. RESTRICTED requires at least one
+     * valid IPv4 / CIDR entry; ALL clears the stored list.
+     */
+    @Transactional
+    public TenantResponse setIpPolicy(UUID tenantId, UpdateIpPolicyRequest req) {
+        Tenant t = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> ApplicationException.notFound("Tenant"));
+        List<String> entries;
+        try {
+            entries = IpAllowlist.normalise(req.allowlist());
+        } catch (IllegalArgumentException ex) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED, ex.getMessage());
+        }
+        if (req.mode() == IpPolicy.RESTRICTED && entries.isEmpty()) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED,
+                    "At least one IP address or CIDR is required when the policy is RESTRICTED");
+        }
+        t.setIpPolicy(req.mode());
+        t.setIpAllowlist(req.mode() == IpPolicy.RESTRICTED ? IpAllowlist.join(entries) : null);
         return TenantResponse.from(t);
     }
 }

@@ -108,6 +108,8 @@ export type WalletLedgerEntry = {
   createdAt: string;
 };
 
+export type IpPolicy = "ALL" | "RESTRICTED";
+
 export type Tenant = {
   id: string;
   code: string;
@@ -115,6 +117,9 @@ export type Tenant = {
   contactEmail: string | null;
   status: TenantStatus;
   requireEncryptedPii: boolean;
+  /** Source-IP policy for the bank API: ALL, or RESTRICTED to ipAllowlist. */
+  ipPolicy: IpPolicy;
+  ipAllowlist: string[];
   createdAt: string;
 };
 

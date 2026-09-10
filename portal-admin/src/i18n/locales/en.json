@@ -372,6 +372,24 @@
       "serial": "Serial number"
     }
   },
+  "tenantIp": {
+    "title": "IP access",
+    "subtitle": "Approve which source IPs may call the verification API for this client. Applies to every API key of the client.",
+    "modeAll": "All IPs",
+    "modeAllHint": "Accept API calls from any source IP.",
+    "modeRestricted": "Specific IPs",
+    "modeRestrictedHint": "Accept API calls only from the approved list below.",
+    "listLabel": "Approved IPs / CIDR ranges",
+    "listPlaceholder": "One per line, e.g.\n203.0.113.4\n203.0.113.0/24",
+    "listHint": "IPv4 addresses or CIDR ranges. Requests from any other IP are rejected with 401.",
+    "count": "{{count}} approved",
+    "edit": "Edit",
+    "save": "Save policy",
+    "saved": "IP access policy updated",
+    "error": "Could not update IP access policy",
+    "emptyList": "Add at least one IP address before restricting access.",
+    "noneApproved": "No IPs approved yet"
+  },
   "tenantCrypto": {
     "title": "PII Encryption",
     "download": "Download .pem",
@@ -483,6 +501,14 @@
         "APPROVED": "Approved",
         "REJECTED": "Rejected"
       }
+    },
+    "ipAccess": {
+      "title": "Approved IP addresses",
+      "intro": "The platform accepts your API calls only from the source IPs approved for your account.",
+      "all": "All IPs allowed",
+      "restricted": "Restricted",
+      "allHint": "Your account currently accepts API calls from any IP address.",
+      "contact": "To add or change approved IPs, contact the MOTABIQ support team."
     },
     "guide": {
       "title": "How to use your API key & certificate",
