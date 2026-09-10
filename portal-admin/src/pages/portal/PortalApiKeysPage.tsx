@@ -59,18 +59,16 @@ export function PortalApiKeysPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [label, setLabel] = useState("");
-  const [ipAllowlist, setIpAllowlist] = useState("");
   const [issued, setIssued] = useState<IssuedCredential | null>(null);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["t-credentials"] });
 
   const createMut = useMutation({
-    mutationFn: () => createCredential(label || undefined, ipAllowlist || undefined),
+    mutationFn: () => createCredential(label || undefined),
     onSuccess: (data) => {
       invalidate();
       setCreateOpen(false);
       setLabel("");
-      setIpAllowlist("");
       setIssued(data); // show the secret once
     },
     onError: (e: any) => toast.error(e?.response?.data?.message ?? t("portal.apiKeys.error")),
@@ -327,16 +325,6 @@ export function PortalApiKeysPage() {
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
-          </div>
-          <div>
-            <Label htmlFor="ip">{t("portal.apiKeys.ipAllowlist")}</Label>
-            <Input
-              id="ip"
-              placeholder="e.g. 203.0.113.4, 203.0.113.0/24"
-              value={ipAllowlist}
-              onChange={(e) => setIpAllowlist(e.target.value)}
-            />
-            <p className="mt-1 text-xs text-text-dim">{t("portal.apiKeys.ipHint")}</p>
           </div>
         </div>
       </Dialog>

@@ -134,13 +134,10 @@ export async function listCredentials(): Promise<CredentialView[]> {
   return data;
 }
 
-export async function createCredential(
-  label?: string,
-  ipAllowlist?: string,
-): Promise<IssuedCredential> {
+/** Issues a new key. Source-IP control is admin-only (see getIpPolicy). */
+export async function createCredential(label?: string): Promise<IssuedCredential> {
   const { data } = await tenantApi.post<IssuedCredential>("/portal-api/credentials", {
     label,
-    ipAllowlist,
   });
   return data;
 }

@@ -53,10 +53,14 @@ public class TenantPortalService {
         return credentials.findByTenantId(tenantId).stream().map(CredentialView::from).toList();
     }
 
-    /** Issues a new key for the tenant — the plaintext secret is returned once. */
+    /**
+     * Issues a new key for the tenant — the plaintext secret is returned once.
+     * Source-IP control is admin-only (tenant IP policy), so any allowlist a
+     * bank sends here is ignored.
+     */
     @Transactional
     public CredentialResponse issueCredential(UUID tenantId, CreateCredentialRequest req) {
-        return tenantService.issueCredential(tenantId, req);
+        return tenantService.issueCredential(tenantId, new CreateCredentialRequest(req.label(), null));
     }
 
     /** Deactivates one of the tenant's own credentials (reversible by an admin). */

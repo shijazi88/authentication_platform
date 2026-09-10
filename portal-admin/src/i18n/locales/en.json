@@ -522,7 +522,7 @@
       "step3Title": "3. Call verify",
       "step3": "Send only the encrypted envelope — no plaintext PII — to the verification endpoint:",
       "noteSecret": "Your Client Secret is shown only once when a key is generated — store it securely and rotate it if lost.",
-      "noteIp": "Requests are only accepted from your registered IP allow-list.",
+      "noteIp": "Requests are only accepted from the IP addresses approved for your account by the MOTABIQ team (see Approved IP addresses above).",
       "noteCert": "After rotating the certificate, re-download it and encrypt to the new Key ID."
     },
     "cert": {
