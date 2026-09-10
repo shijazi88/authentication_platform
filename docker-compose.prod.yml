@@ -51,6 +51,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       PLATFORM_SECURITY_JWT_SECRET: ${JWT_SECRET}
       PLATFORM_SECURITY_JWT_ISSUER: sanad-platform
+      # Wallet must always be debited per verification (business rule). Override only deliberately.
+      PLATFORM_WALLET_PREPAID_ENFORCED: ${PLATFORM_WALLET_PREPAID_ENFORCED:-true}
       YEMEN_ID_MODE: ${YEMEN_ID_MODE:-wiremock}
       YEMEN_ID_BASE_URL: ${YEMEN_ID_BASE_URL:-http://wiremock:8080/base_path}
       YEMEN_ID_BEARER_TOKEN: ${YEMEN_ID_BEARER_TOKEN:-dev-token}

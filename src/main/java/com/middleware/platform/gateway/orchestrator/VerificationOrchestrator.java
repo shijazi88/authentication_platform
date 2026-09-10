@@ -45,12 +45,13 @@ public class VerificationOrchestrator {
     private final WalletService walletService;
 
     /**
-     * Prepaid enforcement is opt-in. When false (default) the wallet is never
-     * checked or debited and billing stays postpaid — so enabling wallets does
-     * not retroactively block tenants with an empty balance. Flip to true only
-     * after wallets are funded.
+     * Prepaid enforcement is ON by default (business rule since 2026-09-10:
+     * every successful verification must debit the tenant wallet). The wallet
+     * is checked, atomically reserved before the backend call, refunded on
+     * failure and kept on success. Set platform.wallet.prepaid-enforced=false
+     * only for a deliberate postpaid rollout.
      */
-    @Value("${platform.wallet.prepaid-enforced:false}")
+    @Value("${platform.wallet.prepaid-enforced:true}")
     private boolean prepaidEnforced;
 
     public OrchestrationResult execute(String serviceCode,
