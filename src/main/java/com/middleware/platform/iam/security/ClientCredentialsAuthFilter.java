@@ -123,9 +123,9 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
         // Per-credential IP allowlist — if the key has one, the caller must match.
         if (cred.getIpAllowlist() != null && !cred.getIpAllowlist().isBlank()
                 && !IpAllowlist.matches(callerIp, cred.getIpAllowlist())) {
-            log.debug("Auth: IP {} not in credential allowlist for clientId={} (allowlist={})",
+            log.info("Auth: IP {} rejected by credential allowlist for clientId={} (allowlist={})",
                     callerIp, clientId, cred.getIpAllowlist());
-            chain.doFilter(request, response);
+            rejectIp(response);
             return;
         }
 
@@ -150,7 +150,7 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
                 && !IpAllowlist.matches(callerIp, tenant.getIpAllowlist())) {
             log.info("Auth: IP {} rejected by tenant {} IP policy (allowlist={})",
                     callerIp, tenant.getCode(), tenant.getIpAllowlist());
-            chain.doFilter(request, response);
+            rejectIp(response);
             return;
         }
 
@@ -172,5 +172,20 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
             TenantContext.clear();
             SecurityContextHolder.clearContext();
         }
+    }
+
+    /**
+     * Source-IP rejection is a permission problem with valid credentials, so it
+     * answers 403 / 1201 FORBIDDEN as promised in the ICD (§3.2, AC-12) — not
+     * 401, which would send the bank chasing its client secret instead of its
+     * egress IP. Body mirrors {@code ApiError}.
+     */
+    private void rejectIp(HttpServletResponse response) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.getWriter().write(
+                "{\"errorCode\":1201,\"error\":\"FORBIDDEN\","
+                + "\"message\":\"Source IP is not in the approved IP allow-list for this client\"}");
     }
 }
