@@ -406,9 +406,11 @@ In addition to the body, error responses carry:
 | 409 | `1401` | `CONFLICT` | Resource conflict. | Inspect `message`. |
 | 429 | `1402` | `QUOTA_EXCEEDED` | Per-minute rate limit or usage quota exhausted. | Back off and retry later. |
 | 500 | `2001` | `INTERNAL_ERROR` | Unexpected server-side error. | Retry with backoff; if persistent, contact support with `requestId`. |
-| 502 | `2101` | `CONNECTOR_ERROR` | Backend provider returned an error / 5xx / unreachable. | Safe to auto-retry (transient transport only). |
-| 504 | `2102` | `CONNECTOR_TIMEOUT` | Backend timed out. | Safe to auto-retry with backoff. |
+| 503 | `2101` | `CONNECTOR_ERROR` | Backend provider returned an error / 5xx / unreachable. | Safe to auto-retry (transient transport only). |
+| 503 | `2102` | `CONNECTOR_TIMEOUT` | Backend timed out. | Safe to auto-retry with backoff. |
 | 503 | `2103` | `CONNECTOR_UNAVAILABLE` | Backend unavailable / circuit open. | Back off and retry later. |
+
+> **Note:** all connector failures (`2101`/`2102`/`2103`) use HTTP **503** so the JSON body always reaches you; distinguish them by `errorCode`. (Earlier versions used 502/504, which the CDN in front of the API replaced with an empty error page.)
 
 > **Retry guidance:** Only `5xx` connector errors (`2101`/`2102`/`2103`) and `2001` are transient and safe to retry with exponential backoff. `4xx` errors are deterministic — retrying identical input will fail again.
 
@@ -489,7 +491,7 @@ In addition to the body, error responses carry:
 }
 ```
 
-**502 — backend connector error:**
+**503 — backend connector error:**
 
 ```json
 {
@@ -631,6 +633,7 @@ enabling production credentials.
 | v1 | 2026-06-04 | Initial ICD for `POST /api/v1/verify/identity`. |
 | v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
 | v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
+| v1.3 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
 | v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
 | v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
 | v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |

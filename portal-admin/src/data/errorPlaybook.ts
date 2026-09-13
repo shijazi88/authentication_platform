@@ -168,8 +168,8 @@ export const ENTRIES: PlaybookEntry[] = [
     escalate: { en: "Yes — ops, urgent (VPN / MOI outage).", ar: "نعم — التشغيل، عاجل (انقطاع VPN / MOI)." },
   },
   {
-    code: 2102, http: 504, enumName: "CONNECTOR_TIMEOUT", category: "system", severity: "escalate", escalateLevel: "yes",
-    keywords: "2102 connector timeout moi slow gateway timeout 504 yemen id vpn انتهت المهلة بطيء",
+    code: 2102, http: 503, enumName: "CONNECTOR_TIMEOUT", category: "system", severity: "escalate", escalateLevel: "yes",
+    keywords: "2102 connector timeout moi slow gateway timeout 503 504 yemen id vpn انتهت المهلة بطيء",
     name: { en: "Verification service timed out", ar: "انتهت مهلة خدمة التحقّق" },
     meaning: { en: "The Yemen ID (MOI) backend was too slow to respond within the timeout.", ar: "كانت خدمة الهوية اليمنية (MOI) بطيئة جدًا في الرد ضمن المهلة المحدّدة." },
     action: { en: "Have them retry once. If it persists, escalate to ops to check the VPN tunnel and MOI latency.", ar: "اطلب منهم إعادة المحاولة مرة واحدة. وإن استمر، صعّد إلى التشغيل لفحص نفق الـ VPN وزمن استجابة MOI." },
@@ -177,8 +177,8 @@ export const ENTRIES: PlaybookEntry[] = [
     escalate: { en: "Yes if it persists — ops (VPN / MOI latency).", ar: "نعم إن استمر — التشغيل (زمن استجابة VPN / MOI)." },
   },
   {
-    code: 2101, http: 502, enumName: "CONNECTOR_ERROR", category: "system", severity: "escalate", escalateLevel: "yes",
-    keywords: "2101 connector error moi bad response bad gateway 502 yemen id upstream خطأ في الخدمة",
+    code: 2101, http: 503, enumName: "CONNECTOR_ERROR", category: "system", severity: "escalate", escalateLevel: "yes",
+    keywords: "2101 connector error moi bad response bad gateway 503 502 yemen id upstream خطأ في الخدمة",
     name: { en: "Verification service error", ar: "خطأ في خدمة التحقّق" },
     meaning: { en: "The Yemen ID (MOI) backend returned an error or an unexpected response we couldn't process.", ar: "أعادت خدمة الهوية اليمنية (MOI) خطأً أو استجابة غير متوقّعة تعذّر علينا معالجتها." },
     action: { en: "Escalate to dev/ops with the requestId and timestamp. Have the customer retry shortly.", ar: "صعّد إلى المطوّر/التشغيل مع رقم الطلب (requestId) والطابع الزمني. واطلب من العميل إعادة المحاولة قريبًا." },

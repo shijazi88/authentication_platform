@@ -20,8 +20,11 @@ public enum ErrorCode {
 
     // 5xx
     INTERNAL_ERROR(2001, HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
-    CONNECTOR_ERROR(2101, HttpStatus.BAD_GATEWAY, "Backend connector error"),
-    CONNECTOR_TIMEOUT(2102, HttpStatus.GATEWAY_TIMEOUT, "Backend connector timed out"),
+    // Connector failures (2101–2103) all answer 503, never 502/504: Cloudflare
+    // replaces an origin 502/504 with its own "error code: 502" page, so the
+    // bank would never see errorCode/message. 503 is passed through untouched.
+    CONNECTOR_ERROR(2101, HttpStatus.SERVICE_UNAVAILABLE, "Backend connector error"),
+    CONNECTOR_TIMEOUT(2102, HttpStatus.SERVICE_UNAVAILABLE, "Backend connector timed out"),
     CONNECTOR_UNAVAILABLE(2103, HttpStatus.SERVICE_UNAVAILABLE, "Backend connector unavailable");
 
     private final int code;
