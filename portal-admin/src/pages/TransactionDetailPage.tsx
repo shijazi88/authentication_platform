@@ -247,6 +247,38 @@ export function TransactionDetailPage() {
               )}
             </Field>
             <Field label={t("common.createdAt")}>{formatDate(tx.createdAt)}</Field>
+            {tx.imageCheck && (
+              <>
+                <Field label={t("transactions.detail.image.check")}>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      tone={
+                        tx.imageCheck === "PASS"
+                          ? "emerald"
+                          : tx.imageCheck === "WARN"
+                            ? "amber"
+                            : tx.imageCheck === "FAIL"
+                              ? "rose"
+                              : "neutral"
+                      }
+                    >
+                      {t(`transactions.detail.image.status.${tx.imageCheck}`, tx.imageCheck)}
+                    </Badge>
+                    {tx.imageCheckMessage && (
+                      <span className="text-xs text-text-muted">{tx.imageCheckMessage}</span>
+                    )}
+                  </div>
+                </Field>
+                <Field label={t("transactions.detail.image.details")}>
+                  <span className="font-mono text-xs" dir="ltr">
+                    {tx.imageFormat ?? "—"}
+                    {tx.imageWidth && tx.imageHeight ? ` · ${tx.imageWidth}×${tx.imageHeight} px` : ""}
+                    {tx.imagePpi ? ` · ${tx.imagePpi} ppi` : ""}
+                    {tx.imageBytes ? ` · ${(tx.imageBytes / 1024).toFixed(0)} KB` : ""}
+                  </span>
+                </Field>
+              </>
+            )}
             <Field label={t("transactions.detail.providerRequestId")}>
               <span className="font-mono text-xs">
                 {tx.providerRequestId ?? "—"}

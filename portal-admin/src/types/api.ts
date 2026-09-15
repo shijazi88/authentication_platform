@@ -291,7 +291,36 @@ export type Transaction = {
   exception: boolean;
   exceptionReason: string | null;
   exceptionNote?: string | null;
+  /** Fingerprint image inspection (never the image itself). */
+  imageFormat?: string | null;
+  imageWidth?: number | null;
+  imageHeight?: number | null;
+  imagePpi?: number | null;
+  imageBytes?: number | null;
+  imageCheck?: "PASS" | "WARN" | "FAIL" | "SKIP" | null;
+  imageCheckMessage?: string | null;
   createdAt: string;
+};
+
+export type ImageFormat = "WSQ" | "PNG";
+
+/** Runtime rules for biometrics.image (admin Settings → Fingerprint image). */
+export type ImageValidationSettings = {
+  enabled: boolean;
+  mode: "ENFORCE" | "WARN";
+  allowedFormats: ImageFormat[];
+  minWidth: number;
+  minHeight: number;
+  maxWidth: number;
+  maxHeight: number;
+  requirePpi: boolean;
+  ppiMin: number;
+  ppiMax: number;
+  maxImageBytes: number;
+  requireGrayscale8Bit: boolean;
+  checkBlank: boolean;
+  minStdDev: number;
+  wsqMaxCompressionRatio: number;
 };
 
 export type Page<T> = {

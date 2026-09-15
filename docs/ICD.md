@@ -166,6 +166,13 @@ can re-scan immediately.
 > scanner SDK cannot report NFIQ, at minimum enforce format, resolution, and single-finger
 > capture, and reject empty/over-compressed images.
 
+> **Platform-side check (since v1.4):** the platform inspects every image on receipt — container
+> (WSQ/PNG), pixel dimensions, declared resolution, decoded size, WSQ compression ratio, PNG colour
+> depth and a blank-image test — before any charge or provider call. An image that fails is rejected
+> with **HTTP 400 · `1002 VALIDATION_FAILED`** and a message starting `Fingerprint image rejected:`
+> that names the failing property (e.g. `resolution 300 ppi is outside the allowed 490–510 ppi`).
+> Do not retry the same image; re-capture. The image itself is never stored.
+
 #### 4.2.4 Payload encryption (JWE)
 
 The sensitive payload is encrypted in the caller's system before transmission and decrypted
@@ -634,6 +641,7 @@ enabling production credentials.
 | v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
 | v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
 | v1.3 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
+| v1.4 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
 | v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
 | v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
 | v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |

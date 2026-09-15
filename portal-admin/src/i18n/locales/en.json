@@ -240,6 +240,11 @@
       "description": "Make a verification call as a client to see transactions appear here."
     },
     "detail": {
+      "image": {
+        "check": "Fingerprint image",
+        "details": "Image details",
+        "status": { "PASS": "Passed", "WARN": "Warning", "FAIL": "Rejected", "SKIP": "Not checked" }
+      },
       "title": "Transaction details",
       "back": "Back to transactions",
       "summary": "Summary",
@@ -630,7 +635,44 @@
     "title": "Settings",
     "subtitle": "Platform oversight and configuration.",
     "tabs": {
-      "exceptions": "Exception lookup"
+      "exceptions": "Exception lookup",
+      "image": "Fingerprint image"
+    },
+    "image": {
+      "title": "Fingerprint image validation",
+      "intro": "Rules applied to every fingerprint image the API receives, before the bank is charged and before the request reaches the identity provider. Changes take effect within seconds.",
+      "stateOff": "Off",
+      "stateWarn": "Warn only",
+      "stateEnforce": "Enforce",
+      "offHint": "Images are inspected for reporting only; nothing is rejected.",
+      "warnHint": "Problems are recorded on the transaction but the call continues.",
+      "enforceHint": "Problems reject the call with HTTP 400 · 1002 and no charge.",
+      "formats": "Accepted formats",
+      "formatsHint": "Container detected from the file header. Anything else is rejected.",
+      "dimensions": "Dimensions (pixels)",
+      "dimensionsHint": "Reject captures that are too small to match or implausibly large.",
+      "minWidth": "Min width",
+      "minHeight": "Min height",
+      "maxWidth": "Max width",
+      "maxHeight": "Max height",
+      "resolution": "Resolution (ppi)",
+      "resolutionHint": "Read from the WSQ NIST comment or the PNG pHYs chunk. Images that declare none pass unless required.",
+      "ppiMin": "Min ppi",
+      "ppiMax": "Max ppi",
+      "requirePpi": "Reject if resolution is not declared",
+      "sizeEncoding": "Size and encoding",
+      "sizeEncodingHint": "Decoded image size, WSQ compression ratio (raw pixels ÷ file bytes) and PNG colour depth.",
+      "maxKb": "Max size (KB)",
+      "wsqRatio": "Max WSQ compression (n:1)",
+      "gray8": "PNG must be 8-bit greyscale",
+      "blank": "Blank image detection",
+      "blankHint": "PNG only. Grey-level standard deviation (0–255); a real fingerprint is usually above 30, a blank capture near 0.",
+      "checkBlank": "Reject blank or uniform images",
+      "minStdDev": "Min contrast (std. dev.)",
+      "save": "Save settings",
+      "saved": "Fingerprint image settings saved",
+      "error": "Could not save settings",
+      "updatedBy": "Last saved by {{who}} on {{when}}"
     },
     "exceptions": {
       "reason": "Reason",

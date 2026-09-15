@@ -74,6 +74,29 @@ public class Transaction {
     @Column(name = "exception_note", length = 512)
     private String exceptionNote;
 
+    // ── Fingerprint image inspection (the image itself is never stored) ──
+    @Column(name = "image_format", length = 8)
+    private String imageFormat;
+
+    @Column(name = "image_width")
+    private Integer imageWidth;
+
+    @Column(name = "image_height")
+    private Integer imageHeight;
+
+    @Column(name = "image_ppi")
+    private Integer imagePpi;
+
+    @Column(name = "image_bytes")
+    private Integer imageBytes;
+
+    /** PASS / WARN / FAIL / SKIP — see ImageValidationResult.Status. */
+    @Column(name = "image_check", length = 8)
+    private String imageCheck;
+
+    @Column(name = "image_check_message", length = 255)
+    private String imageCheckMessage;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }

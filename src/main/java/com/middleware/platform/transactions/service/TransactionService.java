@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
+import com.middleware.platform.gateway.imagecheck.ImageInfo;
+import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
 import com.middleware.platform.common.util.Ids;
 import com.middleware.platform.transactions.domain.Transaction;
 import com.middleware.platform.transactions.domain.TransactionPayload;
@@ -113,8 +115,33 @@ public class TransactionService {
                 ErrorCode.INSUFFICIENT_FUNDS, message);
     }
 
-    private void recordRejection(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
-                                 ErrorCode errorCode, String message) {
+    /** Image failed structural validation (ENFORCE mode): recorded as a rejection with what we saw. */
+    @Transactional
+    public void rejectImage(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
+                            String message, ImageValidationResult result) {
+        Transaction tx = recordRejection(tenantId, credentialId, serviceId, operationId,
+                ErrorCode.VALIDATION_FAILED, message);
+        applyImageInfo(tx, result);
+        transactionRepository.save(tx);
+    }
+
+    /** Copies the inspection outcome onto the transaction row (never the image). */
+    public static void applyImageInfo(Transaction tx, ImageValidationResult result) {
+        if (result == null) return;
+        ImageInfo i = result.info();
+        if (i != null) {
+            tx.setImageFormat(i.format() == null ? null : i.format().name());
+            tx.setImageWidth(i.width());
+            tx.setImageHeight(i.height());
+            tx.setImagePpi(i.ppi());
+            tx.setImageBytes(i.bytes());
+        }
+        tx.setImageCheck(result.status().name());
+        tx.setImageCheckMessage(safeTrim(result.message(), 255));
+    }
+
+    private Transaction recordRejection(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
+                                        ErrorCode errorCode, String message) {
         Transaction tx = Transaction.builder()
                 .id(Ids.uuidV7())
                 .tenantId(tenantId)
@@ -129,6 +156,7 @@ public class TransactionService {
                 .build();
         transactionRepository.save(tx);
         // No event — rejected transactions are not billable.
+        return tx;
     }
 
     @Transactional(readOnly = true)
@@ -207,7 +235,7 @@ public class TransactionService {
         }
     }
 
-    private String safeTrim(String s, int max) {
+    private static String safeTrim(String s, int max) {
         if (s == null) return null;
         return s.length() <= max ? s : s.substring(0, max);
     }

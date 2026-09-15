@@ -11,6 +11,8 @@ import com.middleware.platform.connector.spi.ConnectorRegistry;
 import com.middleware.platform.connector.spi.ConnectorRequest;
 import com.middleware.platform.connector.spi.ConnectorResponse;
 import com.middleware.platform.connector.spi.VerificationConnector;
+import com.middleware.platform.gateway.imagecheck.FingerprintImageValidator;
+import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
 import com.middleware.platform.gateway.projection.FieldProjector;
 import com.middleware.platform.subscription.dto.ResolvedEntitlement;
 import com.middleware.platform.subscription.service.EntitlementService;
@@ -43,6 +45,7 @@ public class VerificationOrchestrator {
     private final FieldProjector fieldProjector;
     private final RateLimiter rateLimiter;
     private final WalletService walletService;
+    private final FingerprintImageValidator imageValidator;
 
     /**
      * Prepaid enforcement is ON by default (business rule since 2026-09-10:
@@ -95,6 +98,24 @@ public class VerificationOrchestrator {
             throw new ApplicationException(ErrorCode.CONNECTOR_UNAVAILABLE, reason);
         }
 
+        // Fingerprint image structural validation (admin-configurable, runtime).
+        // Runs before any wallet reserve or backend call so a bad capture costs
+        // the bank nothing and never reaches the provider.
+        ImageValidationResult imageResult = null;
+        if (canonicalRequestPayload.get("biometrics") instanceof Map<?, ?> bio
+                && bio.get("image") instanceof String img && !img.isBlank()) {
+            imageResult = imageValidator.validate(img);
+            if (imageResult.rejected()) {
+                String msg = "Fingerprint image rejected: " + imageResult.message();
+                transactionService.rejectImage(tenant.tenantId(), tenant.credentialId(),
+                        service.getId(), operation.getId(), msg, imageResult);
+                throw new ApplicationException(ErrorCode.VALIDATION_FAILED, msg);
+            }
+            if (imageResult.status() == ImageValidationResult.Status.WARN) {
+                log.warn("Fingerprint image warning for tenant {}: {}", tenant.tenantName(), imageResult.message());
+            }
+        }
+
         // Prepaid gate: fail fast if the wallet clearly can't cover the call.
         if (prepaidEnforced) {
             try {
@@ -117,6 +138,8 @@ public class VerificationOrchestrator {
                 entitlement.unitPriceMinor(),
                 entitlement.currency()
         );
+
+        TransactionService.applyImageInfo(tx, imageResult);
 
         // Flag fingerprint-exception requests so they're recorded and searchable.
         // The fingerprint is never present in the payload for these.
