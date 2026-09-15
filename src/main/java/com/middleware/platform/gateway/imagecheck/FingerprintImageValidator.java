@@ -63,9 +63,11 @@ public class FingerprintImageValidator {
         }
         if (s.requireGrayscale8Bit() && info.format() == ImageFormat.PNG
                 && (Boolean.FALSE.equals(info.grayscale()) || (info.bitDepth() != null && info.bitDepth() != 8))) {
-            return "PNG must be 8-bit greyscale (got "
+            // Name the actual encoding: the identity provider's matcher only accepts a
+            // single-plane image, and an indexed/palette PNG is the usual culprit.
+            return "PNG must be 8-bit greyscale (colour type 0); got "
                     + (info.bitDepth() != null ? info.bitDepth() + "-bit " : "")
-                    + (Boolean.FALSE.equals(info.grayscale()) ? "colour" : "greyscale") + ")";
+                    + info.colorTypeName() + " — re-save the capture as 8-bit greyscale";
         }
         if (info.ppi() != null) {
             if (info.ppi() < s.ppiMin() || info.ppi() > s.ppiMax()) {
@@ -83,6 +85,11 @@ public class FingerprintImageValidator {
         if (s.checkBlank() && info.stdDev() != null && info.stdDev() < s.minStdDev()) {
             return String.format(Locale.ROOT, "image appears blank or uniform (contrast %.1f below %.0f)",
                     info.stdDev(), s.minStdDev());
+        }
+        if (s.checkCoverage() && info.foregroundRatio() != null && info.foregroundRatio() < s.minForegroundRatio()) {
+            return String.format(Locale.ROOT,
+                    "too little fingerprint area in the image (%.0f%% of blocks have ridge texture, minimum %.0f%%) — re-capture with the finger centred",
+                    info.foregroundRatio() * 100, s.minForegroundRatio() * 100);
         }
         return null;
     }

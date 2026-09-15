@@ -152,7 +152,7 @@ can re-scan immediately.
 | Attribute | Requirement |
 |---|---|
 | Encoding | Base64 of the raw image bytes; strip any `data:` URI prefix. |
-| Image format | **WSQ** (preferred) or **PNG**; grayscale, 8-bit (256 grey levels). |
+| Image format | **WSQ** (preferred) or **PNG**. A PNG **must be colour type 0 (8-bit greyscale, single plane)** — not indexed/palette (colour type 3), not RGB/RGBA, not greyscale+alpha. The provider's matcher rejects multi-plane images ("number of image planes is invalid"), so such images fail even when the print itself is good. Embed the true capture resolution in the PNG `pHYs` chunk (500 ppi ≈ 19685 px/m). |
 | Resolution | **500 ppi** (±10), per FBI/IAFIS Appendix F. |
 | Capture device | FBI-certified single-finger live-scan scanner (**FAP 30 minimum; FAP 45/50 recommended**), via the certified SDK. |
 | Impression type | Plain (flat) live-scan; exactly **one finger per image**, matching `fingerPosition`. |
@@ -172,6 +172,8 @@ can re-scan immediately.
 > with **HTTP 400 · `1002 VALIDATION_FAILED`** and a message starting `Fingerprint image rejected:`
 > that names the failing property (e.g. `resolution 300 ppi is outside the allowed 490–510 ppi`).
 > Do not retry the same image; re-capture. The image itself is never stored.
+>
+> Rules applied (v1.4): container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture.
 
 #### 4.2.4 Payload encryption (JWE)
 

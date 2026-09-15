@@ -40,13 +40,13 @@ public final class ImageInspector {
 
         if (startsWith(bytes, PNG_SIG)) return inspectPng(bytes);
         if (u16(bytes, 0) == WSQ_SOI) return inspectWsq(bytes);
-        return new ImageInfo(ImageFormat.UNKNOWN, bytes.length, null, null, null, null, null, null, null, null);
+        return new ImageInfo(ImageFormat.UNKNOWN, bytes.length, null, null, null, null, null, null, null, null, null, null);
     }
 
     // ── PNG ─────────────────────────────────────────────────────────────────
 
     private static ImageInfo inspectPng(byte[] b) {
-        Integer width = null, height = null, bitDepth = null, ppi = null;
+        Integer width = null, height = null, bitDepth = null, ppi = null, colorType = null;
         Boolean gray = null;
         int pos = 8;
         try {
@@ -60,7 +60,7 @@ public final class ImageInspector {
                         width = (int) u32(b, data);
                         height = (int) u32(b, data + 4);
                         bitDepth = b[data + 8] & 0xFF;
-                        int colorType = b[data + 9] & 0xFF;
+                        colorType = b[data + 9] & 0xFF;
                         gray = colorType == 0 || colorType == 4;
                     }
                     case "pHYs" -> {
@@ -75,24 +75,31 @@ public final class ImageInspector {
                 pos = data + len + 4; // + CRC
             }
         } catch (RuntimeException ex) {
-            return new ImageInfo(ImageFormat.PNG, b.length, width, height, bitDepth, gray, ppi, null, null,
+            return new ImageInfo(ImageFormat.PNG, b.length, width, height, bitDepth, gray, ppi, null, null, null, colorType,
                     "PNG header is corrupt");
         }
         if (width == null) {
-            return new ImageInfo(ImageFormat.PNG, b.length, null, null, null, null, null, null, null,
+            return new ImageInfo(ImageFormat.PNG, b.length, null, null, null, null, null, null, null, null, null,
                     "PNG has no IHDR chunk");
         }
 
-        Double stdDev = null;
+        Double stdDev = null, foreground = null;
         String decodeError = null;
         try {
             BufferedImage img = ImageIO.read(new ByteArrayInputStream(b));
-            if (img == null) decodeError = "PNG cannot be decoded";
-            else stdDev = grayStdDev(img.getRaster());
+            if (img == null) {
+                decodeError = "PNG cannot be decoded";
+            } else {
+                // Palette / RGB images are converted to grey for the statistics only;
+                // the colour type itself is judged by the validator.
+                Raster r = img.getRaster();
+                stdDev = grayStdDev(r);
+                foreground = foregroundRatio(r);
+            }
         } catch (Exception ex) {
             decodeError = "PNG cannot be decoded";
         }
-        return new ImageInfo(ImageFormat.PNG, b.length, width, height, bitDepth, gray, ppi, null, stdDev, decodeError);
+        return new ImageInfo(ImageFormat.PNG, b.length, width, height, bitDepth, gray, ppi, null, stdDev, foreground, colorType, decodeError);
     }
 
     /** Standard deviation of band 0 over a regular sample grid — cheap blank/uniform detector. */
@@ -114,6 +121,35 @@ public final class ImageInspector {
         return Math.sqrt(Math.max(0, sumSq / n - mean * mean));
     }
 
+    /**
+     * Fraction of 16×16 blocks whose grey-level std dev exceeds 20 — i.e. blocks
+     * that contain ridge texture rather than background, smudge or glare. A full
+     * live-scan plain impression sits around 0.6–0.9; a partial or mostly-empty
+     * capture well below 0.3.
+     */
+    static double foregroundRatio(Raster r) {
+        int w = r.getWidth(), h = r.getHeight(), bs = 16;
+        int maxVal = (1 << r.getSampleModel().getSampleSize(0)) - 1;
+        double scale = maxVal > 0 ? 255.0 / maxVal : 1.0;
+        int blocks = 0, textured = 0;
+        for (int by = 0; by + bs <= h; by += bs) {
+            for (int bx = 0; bx + bs <= w; bx += bs) {
+                double sum = 0, sumSq = 0;
+                for (int y = by; y < by + bs; y++) {
+                    for (int x = bx; x < bx + bs; x++) {
+                        double v = r.getSample(x, y, 0) * scale;
+                        sum += v; sumSq += v * v;
+                    }
+                }
+                double n = bs * bs, mean = sum / n;
+                double sd = Math.sqrt(Math.max(0, sumSq / n - mean * mean));
+                blocks++;
+                if (sd > 20) textured++;
+            }
+        }
+        return blocks == 0 ? 0 : (double) textured / blocks;
+    }
+
     // ── WSQ ─────────────────────────────────────────────────────────────────
 
     private static ImageInfo inspectWsq(byte[] b) {
@@ -123,7 +159,7 @@ public final class ImageInspector {
             while (pos + 4 <= b.length) {
                 int marker = u16(b, pos);
                 if ((marker & 0xFF00) != 0xFF00) {
-                    return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, null, null,
+                    return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, null, null, null, null,
                             "WSQ marker sequence is corrupt");
                 }
                 if (marker == WSQ_EOI) break;
@@ -144,15 +180,15 @@ public final class ImageInspector {
                 pos = pos + 2 + len;
             }
         } catch (RuntimeException ex) {
-            return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, null, null,
+            return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, null, null, null, null,
                     "WSQ header is corrupt");
         }
         if (rows == null || cols == null) {
-            return new ImageInfo(ImageFormat.WSQ, b.length, null, null, 8, true, ppi, null, null,
+            return new ImageInfo(ImageFormat.WSQ, b.length, null, null, 8, true, ppi, null, null, null, null,
                     "WSQ has no frame header");
         }
         double ratio = (double) rows * cols / b.length;
-        return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, ratio, null, null);
+        return new ImageInfo(ImageFormat.WSQ, b.length, cols, rows, 8, true, ppi, ratio, null, null, null, null);
     }
 
     // ── helpers ─────────────────────────────────────────────────────────────

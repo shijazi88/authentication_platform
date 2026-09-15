@@ -86,7 +86,32 @@ class ImageInspectorTest {
         assertThat(i.grayscale()).isTrue();
         assertThat(i.ppi()).isEqualTo(500);
         assertThat(i.stdDev()).isGreaterThan(50);
+        assertThat(i.foregroundRatio()).isGreaterThan(0.9);   // noise everywhere = texture everywhere
+        assertThat(i.colorType()).isEqualTo(0);
         assertThat(i.decodeError()).isNull();
+    }
+
+    @Test
+    void halfBlankImageHasLowCoverage_andPaletteIsDetected() throws Exception {
+        BufferedImage img = new BufferedImage(320, 320, BufferedImage.TYPE_BYTE_GRAY);
+        Random rnd = new Random(1);
+        for (int y = 0; y < 320; y++) for (int x = 0; x < 320; x++) {
+            int v = x < 64 ? rnd.nextInt(256) : 230;          // texture only in the left 20%
+            img.setRGB(x, y, (v << 16) | (v << 8) | v);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(img, "png", out);
+        ImageInfo partial = ImageInspector.inspect(b64(out.toByteArray()));
+        assertThat(partial.foregroundRatio()).isBetween(0.15, 0.25);
+
+        BufferedImage pal = new BufferedImage(300, 300, BufferedImage.TYPE_BYTE_INDEXED);
+        for (int y = 0; y < 300; y++) for (int x = 0; x < 300; x++) { int v = rnd.nextInt(256); pal.setRGB(x, y, (v << 16) | (v << 8) | v); }
+        out = new ByteArrayOutputStream();
+        ImageIO.write(pal, "png", out);
+        ImageInfo p = ImageInspector.inspect(b64(out.toByteArray()));
+        assertThat(p.colorType()).isEqualTo(3);
+        assertThat(p.grayscale()).isFalse();
+        assertThat(p.colorTypeName()).isEqualTo("indexed/palette");
     }
 
     @Test

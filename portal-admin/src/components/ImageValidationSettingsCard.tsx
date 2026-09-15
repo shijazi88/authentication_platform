@@ -199,6 +199,22 @@ export function ImageValidationSettingsCard() {
               />
             </div>
           </Section>
+
+          {/* Fingerprint coverage */}
+          <Section title={t("settings.image.coverage")} hint={t("settings.image.coverageHint")}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+              <Check
+                label={t("settings.image.checkCoverage")}
+                checked={draft.checkCoverage ?? false}
+                onChange={(v) => set("checkCoverage", v)}
+              />
+              <NumField
+                label={t("settings.image.minCoveragePct")}
+                value={Math.round((draft.minForegroundRatio ?? 0) * 100)}
+                onChange={(e) => set("minForegroundRatio", Number(e.target.value) / 100)}
+              />
+            </div>
+          </Section>
         </fieldset>
 
         {q.data?.updatedAt && (

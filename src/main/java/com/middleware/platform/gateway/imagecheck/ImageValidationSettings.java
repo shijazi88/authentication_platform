@@ -36,7 +36,11 @@ public record ImageValidationSettings(
         /** Minimum grey-level standard deviation (0–255 scale) for a non-blank image. */
         @DecimalMin("0.0") double minStdDev,
         /** Maximum WSQ compression ratio (raw pixels ÷ file bytes). */
-        @DecimalMin("1.0") double wsqMaxCompressionRatio
+        @DecimalMin("1.0") double wsqMaxCompressionRatio,
+        /** Reject captures with too little ridge texture (partial / smudged / mostly empty). PNG only. */
+        boolean checkCoverage,
+        /** Minimum fraction (0–1) of 16×16 blocks that contain ridge texture. */
+        @DecimalMin("0.0") double minForegroundRatio
 ) {
     public static final String KEY = "IMAGE_VALIDATION";
 
@@ -49,7 +53,8 @@ public record ImageValidationSettings(
                 200, 200, 2_000, 2_000,
                 false, 490, 510,
                 2 * 1024 * 1024, true,
-                true, 10.0, 15.0);
+                true, 10.0, 15.0,
+                true, 0.25);
     }
 
     /** Cross-field sanity; returns a message or null. */

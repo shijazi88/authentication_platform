@@ -321,6 +321,8 @@ export type ImageValidationSettings = {
   checkBlank: boolean;
   minStdDev: number;
   wsqMaxCompressionRatio: number;
+  checkCoverage: boolean;
+  minForegroundRatio: number;
 };
 
 export type Page<T> = {
