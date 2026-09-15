@@ -636,7 +636,37 @@
     "subtitle": "Platform oversight and configuration.",
     "tabs": {
       "exceptions": "Exception lookup",
-      "image": "Fingerprint image"
+      "image": "Fingerprint image",
+      "resilience": "Service protection"
+    },
+    "resilience": {
+      "statusTitle": "Live connector state",
+      "statusHint": "The breaker in front of each identity-provider connector. CLOSED = traffic flows; OPEN = calls are refused for the open period after too many failures; HALF-OPEN = trial calls in progress; DISABLED = protection off.",
+      "refresh": "Refresh",
+      "metrics": "failure rate {{rate}} · {{failed}} failed of {{buffered}} recent calls · {{blocked}} refused while open",
+      "reset": "Close breaker now",
+      "resetDone": "Breaker closed",
+      "state": { "CLOSED": "Closed (healthy)", "OPEN": "Open (refusing calls)", "HALF_OPEN": "Half-open (testing)", "DISABLED": "Disabled", "FORCED_OPEN": "Forced open", "METRICS_ONLY": "Metrics only" },
+      "title": "Protection policy",
+      "intro": "Applied live to all identity-provider connectors the moment you save. Refused calls are answered with error 2103 “service temporarily unavailable” and are never charged.",
+      "enabled": "Enabled",
+      "breaker": "Circuit breaker",
+      "breakerHint": "When the failure rate over the recent calls crosses the threshold, the breaker opens and refuses calls for the open period, then lets a few trial calls through.",
+      "window": "Recent calls (window)",
+      "minCalls": "Min calls before judging",
+      "threshold": "Failure threshold (%)",
+      "openSeconds": "Open period (seconds)",
+      "halfOpen": "Trial calls when half-open",
+      "serviceOnly": "Count only service failures",
+      "serviceOnlyHint": "Recommended. “Not found”, “no match” and rejected input are correct answers, not outages — they should never open the breaker. Only transport errors, timeouts and provider 5xx count.",
+      "retry": "Automatic retry",
+      "retryHint": "Retries a call after a transient transport failure (connection error, timeout). Provider answers are never retried.",
+      "attempts": "Max attempts (incl. first)",
+      "waitMs": "Wait between attempts (ms)",
+      "save": "Save policy",
+      "saved": "Protection policy applied",
+      "error": "Could not apply the policy",
+      "updatedBy": "Last saved by {{who}} on {{when}}"
     },
     "image": {
       "title": "Fingerprint image validation",

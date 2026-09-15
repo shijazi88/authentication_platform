@@ -325,6 +325,30 @@ export type ImageValidationSettings = {
   minForegroundRatio: number;
 };
 
+/** Circuit breaker + retry policy (admin Settings → Service protection). */
+export type ResilienceSettings = {
+  circuitBreakerEnabled: boolean;
+  slidingWindowSize: number;
+  minimumNumberOfCalls: number;
+  failureRateThresholdPercent: number;
+  waitDurationOpenSeconds: number;
+  permittedCallsInHalfOpen: number;
+  countOnlyServiceFailures: boolean;
+  retryEnabled: boolean;
+  retryMaxAttempts: number;
+  retryWaitMs: number;
+};
+
+export type BreakerStatus = {
+  connector: string;
+  state: "CLOSED" | "OPEN" | "HALF_OPEN" | "DISABLED" | "FORCED_OPEN" | "METRICS_ONLY";
+  failureRatePercent: number | null;
+  bufferedCalls: number;
+  failedCalls: number;
+  successfulCalls: number;
+  notPermittedCalls: number;
+};
+
 export type Page<T> = {
   content: T[];
   totalElements: number;

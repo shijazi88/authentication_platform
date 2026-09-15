@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ShieldAlert, Fingerprint, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ShieldAlert, Fingerprint, Zap, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { listTransactions } from "@/api/transactions";
 import { listTenants } from "@/api/tenants";
@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageLoader } from "@/components/ui/Spinner";
 import { PinGate } from "@/components/PinGate";
 import { ImageValidationSettingsCard } from "@/components/ImageValidationSettingsCard";
+import { ResilienceSettingsCard } from "@/components/ResilienceSettingsCard";
 import { cn } from "@/lib/cn";
 import { formatDate, shortId } from "@/lib/format";
 
@@ -29,6 +30,7 @@ export function SettingsPage() {
   const tabs = [
     { key: "exceptions", label: t("settings.tabs.exceptions"), icon: ShieldAlert },
     { key: "image", label: t("settings.tabs.image"), icon: Fingerprint },
+    { key: "resilience", label: t("settings.tabs.resilience"), icon: Zap },
   ];
 
   return (
@@ -62,6 +64,8 @@ export function SettingsPage() {
       )}
 
       {tab === "image" && <ImageValidationSettingsCard />}
+
+      {tab === "resilience" && <ResilienceSettingsCard />}
     </div>
   );
 }
