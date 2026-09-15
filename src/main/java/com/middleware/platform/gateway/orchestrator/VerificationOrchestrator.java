@@ -183,6 +183,18 @@ public class VerificationOrchestrator {
                     canonicalRequestPayload, errorBody(ex.getErrorCode(), ex.getMessage()),
                     connectorRequest, null);
             throw ex;
+        } catch (io.github.resilience4j.circuitbreaker.CallNotPermittedException ex) {
+            // The breaker tripped on recent upstream failures (≥50 % of the last 20
+            // calls) and is shedding load for 30 s. This is "unavailable", not an
+            // error of this request: 2103, refunded, and worded plainly to the bank.
+            String internal = "Circuit breaker open for connector " + service.getConnectorKey()
+                    + " (recent upstream failures) — " + ex.getMessage();
+            log.warn(internal);
+            if (prepaidEnforced) walletService.reverse(tenant.tenantId(), entitlement.unitPriceMinor(), tx.getId());
+            transactionService.completeFailed(tx, ErrorCode.CONNECTOR_UNAVAILABLE, internal,
+                    canonicalRequestPayload, errorBody(ErrorCode.CONNECTOR_UNAVAILABLE, internal),
+                    connectorRequest, null);
+            throw new ApplicationException(ErrorCode.CONNECTOR_UNAVAILABLE, internal, ex);
         } catch (Exception ex) {
             log.error("Connector {} failed", service.getConnectorKey(), ex);
             if (prepaidEnforced) walletService.reverse(tenant.tenantId(), entitlement.unitPriceMinor(), tx.getId());

@@ -507,7 +507,7 @@ In addition to the body, error responses carry:
   "timestamp": "2026-05-03T08:11:39.948Z",
   "errorCode": 2101,
   "error": "CONNECTOR_ERROR",
-  "message": "Backend connector error: identity provider upstream returned 503",
+  "message": "The verification service could not process the request. Please try again in a few minutes; if the problem persists, contact support and quote the request ID.",
   "requestId": "019dece4-91a1-7877-a37d-ffb20006fcd1"
 }
 ```

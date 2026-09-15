@@ -9,6 +9,7 @@ import com.middleware.platform.iam.dto.CredentialView;
 import com.middleware.platform.iam.dto.IpPolicyResponse;
 import com.middleware.platform.iam.dto.SubscriptionDetailResponse;
 import com.middleware.platform.iam.dto.TenantMeResponse;
+import com.middleware.platform.iam.dto.TenantTransactionView;
 import com.middleware.platform.iam.dto.UpdateProfileRequest;
 import com.middleware.platform.iam.domain.TenantEncryptionKey;
 import com.middleware.platform.iam.security.CurrentTenant;
@@ -80,7 +81,7 @@ public class TenantPortalController {
     }
 
     @GetMapping("/transactions")
-    public Page<Transaction> transactions(
+    public Page<TenantTransactionView> transactions(
             @RequestParam(required = false) TransactionStatus status,
             @RequestParam(required = false) Integer errorCode,
             @RequestParam(required = false) Boolean billable,
@@ -99,16 +100,16 @@ public class TenantPortalController {
         Instant fromInstant = from != null ? from.atStartOfDay(ZoneOffset.UTC).toInstant() : null;
         Instant toInstant = to != null ? to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant() : null;
         return transactionService.filter(CurrentTenant.id(), status, errorCode, billable, exception, q,
-                fromInstant, toInstant, pr);
+                fromInstant, toInstant, pr).map(TenantTransactionView::from);
     }
 
     @GetMapping("/transactions/{id}")
-    public Transaction transaction(@PathVariable UUID id) {
+    public TenantTransactionView transaction(@PathVariable UUID id) {
         Transaction tx = transactionService.get(id);
         if (!tx.getTenantId().equals(CurrentTenant.id())) {
             throw ApplicationException.notFound("Transaction");
         }
-        return tx;
+        return TenantTransactionView.from(tx);
     }
 
     @GetMapping("/subscriptions")

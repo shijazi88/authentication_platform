@@ -55,6 +55,12 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ApiError> build(ErrorCode ec, String message, HttpServletRequest req,
                                            List<ApiError.FieldError> fieldErrors) {
         String requestId = (String) req.getAttribute("X-Request-Id");
+        // Bank-facing API: never expose provider names, HTTP statuses or
+        // infrastructure terms. The internal text is already logged above and
+        // kept on the transaction for support.
+        if (req.getRequestURI() != null && req.getRequestURI().startsWith("/api/")) {
+            message = BankFacingMessages.forBank(ec, message);
+        }
         ApiError body = new ApiError(
                 Instant.now(),
                 ec.code(),
