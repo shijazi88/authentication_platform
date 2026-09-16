@@ -173,7 +173,7 @@ can re-scan immediately.
 > that names the failing property (e.g. `resolution 300 ppi is outside the allowed 490–510 ppi`).
 > Do not retry the same image; re-capture. The image itself is never stored.
 >
-> Rules applied (v1.4): container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture.
+> Rules applied (v1.4): container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture; **NIST NFIQ 2 quality score ≥ 40** (0–100, measured by the platform; images NFIQ 2 cannot score — blank, partial, fingertip only — are rejected with the reason).
 
 #### 4.2.4 Payload encryption (JWE)
 

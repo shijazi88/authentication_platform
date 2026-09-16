@@ -9,6 +9,7 @@ env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/shijazi88/sanad-backend
   PORTAL_IMAGE: ghcr.io/shijazi88/sanad-portal
+  NFIQ2_IMAGE: ghcr.io/shijazi88/sanad-nfiq2
 
 jobs:
   build-and-push:
@@ -49,6 +50,16 @@ jobs:
             ${{ env.PORTAL_IMAGE }}:latest
             ${{ env.PORTAL_IMAGE }}:${{ github.sha }}
 
+      - name: Build & push NFIQ 2 sidecar image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./nfiq2
+          file: ./nfiq2/Dockerfile
+          push: true
+          tags: |
+            ${{ env.NFIQ2_IMAGE }}:latest
+            ${{ env.NFIQ2_IMAGE }}:${{ github.sha }}
+
   deploy:
     name: Deploy to Droplet
     needs: build-and-push
@@ -84,7 +95,7 @@ jobs:
 
             # Pull latest images
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            docker compose -f docker-compose.prod.yml pull backend portal
+            docker compose -f docker-compose.prod.yml pull backend portal nfiq2
 
             # Restart with new images (zero-downtime: old container runs until new one is healthy)
             docker compose -f docker-compose.prod.yml up -d --remove-orphans

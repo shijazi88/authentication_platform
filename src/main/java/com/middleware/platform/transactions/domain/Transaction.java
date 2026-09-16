@@ -97,6 +97,10 @@ public class Transaction {
     @Column(name = "image_check_message", length = 255)
     private String imageCheckMessage;
 
+    /** NIST NFIQ 2 quality score (0–100) measured by the platform; null when not measured. */
+    @Column(name = "image_nfiq2")
+    private Integer imageNfiq2;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 }

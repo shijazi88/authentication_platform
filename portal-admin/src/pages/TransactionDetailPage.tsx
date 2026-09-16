@@ -275,6 +275,7 @@ export function TransactionDetailPage() {
                     {tx.imageWidth && tx.imageHeight ? ` · ${tx.imageWidth}×${tx.imageHeight} px` : ""}
                     {tx.imagePpi ? ` · ${tx.imagePpi} ppi` : ""}
                     {tx.imageBytes ? ` · ${(tx.imageBytes / 1024).toFixed(0)} KB` : ""}
+                    {tx.imageNfiq2 != null ? ` · NFIQ 2: ${tx.imageNfiq2}` : ""}
                   </span>
                 </Field>
               </>

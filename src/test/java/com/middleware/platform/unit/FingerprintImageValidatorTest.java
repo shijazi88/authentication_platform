@@ -7,6 +7,7 @@ import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
 import com.middleware.platform.gateway.imagecheck.ImageValidationResult.Status;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings.Mode;
+import com.middleware.platform.gateway.imagecheck.Nfiq2Client;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -15,13 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class FingerprintImageValidatorTest {
 
-    private final FingerprintImageValidator v = new FingerprintImageValidator(null);
+    private final FingerprintImageValidator v = new FingerprintImageValidator(null, null);
 
     static ImageValidationSettings enforce() {
         ImageValidationSettings d = ImageValidationSettings.defaults();
         return new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), d.requirePpi(), d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), d.requireGrayscale8Bit(), d.checkBlank(), d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25);
+                d.maxImageBytes(), d.requireGrayscale8Bit(), d.checkBlank(), d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
     }
 
     static ImageInfo goodPng() { return new ImageInfo(ImageFormat.PNG, 90_000, 500, 500, 8, true, 500, null, 60.0, 0.8, 0, null); }
@@ -38,7 +39,7 @@ class FingerprintImageValidatorTest {
         ImageValidationSettings d = ImageValidationSettings.defaults();
         ImageValidationSettings off = new ImageValidationSettings(false, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), false, d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25);
+                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
         assertThat(v.validate(ImageInfo.unreadable("image is empty"), off).status()).isEqualTo(Status.SKIP);
 
         ImageValidationResult r = v.validate(ImageInfo.unreadable("image is not valid base64"), d); // defaults = WARN
@@ -54,7 +55,7 @@ class FingerprintImageValidatorTest {
                 .contains("unsupported image format").contains("PNG or WSQ");
 
         ImageValidationSettings pngOnly = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(ImageFormat.PNG),
-                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25);
+                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
         assertThat(msg(goodWsq(), pngOnly)).contains("WSQ images are not accepted").contains("allowed: PNG");
 
         assertThat(msg(new ImageInfo(ImageFormat.PNG, 3_000_000, 500, 500, 8, true, null, null, 60.0, 0.8, 0, null), s))
@@ -87,7 +88,7 @@ class FingerprintImageValidatorTest {
         ImageValidationSettings d = enforce();
         ImageValidationSettings strict = new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), true, d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25);
+                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
         assertThat(msg(noPpi, strict)).contains("does not declare its resolution");
     }
 
@@ -95,10 +96,10 @@ class FingerprintImageValidatorTest {
     void settingsCrossFieldValidation() {
         assertThat(ImageValidationSettings.defaults().validationError()).isNull();
         ImageValidationSettings bad = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(ImageFormat.PNG),
-                900, 200, 500, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25);
+                900, 200, 500, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
         assertThat(bad.validationError()).contains("minimum dimensions");
         ImageValidationSettings none = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(),
-                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25);
+                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
         assertThat(none.validationError()).contains("allowedFormats");
     }
 
@@ -106,5 +107,51 @@ class FingerprintImageValidatorTest {
         ImageValidationResult r = v.validate(i, s);
         assertThat(r.status()).isEqualTo(Status.FAIL);
         return r.message();
+    }
+
+    // ── NFIQ 2 branch (sidecar stubbed) ────────────────────────────────────
+
+    static class StubNfiq2 extends Nfiq2Client {
+        final Result result;
+        StubNfiq2(Result r) { super("http://stub", 1000, new com.fasterxml.jackson.databind.ObjectMapper()); this.result = r; }
+        @Override public Result score(byte[] image, ImageFormat format) { return result; }
+    }
+
+    static class StubSettings extends com.middleware.platform.common.settings.PlatformSettingsService {
+        final ImageValidationSettings s;
+        StubSettings(ImageValidationSettings s) { super(null, null); this.s = s; }
+        @Override public <T> T get(String key, Class<T> type, java.util.function.Supplier<T> defaults) { return type.cast(s); }
+    }
+
+    static String goodPngBase64() throws Exception {
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(400, 400, java.awt.image.BufferedImage.TYPE_BYTE_GRAY);
+        java.util.Random rnd = new java.util.Random(3);
+        for (int y = 0; y < 400; y++) for (int x = 0; x < 400; x++) { int g = rnd.nextInt(256); img.setRGB(x, y, (g << 16) | (g << 8) | g); }
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, "png", out);
+        return java.util.Base64.getEncoder().encodeToString(out.toByteArray());
+    }
+
+    @Test
+    void nfiq2ScoreGatesAndIsRecorded() throws Exception {
+        ImageValidationSettings s = enforce();
+        String png = goodPngBase64();
+        assertThat(new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(61, null, true, 120))).validate(png))
+                .satisfies(r -> { assertThat(r.status()).isEqualTo(Status.PASS); assertThat(r.nfiq2Score()).isEqualTo(61); });
+        ImageValidationResult low = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(23, null, true, 120))).validate(png);
+        assertThat(low.status()).isEqualTo(Status.FAIL);
+        assertThat(low.message()).contains("NFIQ 2 score 23").contains("minimum 40");
+        assertThat(low.nfiq2Score()).isEqualTo(23);
+        ImageValidationResult unscorable = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(null, "fingerprint area is too small", true, 90))).validate(png);
+        assertThat(unscorable.status()).isEqualTo(Status.FAIL);
+        assertThat(unscorable.message()).contains("too small").contains("re-capture");
+        // sidecar down: fail-open → WARN, call continues
+        ImageValidationResult down = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(Nfiq2Client.Result.unavailable("quality service unreachable"))).validate(png);
+        assertThat(down.status()).isEqualTo(Status.WARN);
+        assertThat(down.rejected()).isFalse();
+        // structural failure short-circuits: the sidecar is never consulted
+        ImageValidationResult garbage = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(99, null, true, 1))).validate("QUJDREVGR0g=");
+        assertThat(garbage.status()).isEqualTo(Status.FAIL);
+        assertThat(garbage.nfiq2Score()).isNull();
     }
 }

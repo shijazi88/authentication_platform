@@ -34,3 +34,12 @@ services:
 
 volumes:
   yemen_mysql_data:
+
+  # NFIQ 2 quality sidecar (build locally; backend reaches it at http://localhost:8090)
+  nfiq2:
+    build: ./nfiq2
+    container_name: sanad-nfiq2
+    ports:
+      - "8090:8090"
+    tmpfs:
+      - /tmp:rw,size=64m,mode=1777

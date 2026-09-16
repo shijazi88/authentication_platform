@@ -20,7 +20,7 @@ public record TenantTransactionView(
         Long unitPriceMinor, String currency, boolean billable,
         boolean exception, String exceptionReason, String exceptionNote,
         String imageFormat, Integer imageWidth, Integer imageHeight, Integer imagePpi, Integer imageBytes,
-        String imageCheck, String imageCheckMessage,
+        String imageCheck, String imageCheckMessage, Integer imageNfiq2,
         Instant createdAt
 ) {
     public static TenantTransactionView from(Transaction t) {
@@ -31,7 +31,7 @@ public record TenantTransactionView(
                 t.getUnitPriceMinor(), t.getCurrency(), t.isBillable(),
                 t.isException(), t.getExceptionReason(), t.getExceptionNote(),
                 t.getImageFormat(), t.getImageWidth(), t.getImageHeight(), t.getImagePpi(), t.getImageBytes(),
-                t.getImageCheck(), t.getImageCheckMessage(),
+                t.getImageCheck(), t.getImageCheckMessage(), t.getImageNfiq2(),
                 t.getCreatedAt());
     }
 

@@ -138,6 +138,7 @@ public class TransactionService {
         }
         tx.setImageCheck(result.status().name());
         tx.setImageCheckMessage(safeTrim(result.message(), 255));
+        tx.setImageNfiq2(result.nfiq2Score());
     }
 
     private Transaction recordRejection(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,

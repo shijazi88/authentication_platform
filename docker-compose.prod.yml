@@ -53,6 +53,8 @@ services:
       PLATFORM_SECURITY_JWT_ISSUER: sanad-platform
       # Wallet must always be debited per verification (business rule). Override only deliberately.
       PLATFORM_WALLET_PREPAID_ENFORCED: ${PLATFORM_WALLET_PREPAID_ENFORCED:-true}
+      # NFIQ 2 quality-score sidecar (Settings → Fingerprint image → quality score).
+      PLATFORM_NFIQ2_URL: http://nfiq2:8090
       YEMEN_ID_MODE: ${YEMEN_ID_MODE:-wiremock}
       YEMEN_ID_BASE_URL: ${YEMEN_ID_BASE_URL:-http://wiremock:8080/base_path}
       YEMEN_ID_BEARER_TOKEN: ${YEMEN_ID_BEARER_TOKEN:-dev-token}
@@ -71,6 +73,23 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+
+  # NIST NFIQ 2 fingerprint quality scorer. Internal only (no published port);
+  # the backend calls it over the compose network. Images live in a tmpfs for
+  # the duration of one call and are never written to disk.
+  nfiq2:
+    image: ghcr.io/shijazi88/sanad-nfiq2:latest
+    container_name: sanad-nfiq2
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,size=64m,mode=1777
+    networks:
+      - internal
+    deploy:
+      resources:
+        limits:
+          memory: 512m
 
   portal:
     image: ghcr.io/shijazi88/sanad-portal:latest

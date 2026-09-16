@@ -299,6 +299,7 @@ export type Transaction = {
   imageBytes?: number | null;
   imageCheck?: "PASS" | "WARN" | "FAIL" | "SKIP" | null;
   imageCheckMessage?: string | null;
+  imageNfiq2?: number | null;
   createdAt: string;
 };
 
@@ -323,6 +324,9 @@ export type ImageValidationSettings = {
   wsqMaxCompressionRatio: number;
   checkCoverage: boolean;
   minForegroundRatio: number;
+  checkNfiq2: boolean;
+  minNfiq2: number;
+  nfiq2FailOpen: boolean;
 };
 
 /** Circuit breaker + retry policy (admin Settings → Service protection). */

@@ -19,15 +19,43 @@ import static com.middleware.platform.gateway.imagecheck.ImageValidationResult.S
 public class FingerprintImageValidator {
 
     private final PlatformSettingsService settings;
+    private final Nfiq2Client nfiq2;
 
     public ImageValidationSettings currentSettings() {
         return settings.get(ImageValidationSettings.KEY, ImageValidationSettings.class,
                 ImageValidationSettings::defaults);
     }
 
-    /** Inspects and validates a base64 image with the current runtime settings. */
+    /**
+     * Inspects and validates a base64 image with the current runtime settings:
+     * structural rules first (cheap, in-process), then — only if those pass and
+     * the rule is on — the NFIQ 2 quality score from the sidecar.
+     */
     public ImageValidationResult validate(String base64) {
-        return validate(ImageInspector.inspect(base64), currentSettings());
+        ImageValidationSettings s = currentSettings();
+        byte[] raw = ImageInspector.decode(base64);
+        ImageInfo info = raw == null ? ImageInspector.inspect(base64) : ImageInspector.inspect(raw);
+        ImageValidationResult structural = validate(info, s);
+        if (structural.status() != Status.PASS || !s.checkNfiq2() || raw == null || nfiq2 == null
+                || info.format() == ImageFormat.UNKNOWN) {
+            return structural;
+        }
+        Nfiq2Client.Result q = nfiq2.score(raw, info.format());
+        Status onProblem = s.mode() == ImageValidationSettings.Mode.ENFORCE ? Status.FAIL : Status.WARN;
+        if (!q.available()) {
+            String msg = "fingerprint quality could not be measured (" + q.error() + ")";
+            return new ImageValidationResult(s.nfiq2FailOpen() ? Status.WARN : onProblem, msg, info, null);
+        }
+        if (q.score() == null) {
+            return new ImageValidationResult(onProblem,
+                    "fingerprint quality could not be measured: " + q.error() + " — re-capture the finger", info, null);
+        }
+        if (q.score() < s.minNfiq2()) {
+            return new ImageValidationResult(onProblem, String.format(Locale.ROOT,
+                    "fingerprint quality too low (NFIQ 2 score %d, minimum %d) — re-capture with firm, even pressure",
+                    q.score(), s.minNfiq2()), info, q.score());
+        }
+        return new ImageValidationResult(Status.PASS, null, info, q.score());
     }
 
     public ImageValidationResult validate(ImageInfo info, ImageValidationSettings s) {

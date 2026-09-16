@@ -40,7 +40,13 @@ public record ImageValidationSettings(
         /** Reject captures with too little ridge texture (partial / smudged / mostly empty). PNG only. */
         boolean checkCoverage,
         /** Minimum fraction (0–1) of 16×16 blocks that contain ridge texture. */
-        @DecimalMin("0.0") double minForegroundRatio
+        @DecimalMin("0.0") double minForegroundRatio,
+        /** Measure the NIST NFIQ 2 quality score (0–100) with the quality sidecar. */
+        boolean checkNfiq2,
+        /** Minimum acceptable NFIQ 2 score (ICD recommends 40). */
+        @Min(0) @Max(100) int minNfiq2,
+        /** When the quality service is unreachable: true = let the call through with a warning, false = reject. */
+        boolean nfiq2FailOpen
 ) {
     public static final String KEY = "IMAGE_VALIDATION";
 
@@ -54,7 +60,8 @@ public record ImageValidationSettings(
                 false, 490, 510,
                 2 * 1024 * 1024, true,
                 true, 10.0, 15.0,
-                true, 0.25);
+                true, 0.25,
+                true, 40, true);
     }
 
     /** Cross-field sanity; returns a message or null. */

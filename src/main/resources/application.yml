@@ -45,6 +45,10 @@ server:
 platform:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  nfiq2:
+    # NIST NFIQ 2 quality sidecar (nfiq2/ in this repo). Compose: http://nfiq2:8090
+    url: ${PLATFORM_NFIQ2_URL:http://localhost:8090}
+    timeout-ms: ${PLATFORM_NFIQ2_TIMEOUT_MS:5000}
 
 management:
   endpoints:

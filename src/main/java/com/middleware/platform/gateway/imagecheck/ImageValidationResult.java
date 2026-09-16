@@ -1,7 +1,11 @@
 package com.middleware.platform.gateway.imagecheck;
 
 /** Outcome of applying {@link ImageValidationSettings} to an {@link ImageInfo}. */
-public record ImageValidationResult(Status status, String message, ImageInfo info) {
+public record ImageValidationResult(Status status, String message, ImageInfo info, Integer nfiq2Score) {
+
+    public ImageValidationResult(Status status, String message, ImageInfo info) {
+        this(status, message, info, null);
+    }
 
     public enum Status {
         /** All rules passed. */

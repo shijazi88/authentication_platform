@@ -29,13 +29,23 @@ public final class ImageInspector {
 
     public static ImageInfo inspect(String base64) {
         if (base64 == null || base64.isBlank()) return ImageInfo.unreadable("image is empty");
-        String b64 = DATA_URI.matcher(base64.trim()).replaceFirst("");
-        byte[] bytes;
+        byte[] bytes = decode(base64);
+        if (bytes == null) return ImageInfo.unreadable("image is not valid base64");
+        return inspect(bytes);
+    }
+
+    /** Base64 (optionally a data: URI, whitespace tolerated) → bytes, or null when not valid base64. */
+    public static byte[] decode(String base64) {
+        if (base64 == null || base64.isBlank()) return null;
         try {
-            bytes = Base64.getMimeDecoder().decode(b64);
+            return Base64.getMimeDecoder().decode(DATA_URI.matcher(base64.trim()).replaceFirst(""));
         } catch (IllegalArgumentException ex) {
-            return ImageInfo.unreadable("image is not valid base64");
+            return null;
         }
+    }
+
+    public static ImageInfo inspect(byte[] bytes) {
+        if (bytes == null) return ImageInfo.unreadable("image is empty");
         if (bytes.length < 16) return ImageInfo.unreadable("image is too small to be a fingerprint image");
 
         if (startsWith(bytes, PNG_SIG)) return inspectPng(bytes);

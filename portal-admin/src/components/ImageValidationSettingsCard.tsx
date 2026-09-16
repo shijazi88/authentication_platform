@@ -200,6 +200,23 @@ export function ImageValidationSettingsCard() {
             </div>
           </Section>
 
+          {/* NFIQ 2 quality score */}
+          <Section title={t("settings.image.nfiq2")} hint={t("settings.image.nfiq2Hint")}>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
+              <Check
+                label={t("settings.image.checkNfiq2")}
+                checked={draft.checkNfiq2 ?? false}
+                onChange={(v) => set("checkNfiq2", v)}
+              />
+              <NumField label={t("settings.image.minNfiq2")} value={draft.minNfiq2 ?? 40} onChange={num("minNfiq2")} />
+              <Check
+                label={t("settings.image.nfiq2FailOpen")}
+                checked={draft.nfiq2FailOpen ?? true}
+                onChange={(v) => set("nfiq2FailOpen", v)}
+              />
+            </div>
+          </Section>
+
           {/* Fingerprint coverage */}
           <Section title={t("settings.image.coverage")} hint={t("settings.image.coverageHint")}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
