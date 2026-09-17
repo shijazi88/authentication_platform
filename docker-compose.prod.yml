@@ -78,8 +78,8 @@ services:
   # the backend calls it over the compose network. Images live in a tmpfs for
   # the duration of one call and are never written to disk.
   nfiq2:
-    image: ghcr.io/shijazi88/sanad-nfiq2:latest
-    container_name: sanad-nfiq2
+    image: ghcr.io/shijazi88/motabiq-nfiq2:latest
+    container_name: motabiq-nfiq2
     restart: unless-stopped
     read_only: true
     tmpfs:

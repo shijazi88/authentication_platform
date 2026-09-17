@@ -9,7 +9,7 @@ env:
   REGISTRY: ghcr.io
   BACKEND_IMAGE: ghcr.io/shijazi88/sanad-backend
   PORTAL_IMAGE: ghcr.io/shijazi88/sanad-portal
-  NFIQ2_IMAGE: ghcr.io/shijazi88/sanad-nfiq2
+  NFIQ2_IMAGE: ghcr.io/shijazi88/motabiq-nfiq2
 
 jobs:
   build-and-push:
