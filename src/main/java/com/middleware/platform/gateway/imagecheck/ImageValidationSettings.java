@@ -56,8 +56,8 @@ public record ImageValidationSettings(
         @Size(max = 300) String qualityMessage,
         /** Sentence returned to the bank when the image container/encoding/size is not acceptable. */
         @Size(max = 300) String formatMessage,
-        /** Include {@code imageQuality} (the NFIQ 2 score) in the API response so the bank's app can guide the operator. */
-        boolean returnScoreToBank
+        /** Include {@code imageQuality} (the NFIQ 2 score) in the API response so the bank's app can guide the operator. Null (older document) = true. */
+        Boolean returnScoreToBank
 ) {
     public static final String DEFAULT_QUALITY_MESSAGE =
             "Fingerprint image quality is not good. Please re-capture the fingerprint.";
@@ -97,7 +97,7 @@ public record ImageValidationSettings(
                 nfiq2TimeoutMs <= 0 ? d.nfiq2TimeoutMs() : nfiq2TimeoutMs,
                 qualityMessage == null || qualityMessage.isBlank() ? d.qualityMessage() : qualityMessage.trim(),
                 formatMessage == null || formatMessage.isBlank() ? d.formatMessage() : formatMessage.trim(),
-                returnScoreToBank);
+                returnScoreToBank == null ? Boolean.TRUE : returnScoreToBank);
     }
 
     /** Plain sentence for the bank, by reason. */

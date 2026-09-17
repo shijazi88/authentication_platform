@@ -46,6 +46,15 @@ management:
     health:
       show-details: never
 
+# API documentation is disabled in production: the OpenAPI spec (incl. the admin
+# API group) and Swagger UI must not be publicly reachable on the prod host.
+# Enabled by default in dev/staging via the base config.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 platform:
   security:
     jwt:

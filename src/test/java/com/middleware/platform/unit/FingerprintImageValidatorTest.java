@@ -186,10 +186,11 @@ class FingerprintImageValidatorTest {
         // a document saved before these fields existed (Jackson leaves them null / 0)
         ImageValidationSettings old = new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
                 200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true,
-                null, 0, null, "  ", false).normalized();
+                null, 0, null, "  ", null).normalized();
         assertThat(old.nfiq2Mode()).isEqualTo(Mode.ENFORCE);
         assertThat(old.nfiq2TimeoutMs()).isEqualTo(5000);
         assertThat(old.qualityMessage()).isEqualTo(ImageValidationSettings.DEFAULT_QUALITY_MESSAGE);
         assertThat(old.formatMessage()).isEqualTo(ImageValidationSettings.DEFAULT_FORMAT_MESSAGE);
+        assertThat(old.returnScoreToBank()).isTrue();
     }
 }
