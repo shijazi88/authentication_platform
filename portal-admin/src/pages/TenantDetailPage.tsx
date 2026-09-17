@@ -32,6 +32,7 @@ import { WalletCard } from "@/components/WalletCard";
 import { TenantPortalUsersCard } from "@/components/TenantPortalUsersCard";
 import { TenantEncryptionCard } from "@/components/TenantEncryptionCard";
 import { TenantIpAccessCard } from "@/components/TenantIpAccessCard";
+import { TenantQualityCard } from "@/components/TenantQualityCard";
 import { FingerprintDevicesCard } from "@/components/FingerprintDevicesCard";
 import type { ApiCredential } from "@/types/api";
 
@@ -224,6 +225,10 @@ export function TenantDetailPage() {
 
       <div className="mt-4">
         <TenantIpAccessCard tenant={tenant} />
+      </div>
+
+      <div className="mt-4">
+        <TenantQualityCard tenant={tenant} />
       </div>
 
       <div className="mt-4">

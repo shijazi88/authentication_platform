@@ -47,6 +47,10 @@ public class Tenant {
     @Column(name = "ip_allowlist", length = 2048)
     private String ipAllowlist;
 
+    /** Bank-specific minimum NFIQ 2 score (0–100); null = platform default from Settings. */
+    @Column(name = "min_nfiq2")
+    private Integer minNfiq2;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

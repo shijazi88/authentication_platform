@@ -6,13 +6,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 
+import static com.middleware.platform.gateway.imagecheck.ImageValidationResult.Reason;
 import static com.middleware.platform.gateway.imagecheck.ImageValidationResult.Status;
 
 /**
  * Applies the admin-configured {@link ImageValidationSettings} to a fingerprint
  * image. Rules are evaluated in order of cost and only the first failure is
- * reported, phrased so the bank's operator can act on it (re-scan, change
- * format, fix scanner resolution).
+ * reported. The detail is technical and stays on the transaction for staff;
+ * the bank receives one of the two plain sentences from the settings, chosen
+ * by {@link Reason}.
  */
 @Component
 @RequiredArgsConstructor
@@ -23,8 +25,11 @@ public class FingerprintImageValidator {
 
     public ImageValidationSettings currentSettings() {
         return settings.get(ImageValidationSettings.KEY, ImageValidationSettings.class,
-                ImageValidationSettings::defaults);
+                ImageValidationSettings::defaults).normalized();
     }
+
+    /** A failed rule: the technical detail (for staff) and the category (chooses the bank's sentence). */
+    record Problem(Reason reason, String detail) {}
 
     /**
      * Inspects and validates a base64 image with the current runtime settings:
@@ -32,6 +37,13 @@ public class FingerprintImageValidator {
      * the rule is on — the NFIQ 2 quality score from the sidecar.
      */
     public ImageValidationResult validate(String base64) {
+        return validate(base64, null);
+    }
+
+    /**
+     * @param tenantMinNfiq2 the bank's own minimum score, or null for the platform default
+     */
+    public ImageValidationResult validate(String base64, Integer tenantMinNfiq2) {
         ImageValidationSettings s = currentSettings();
         byte[] raw = ImageInspector.decode(base64);
         ImageInfo info = raw == null ? ImageInspector.inspect(base64) : ImageInspector.inspect(raw);
@@ -40,33 +52,46 @@ public class FingerprintImageValidator {
                 || info.format() == ImageFormat.UNKNOWN) {
             return structural;
         }
-        Nfiq2Client.Result q = nfiq2.score(raw, info.format());
-        Status onProblem = s.mode() == ImageValidationSettings.Mode.ENFORCE ? Status.FAIL : Status.WARN;
+        Nfiq2Client.Result q = nfiq2.score(raw, info.format(), s.nfiq2TimeoutMs());
+        // The score has its own action so an admin can observe scores while the
+        // structural rules stay enforced.
+        boolean enforce = s.mode() == ImageValidationSettings.Mode.ENFORCE
+                && s.nfiq2Mode() == ImageValidationSettings.Mode.ENFORCE;
+        Status onProblem = enforce ? Status.FAIL : Status.WARN;
         if (!q.available()) {
             String msg = "fingerprint quality could not be measured (" + q.error() + ")";
-            return new ImageValidationResult(s.nfiq2FailOpen() ? Status.WARN : onProblem, msg, info, null);
+            return new ImageValidationResult(s.nfiq2FailOpen() ? Status.WARN : onProblem, msg, info, null, Reason.SERVICE);
         }
         if (q.score() == null) {
             return new ImageValidationResult(onProblem,
-                    "fingerprint quality could not be measured: " + q.error() + " — re-capture the finger", info, null);
+                    "fingerprint quality could not be measured: " + q.error(), info, null, Reason.QUALITY);
         }
-        if (q.score() < s.minNfiq2()) {
+        int min = tenantMinNfiq2 != null ? tenantMinNfiq2 : s.minNfiq2();
+        if (q.score() < min) {
             return new ImageValidationResult(onProblem, String.format(Locale.ROOT,
-                    "fingerprint quality too low (NFIQ 2 score %d, minimum %d) — re-capture with firm, even pressure",
-                    q.score(), s.minNfiq2()), info, q.score());
+                    "fingerprint quality too low (NFIQ 2 score %d, minimum %d%s)",
+                    q.score(), min, tenantMinNfiq2 != null ? ", bank-specific" : ""), info, q.score(), Reason.QUALITY);
         }
-        return new ImageValidationResult(Status.PASS, null, info, q.score());
+        return new ImageValidationResult(Status.PASS, null, info, q.score(), Reason.NONE);
     }
 
     public ImageValidationResult validate(ImageInfo info, ImageValidationSettings s) {
         if (!s.enabled()) return new ImageValidationResult(Status.SKIP, null, info);
-        String problem = firstProblem(info, s);
-        if (problem == null) return new ImageValidationResult(Status.PASS, null, info);
+        Problem problem = firstProblem(info, s);
+        if (problem == null) return new ImageValidationResult(Status.PASS, null, info, null, Reason.NONE);
         Status st = s.mode() == ImageValidationSettings.Mode.ENFORCE ? Status.FAIL : Status.WARN;
-        return new ImageValidationResult(st, problem, info);
+        return new ImageValidationResult(st, problem.detail(), info, null, problem.reason());
     }
 
-    static String firstProblem(ImageInfo info, ImageValidationSettings s) {
+    static Problem firstProblem(ImageInfo info, ImageValidationSettings s) {
+        String f = firstFormatProblem(info, s);
+        if (f != null) return new Problem(Reason.FORMAT, f);
+        String q = firstQualityProblem(info, s);
+        return q == null ? null : new Problem(Reason.QUALITY, q);
+    }
+
+    /** Container / encoding / size / resolution rules — the bank's integration must change. */
+    static String firstFormatProblem(ImageInfo info, ImageValidationSettings s) {
         if (info.format() == ImageFormat.UNKNOWN) {
             return info.decodeError() != null ? info.decodeError()
                     : "unsupported image format (expected " + formats(s) + ")";
@@ -95,7 +120,7 @@ public class FingerprintImageValidator {
             // single-plane image, and an indexed/palette PNG is the usual culprit.
             return "PNG must be 8-bit greyscale (colour type 0); got "
                     + (info.bitDepth() != null ? info.bitDepth() + "-bit " : "")
-                    + info.colorTypeName() + " — re-save the capture as 8-bit greyscale";
+                    + info.colorTypeName();
         }
         if (info.ppi() != null) {
             if (info.ppi() < s.ppiMin() || info.ppi() > s.ppiMax()) {
@@ -110,13 +135,18 @@ public class FingerprintImageValidator {
             return String.format(Locale.ROOT, "WSQ compression %.1f:1 exceeds the maximum %.0f:1",
                     info.compressionRatio(), s.wsqMaxCompressionRatio());
         }
+        return null;
+    }
+
+    /** Capture rules — the operator must re-scan. */
+    static String firstQualityProblem(ImageInfo info, ImageValidationSettings s) {
         if (s.checkBlank() && info.stdDev() != null && info.stdDev() < s.minStdDev()) {
             return String.format(Locale.ROOT, "image appears blank or uniform (contrast %.1f below %.0f)",
                     info.stdDev(), s.minStdDev());
         }
         if (s.checkCoverage() && info.foregroundRatio() != null && info.foregroundRatio() < s.minForegroundRatio()) {
             return String.format(Locale.ROOT,
-                    "too little fingerprint area in the image (%.0f%% of blocks have ridge texture, minimum %.0f%%) — re-capture with the finger centred",
+                    "too little fingerprint area in the image (%.0f%% of blocks have ridge texture, minimum %.0f%%)",
                     info.foregroundRatio() * 100, s.minForegroundRatio() * 100);
         }
         return null;

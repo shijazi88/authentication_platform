@@ -125,7 +125,8 @@ public class VerifyController {
         return new VerifyIdentityResponse(
                 new VerifyIdentityResponse.Transaction(result.transactionId(), result.timestamp(),
                         isException ? "EXEMPT" : "OK"),
-                result.projected()
+                result.projected(),
+                result.imageQuality()
         );
     }
 

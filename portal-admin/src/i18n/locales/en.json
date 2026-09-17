@@ -113,7 +113,13 @@
       "title": "Recent transactions",
       "subtitle": "Latest 10 across all clients"
     },
-    "statusDistribution": "Status distribution"
+    "statusDistribution": "Status distribution",
+    "qualityDown": {
+      "title": "Fingerprint quality service is offline",
+      "failOpen": "Verifications continue without a quality score (fail-open).",
+      "failClosed": "Images cannot be scored, so verifications with fingerprints are being rejected (fail-closed).",
+      "link": "Open settings"
+    }
   },
   "tenants": {
     "title": "Clients",
@@ -243,7 +249,12 @@
       "image": {
         "check": "Fingerprint image",
         "details": "Image details",
-        "status": { "PASS": "Passed", "WARN": "Warning", "FAIL": "Rejected", "SKIP": "Not checked" }
+        "status": {
+          "PASS": "Passed",
+          "WARN": "Warning",
+          "FAIL": "Rejected",
+          "SKIP": "Not checked"
+        }
       },
       "title": "Transaction details",
       "back": "Back to transactions",
@@ -305,6 +316,19 @@
       "success": "Successful",
       "failed": "Failed",
       "revenue": "Revenue"
+    },
+    "quality": {
+      "title": "Fingerprint quality by bank",
+      "subtitle": "Every image inspected in the selected dates, all clients. Average and lowest NFIQ 2 score, rejections, and how the scores spread across bands 0–19 · 20–39 · 40–59 · 60–79 · 80–100.",
+      "bank": "Bank",
+      "images": "Images",
+      "scored": "Scored",
+      "avg": "Average score",
+      "lowest": "Lowest",
+      "rejected": "Rejected",
+      "rejectRate": "Rejected %",
+      "bands": "Score bands",
+      "noData": "No fingerprint images in this range"
     }
   },
   "billing": {
@@ -646,7 +670,14 @@
       "metrics": "failure rate {{rate}} · {{failed}} failed of {{buffered}} recent calls · {{blocked}} refused while open",
       "reset": "Close breaker now",
       "resetDone": "Breaker closed",
-      "state": { "CLOSED": "Closed (healthy)", "OPEN": "Open (refusing calls)", "HALF_OPEN": "Half-open (testing)", "DISABLED": "Disabled", "FORCED_OPEN": "Forced open", "METRICS_ONLY": "Metrics only" },
+      "state": {
+        "CLOSED": "Closed (healthy)",
+        "OPEN": "Open (refusing calls)",
+        "HALF_OPEN": "Half-open (testing)",
+        "DISABLED": "Disabled",
+        "FORCED_OPEN": "Forced open",
+        "METRICS_ONLY": "Metrics only"
+      },
       "title": "Protection policy",
       "intro": "Applied live to all identity-provider connectors the moment you save. Refused calls are answered with error 2103 “service temporarily unavailable” and are never charged.",
       "enabled": "Enabled",
@@ -711,7 +742,24 @@
       "save": "Save settings",
       "saved": "Fingerprint image settings saved",
       "error": "Could not save settings",
-      "updatedBy": "Last saved by {{who}} on {{when}}"
+      "updatedBy": "Last saved by {{who}} on {{when}}",
+      "serviceStatus": "Quality service:",
+      "serviceUp": "Online · NFIQ 2 {{version}} · {{ms}} ms",
+      "serviceDown": "Offline",
+      "lastFailure": "last failure {{when}}",
+      "nfiq2Timeout": "Timeout (ms)",
+      "nfiq2Reject": "Reject low scores",
+      "nfiq2RejectHint": "An image below the minimum score is rejected (400 / 1002) with the quality message below.",
+      "nfiq2WarnOnly": "Record only",
+      "nfiq2WarnOnlyHint": "Scores are measured and stored on every transaction but never reject a call. Use this to observe a bank's captures before enforcing.",
+      "messages": "What the bank receives",
+      "messagesHint": "Banks get one plain sentence. The technical reason (resolution, format, score…) is kept on the transaction for your staff only.",
+      "qualityMessage": "Poor capture (blank, partial, smudged, low score)",
+      "qualityMessageHint": "The operator should re-capture the finger.",
+      "formatMessage": "Wrong format (container, encoding, size, resolution)",
+      "formatMessageHint": "The bank's integration must be corrected.",
+      "returnScore": "Share the quality score with the bank",
+      "returnScoreHint": "Adds imageQuality (0–100) to successful responses and to quality rejections so the bank's app can guide the operator."
     },
     "exceptions": {
       "reason": "Reason",
@@ -723,5 +771,20 @@
         "description": "Fingerprint-exception requests will appear here."
       }
     }
+  },
+  "tenantQuality": {
+    "title": "Fingerprint quality threshold",
+    "subtitle": "Minimum NFIQ 2 score (0–100) accepted from this client. Different scanners score differently; leave the default unless this bank's captures need their own threshold.",
+    "default": "Platform default",
+    "own": "Own minimum: {{min}}",
+    "defaultHint": "The platform-wide minimum from Settings → Fingerprint image applies.",
+    "ownHint": "Images scoring below {{min}} are rejected for this client, regardless of the platform default.",
+    "useOwn": "Use a bank-specific minimum score",
+    "minLabel": "Minimum NFIQ 2 score (0–100)",
+    "minHint": "Recommended 40. Lower it only after reviewing this bank's scores in Reports.",
+    "edit": "Edit",
+    "save": "Save threshold",
+    "saved": "Quality threshold updated",
+    "error": "Could not update the quality threshold"
   }
 }

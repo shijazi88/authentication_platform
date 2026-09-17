@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.Set;
 
@@ -46,8 +47,23 @@ public record ImageValidationSettings(
         /** Minimum acceptable NFIQ 2 score (ICD recommends 40). */
         @Min(0) @Max(100) int minNfiq2,
         /** When the quality service is unreachable: true = let the call through with a warning, false = reject. */
-        boolean nfiq2FailOpen
+        boolean nfiq2FailOpen,
+        /** Action for a low NFIQ 2 score on its own: ENFORCE rejects, WARN only records the score (structural rules keep {@link #mode}). */
+        Mode nfiq2Mode,
+        /** Per-call timeout for the quality service, milliseconds. */
+        @Min(500) @Max(30_000) int nfiq2TimeoutMs,
+        /** Sentence returned to the bank when the capture is poor (blank, partial, low score). No technical detail. */
+        @Size(max = 300) String qualityMessage,
+        /** Sentence returned to the bank when the image container/encoding/size is not acceptable. */
+        @Size(max = 300) String formatMessage,
+        /** Include {@code imageQuality} (the NFIQ 2 score) in the API response so the bank's app can guide the operator. */
+        boolean returnScoreToBank
 ) {
+    public static final String DEFAULT_QUALITY_MESSAGE =
+            "Fingerprint image quality is not good. Please re-capture the fingerprint.";
+    public static final String DEFAULT_FORMAT_MESSAGE =
+            "Fingerprint image format is not accepted. Please check the image requirements in the integration guide.";
+
     public static final String KEY = "IMAGE_VALIDATION";
 
     public enum Mode { ENFORCE, WARN }
@@ -61,7 +77,32 @@ public record ImageValidationSettings(
                 2 * 1024 * 1024, true,
                 true, 10.0, 15.0,
                 true, 0.25,
-                true, 40, true);
+                true, 40, true,
+                Mode.ENFORCE, 5_000, DEFAULT_QUALITY_MESSAGE, DEFAULT_FORMAT_MESSAGE, true);
+    }
+
+    /**
+     * Fills fields that a document saved by an older release does not carry
+     * (Jackson leaves them null / 0), so the verify path never sees a half-built
+     * settings object.
+     */
+    public ImageValidationSettings normalized() {
+        ImageValidationSettings d = defaults();
+        return new ImageValidationSettings(enabled, mode == null ? d.mode() : mode,
+                allowedFormats == null ? d.allowedFormats() : allowedFormats,
+                minWidth, minHeight, maxWidth, maxHeight, requirePpi, ppiMin, ppiMax, maxImageBytes,
+                requireGrayscale8Bit, checkBlank, minStdDev, wsqMaxCompressionRatio, checkCoverage, minForegroundRatio,
+                checkNfiq2, minNfiq2, nfiq2FailOpen,
+                nfiq2Mode == null ? d.nfiq2Mode() : nfiq2Mode,
+                nfiq2TimeoutMs <= 0 ? d.nfiq2TimeoutMs() : nfiq2TimeoutMs,
+                qualityMessage == null || qualityMessage.isBlank() ? d.qualityMessage() : qualityMessage.trim(),
+                formatMessage == null || formatMessage.isBlank() ? d.formatMessage() : formatMessage.trim(),
+                returnScoreToBank);
+    }
+
+    /** Plain sentence for the bank, by reason. */
+    public String bankMessage(ImageValidationResult.Reason reason) {
+        return reason == ImageValidationResult.Reason.FORMAT ? formatMessage : qualityMessage;
     }
 
     /** Cross-field sanity; returns a message or null. */

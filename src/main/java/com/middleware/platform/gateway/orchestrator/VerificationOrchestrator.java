@@ -13,6 +13,11 @@ import com.middleware.platform.connector.spi.ConnectorResponse;
 import com.middleware.platform.connector.spi.VerificationConnector;
 import com.middleware.platform.gateway.imagecheck.FingerprintImageValidator;
 import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
+import com.middleware.platform.gateway.imagecheck.ImageRejectedException;
+import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
+import com.middleware.platform.iam.domain.Tenant;
+import com.middleware.platform.iam.repo.TenantRepository;
+
 import com.middleware.platform.gateway.projection.FieldProjector;
 import com.middleware.platform.subscription.dto.ResolvedEntitlement;
 import com.middleware.platform.subscription.service.EntitlementService;
@@ -46,6 +51,7 @@ public class VerificationOrchestrator {
     private final RateLimiter rateLimiter;
     private final WalletService walletService;
     private final FingerprintImageValidator imageValidator;
+    private final TenantRepository tenantRepository;
 
     /**
      * Prepaid enforcement is ON by default (business rule since 2026-09-10:
@@ -104,12 +110,17 @@ public class VerificationOrchestrator {
         ImageValidationResult imageResult = null;
         if (canonicalRequestPayload.get("biometrics") instanceof Map<?, ?> bio
                 && bio.get("image") instanceof String img && !img.isBlank()) {
-            imageResult = imageValidator.validate(img);
+            Integer bankMin = tenantRepository.findById(tenant.tenantId()).map(Tenant::getMinNfiq2).orElse(null);
+            imageResult = imageValidator.validate(img, bankMin);
             if (imageResult.rejected()) {
-                String msg = "Fingerprint image rejected: " + imageResult.message();
+                // The bank gets one plain sentence (configurable in Settings); the
+                // technical detail stays on the transaction's image-check fields.
+                ImageValidationSettings s = imageValidator.currentSettings();
+                String bankMsg = s.bankMessage(imageResult.reason());
+                log.warn("Fingerprint image rejected for tenant {}: {}", tenant.tenantName(), imageResult.message());
                 transactionService.rejectImage(tenant.tenantId(), tenant.credentialId(),
-                        service.getId(), operation.getId(), msg, imageResult);
-                throw new ApplicationException(ErrorCode.VALIDATION_FAILED, msg);
+                        service.getId(), operation.getId(), bankMsg, imageResult);
+                throw new ImageRejectedException(bankMsg, s.returnScoreToBank() ? imageResult.nfiq2Score() : null);
             }
             if (imageResult.status() == ImageValidationResult.Status.WARN) {
                 log.warn("Fingerprint image warning for tenant {}: {}", tenant.tenantName(), imageResult.message());
@@ -218,10 +229,13 @@ public class VerificationOrchestrator {
                 connectorRequest,
                 connectorResponse.payload());
 
-        return new OrchestrationResult(tx.getId(), Instant.now(), projected);
+        Integer imageQuality = imageResult != null && imageValidator.currentSettings().returnScoreToBank()
+                ? imageResult.nfiq2Score() : null;
+        return new OrchestrationResult(tx.getId(), Instant.now(), projected, imageQuality);
     }
 
-    public record OrchestrationResult(UUID transactionId, Instant timestamp, Map<String, Object> projected) {}
+    public record OrchestrationResult(UUID transactionId, Instant timestamp, Map<String, Object> projected,
+                                      Integer imageQuality) {}
 
     private static ApiError errorBody(ErrorCode ec, String message) {
         return new ApiError(

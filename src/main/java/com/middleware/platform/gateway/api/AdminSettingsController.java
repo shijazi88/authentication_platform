@@ -7,6 +7,7 @@ import com.middleware.platform.common.settings.PlatformSettingsService;
 import com.middleware.platform.common.resilience.ResilienceSettings;
 import com.middleware.platform.common.resilience.ResilienceSettingsService;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
+import com.middleware.platform.gateway.imagecheck.Nfiq2Client;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -33,13 +34,14 @@ public class AdminSettingsController {
 
     private final PlatformSettingsService settings;
     private final ResilienceSettingsService resilience;
+    private final Nfiq2Client nfiq2Client;
 
     public record SettingEnvelope<T>(T value, String updatedBy, Instant updatedAt) {}
 
     @GetMapping("/image-validation")
     public SettingEnvelope<ImageValidationSettings> getImageValidation() {
         ImageValidationSettings v = settings.get(ImageValidationSettings.KEY, ImageValidationSettings.class,
-                ImageValidationSettings::defaults);
+                ImageValidationSettings::defaults).normalized();
         PlatformSetting meta = settings.meta(ImageValidationSettings.KEY);
         return new SettingEnvelope<>(v, meta == null ? null : meta.getUpdatedBy(),
                 meta == null ? null : meta.getUpdatedAt());
@@ -50,9 +52,15 @@ public class AdminSettingsController {
             @Valid @RequestBody ImageValidationSettings req, Authentication auth) {
         String err = req.validationError();
         if (err != null) throw new ApplicationException(ErrorCode.VALIDATION_FAILED, err);
-        ImageValidationSettings saved = settings.put(ImageValidationSettings.KEY, req, auth.getName());
+        ImageValidationSettings saved = settings.put(ImageValidationSettings.KEY, req.normalized(), auth.getName());
         PlatformSetting meta = settings.meta(ImageValidationSettings.KEY);
         return new SettingEnvelope<>(saved, meta.getUpdatedBy(), meta.getUpdatedAt());
+    }
+
+    /** Live status of the NFIQ 2 quality service (sidecar) for the settings badge / dashboard alert. */
+    @GetMapping("/image-validation/quality-service")
+    public Nfiq2Client.Health qualityService() {
+        return nfiq2Client.health();
     }
 
     // ── Service protection (circuit breaker + retry) ─────────────────────────

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Fingerprint, Save, RotateCcw } from "lucide-react";
-import { getImageValidationSettings, updateImageValidationSettings } from "@/api/settings";
+import { getImageValidationSettings, getQualityServiceStatus, updateImageValidationSettings } from "@/api/settings";
 import type { ImageFormat, ImageValidationSettings } from "@/types/api";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +24,12 @@ export function ImageValidationSettingsCard() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["settings", "image-validation"], queryFn: getImageValidationSettings });
+  const svc = useQuery({
+    queryKey: ["settings", "quality-service"],
+    queryFn: getQualityServiceStatus,
+    refetchInterval: 30_000,
+    retry: false,
+  });
 
   const [draft, setDraft] = useState<ImageValidationSettings | null>(null);
   useEffect(() => {
@@ -202,6 +208,23 @@ export function ImageValidationSettingsCard() {
 
           {/* NFIQ 2 quality score */}
           <Section title={t("settings.image.nfiq2")} hint={t("settings.image.nfiq2Hint")}>
+            <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-text-muted">{t("settings.image.serviceStatus")}</span>
+              {svc.isLoading ? (
+                <Badge tone="neutral">…</Badge>
+              ) : svc.data?.available ? (
+                <Badge tone="emerald">
+                  {t("settings.image.serviceUp", { version: svc.data.version ?? "", ms: svc.data.latencyMs ?? 0 })}
+                </Badge>
+              ) : (
+                <Badge tone="rose">{t("settings.image.serviceDown")}</Badge>
+              )}
+              {svc.data?.lastFailureAt && (
+                <span className="text-text-dim">
+                  {t("settings.image.lastFailure", { when: formatDate(svc.data.lastFailureAt) })}
+                </span>
+              )}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 items-end">
               <Check
                 label={t("settings.image.checkNfiq2")}
@@ -209,10 +232,30 @@ export function ImageValidationSettingsCard() {
                 onChange={(v) => set("checkNfiq2", v)}
               />
               <NumField label={t("settings.image.minNfiq2")} value={draft.minNfiq2 ?? 40} onChange={num("minNfiq2")} />
+              <NumField
+                label={t("settings.image.nfiq2Timeout")}
+                value={draft.nfiq2TimeoutMs ?? 5000}
+                step={500}
+                onChange={num("nfiq2TimeoutMs")}
+              />
               <Check
                 label={t("settings.image.nfiq2FailOpen")}
                 checked={draft.nfiq2FailOpen ?? true}
                 onChange={(v) => set("nfiq2FailOpen", v)}
+              />
+            </div>
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Option
+                active={(draft.nfiq2Mode ?? "ENFORCE") === "ENFORCE"}
+                title={t("settings.image.nfiq2Reject")}
+                hint={t("settings.image.nfiq2RejectHint")}
+                onClick={() => set("nfiq2Mode", "ENFORCE")}
+              />
+              <Option
+                active={draft.nfiq2Mode === "WARN"}
+                title={t("settings.image.nfiq2WarnOnly")}
+                hint={t("settings.image.nfiq2WarnOnlyHint")}
+                onClick={() => set("nfiq2Mode", "WARN")}
               />
             </div>
           </Section>
@@ -230,6 +273,43 @@ export function ImageValidationSettingsCard() {
                 value={Math.round((draft.minForegroundRatio ?? 0) * 100)}
                 onChange={(e) => set("minForegroundRatio", Number(e.target.value) / 100)}
               />
+            </div>
+          </Section>
+          {/* What the bank receives */}
+          <Section title={t("settings.image.messages")} hint={t("settings.image.messagesHint")}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="quality-msg">{t("settings.image.qualityMessage")}</Label>
+                <textarea
+                  id="quality-msg"
+                  rows={3}
+                  maxLength={300}
+                  className="w-full text-sm rounded-lg bg-bg-elevated/60 border border-border/15 px-3 py-2 text-text focus:outline-none focus:ring-2 focus:ring-accent-cyan/40"
+                  value={draft.qualityMessage ?? ""}
+                  onChange={(e) => set("qualityMessage", e.target.value)}
+                />
+                <p className="mt-1 text-xs text-text-dim">{t("settings.image.qualityMessageHint")}</p>
+              </div>
+              <div>
+                <Label htmlFor="format-msg">{t("settings.image.formatMessage")}</Label>
+                <textarea
+                  id="format-msg"
+                  rows={3}
+                  maxLength={300}
+                  className="w-full text-sm rounded-lg bg-bg-elevated/60 border border-border/15 px-3 py-2 text-text focus:outline-none focus:ring-2 focus:ring-accent-cyan/40"
+                  value={draft.formatMessage ?? ""}
+                  onChange={(e) => set("formatMessage", e.target.value)}
+                />
+                <p className="mt-1 text-xs text-text-dim">{t("settings.image.formatMessageHint")}</p>
+              </div>
+            </div>
+            <div className="mt-3">
+              <Check
+                label={t("settings.image.returnScore")}
+                checked={draft.returnScoreToBank ?? true}
+                onChange={(v) => set("returnScoreToBank", v)}
+              />
+              <p className="text-xs text-text-dim">{t("settings.image.returnScoreHint")}</p>
             </div>
           </Section>
         </fieldset>

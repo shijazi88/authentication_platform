@@ -24,7 +24,15 @@ public class GlobalExceptionHandler {
         } else {
             log.warn("ApplicationException [{}] {}", ec.name(), ex.getMessage());
         }
-        return build(ec, ex.getMessage(), req, null);
+        ResponseEntity<ApiError> r = build(ec, ex.getMessage(), req, null);
+        if (ex instanceof com.middleware.platform.gateway.imagecheck.ImageRejectedException ir
+                && ir.getImageQuality() != null) {
+            ApiError b = r.getBody();
+            return ResponseEntity.status(r.getStatusCode()).headers(r.getHeaders())
+                    .body(new ApiError(b.timestamp(), b.errorCode(), b.error(), b.message(), b.requestId(),
+                            b.fieldErrors(), ir.getImageQuality()));
+        }
+        return r;
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

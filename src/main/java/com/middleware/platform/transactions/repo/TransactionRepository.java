@@ -99,6 +99,32 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
                                     @Param("from") Instant from,
                                     @Param("to") Instant to);
 
+    /**
+     * Fingerprint-quality figures per tenant. Columns: tenant_id, images, scored,
+     * avgNfiq2, minNfiq2, rejected, warned, b0..b4 (NFIQ 2 bands of 20).
+     */
+    @Query(value = """
+            SELECT tenant_id,
+                   COUNT(*) AS images,
+                   SUM(CASE WHEN image_nfiq2 IS NOT NULL THEN 1 ELSE 0 END) AS scored,
+                   AVG(image_nfiq2) AS avgNfiq2,
+                   MIN(image_nfiq2) AS minNfiq2,
+                   SUM(CASE WHEN image_check = 'FAIL' THEN 1 ELSE 0 END) AS rejected,
+                   SUM(CASE WHEN image_check = 'WARN' THEN 1 ELSE 0 END) AS warned,
+                   SUM(CASE WHEN image_nfiq2 BETWEEN 0 AND 19 THEN 1 ELSE 0 END) AS b0,
+                   SUM(CASE WHEN image_nfiq2 BETWEEN 20 AND 39 THEN 1 ELSE 0 END) AS b1,
+                   SUM(CASE WHEN image_nfiq2 BETWEEN 40 AND 59 THEN 1 ELSE 0 END) AS b2,
+                   SUM(CASE WHEN image_nfiq2 BETWEEN 60 AND 79 THEN 1 ELSE 0 END) AS b3,
+                   SUM(CASE WHEN image_nfiq2 >= 80 THEN 1 ELSE 0 END) AS b4
+              FROM transactions
+             WHERE image_check IS NOT NULL
+               AND created_at >= :from
+               AND created_at <  :to
+             GROUP BY tenant_id
+             ORDER BY images DESC
+            """, nativeQuery = true)
+    List<Object[]> imageQualityByTenantRaw(@Param("from") Instant from, @Param("to") Instant to);
+
     @Query(value = """
             SELECT * FROM transactions
              WHERE LOWER(CAST(id AS CHAR)) LIKE LOWER(CONCAT(:q, '%'))

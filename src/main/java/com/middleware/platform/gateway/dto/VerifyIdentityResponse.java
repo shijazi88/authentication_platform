@@ -13,7 +13,13 @@ import java.util.UUID;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record VerifyIdentityResponse(
         Transaction transaction,
-        Map<String, Object> result
+        Map<String, Object> result,
+        /** NFIQ 2 fingerprint quality score (0–100) measured by the platform; absent when not measured or not shared. */
+        Integer imageQuality
 ) {
+    public VerifyIdentityResponse(Transaction transaction, Map<String, Object> result) {
+        this(transaction, result, null);
+    }
+
     public record Transaction(UUID id, Instant timestamp, String status) {}
 }

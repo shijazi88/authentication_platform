@@ -1,5 +1,7 @@
 package com.middleware.platform.transactions.service;
 
+import com.middleware.platform.iam.repo.TenantRepository;
+import com.middleware.platform.transactions.dto.ImageQualityRow;
 import com.middleware.platform.transactions.dto.ReportRow;
 import com.middleware.platform.transactions.dto.ReportSummary;
 import com.middleware.platform.transactions.repo.TransactionRepository;
@@ -14,6 +16,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,6 +35,7 @@ public class ReportsService {
 
     private final TransactionRepository transactionRepository;
     private final ReportPdfExporter pdfExporter;
+    private final TenantRepository tenantRepository;
 
     @Transactional(readOnly = true)
     public ReportSummary daily(UUID tenantId, LocalDate from, LocalDate to, String statusFilter) {
@@ -49,6 +54,33 @@ public class ReportsService {
                         from.atStartOfDay(ZoneOffset.UTC).toInstant(),
                         to.atStartOfDay(ZoneOffset.UTC).toInstant()));
     }
+
+    /** Fingerprint-quality figures per bank for the admin Reports page. */
+    @Transactional(readOnly = true)
+    public List<ImageQualityRow> imageQuality(LocalDate from, LocalDate to) {
+        Map<String, String> names = new HashMap<>();
+        tenantRepository.findAll().forEach(t -> names.put(t.getId().toString(), t.getLegalName()));
+        List<ImageQualityRow> rows = new ArrayList<>();
+        for (Object[] r : transactionRepository.imageQualityByTenantRaw(
+                from.atStartOfDay(ZoneOffset.UTC).toInstant(),
+                to.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant())) {
+            String tid = String.valueOf(r[0]);
+            long images = num(r[1]).longValue();
+            long rejected = num(r[5]).longValue();
+            rows.add(new ImageQualityRow(
+                    UUID.fromString(tid), names.getOrDefault(tid, tid),
+                    images, num(r[2]).longValue(),
+                    r[3] == null ? null : Math.round(num(r[3]).doubleValue() * 10) / 10.0,
+                    r[4] == null ? null : num(r[4]).intValue(),
+                    rejected, num(r[6]).longValue(),
+                    images == 0 ? 0.0 : (double) rejected / images,
+                    new long[]{num(r[7]).longValue(), num(r[8]).longValue(), num(r[9]).longValue(),
+                            num(r[10]).longValue(), num(r[11]).longValue()}));
+        }
+        return rows;
+    }
+
+    private static Number num(Object o) { return o == null ? 0 : (Number) o; }
 
     public void exportDailyCsv(UUID tenantId, LocalDate from, LocalDate to,
                                String statusFilter, OutputStream out) {

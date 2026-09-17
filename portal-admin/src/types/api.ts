@@ -120,6 +120,8 @@ export type Tenant = {
   /** Source-IP policy for the bank API: ALL, or RESTRICTED to ipAllowlist. */
   ipPolicy: IpPolicy;
   ipAllowlist: string[];
+  /** Bank-specific minimum NFIQ 2 score; null = platform default. */
+  minNfiq2: number | null;
   createdAt: string;
 };
 
@@ -327,6 +329,39 @@ export type ImageValidationSettings = {
   checkNfiq2: boolean;
   minNfiq2: number;
   nfiq2FailOpen: boolean;
+  /** Action for a low score on its own: ENFORCE rejects, WARN only records (structural rules keep `mode`). */
+  nfiq2Mode: "ENFORCE" | "WARN";
+  nfiq2TimeoutMs: number;
+  /** Plain sentences returned to banks (no technical detail). */
+  qualityMessage: string;
+  formatMessage: string;
+  /** Include the NFIQ 2 score as `imageQuality` in API responses. */
+  returnScoreToBank: boolean;
+};
+
+/** Live status of the NFIQ 2 quality service (sidecar). */
+export type QualityServiceStatus = {
+  available: boolean;
+  version: string | null;
+  latencyMs: number | null;
+  error: string | null;
+  checkedAt: string;
+  lastFailureAt: string | null;
+};
+
+/** Fingerprint-quality figures for one bank (admin Reports). */
+export type ImageQualityRow = {
+  tenantId: string;
+  tenantName: string;
+  images: number;
+  scored: number;
+  avgNfiq2: number | null;
+  minNfiq2: number | null;
+  rejected: number;
+  warned: number;
+  rejectRate: number;
+  /** Scored images per NFIQ 2 band: [0–19, 20–39, 40–59, 60–79, 80–100]. */
+  buckets: number[];
 };
 
 /** Circuit breaker + retry policy (admin Settings → Service protection). */

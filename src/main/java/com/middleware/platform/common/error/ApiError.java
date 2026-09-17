@@ -12,7 +12,14 @@ public record ApiError(
         String error,
         String message,
         String requestId,
-        List<FieldError> fieldErrors
+        List<FieldError> fieldErrors,
+        /** NFIQ 2 score (0–100) when a fingerprint image was rejected for quality and the platform shares scores. */
+        Integer imageQuality
 ) {
+    public ApiError(Instant timestamp, int errorCode, String error, String message, String requestId,
+                    List<FieldError> fieldErrors) {
+        this(timestamp, errorCode, error, message, requestId, fieldErrors, null);
+    }
+
     public record FieldError(String field, String message) {}
 }

@@ -12,6 +12,7 @@ import com.middleware.platform.iam.dto.CreateTenantRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.TenantResponse;
 import com.middleware.platform.iam.dto.UpdateIpPolicyRequest;
+import com.middleware.platform.iam.dto.UpdateQualityRequest;
 import com.middleware.platform.iam.security.IpAllowlist;
 import com.middleware.platform.iam.repo.ApiCredentialRepository;
 import com.middleware.platform.iam.repo.TenantRepository;
@@ -130,6 +131,14 @@ public class TenantService {
         }
         t.setIpPolicy(req.mode());
         t.setIpAllowlist(req.mode() == IpPolicy.RESTRICTED ? IpAllowlist.join(entries) : null);
+        return TenantResponse.from(t);
+    }
+
+    @Transactional
+    public TenantResponse setQuality(UUID tenantId, UpdateQualityRequest req) {
+        Tenant t = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> ApplicationException.notFound("Tenant"));
+        t.setMinNfiq2(req.minNfiq2());
         return TenantResponse.from(t);
     }
 }

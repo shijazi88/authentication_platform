@@ -26,6 +26,7 @@ import {
   downloadReportCsv,
   downloadReportPdf,
   getDailyReport,
+  getImageQualityReport,
   getMonthlyReport,
   type StatusFilter,
 } from "@/api/reports";
@@ -98,6 +99,12 @@ export function ReportsPage() {
       return groupBy === "daily" ? getDailyReport(params) : getMonthlyReport(params);
     },
     enabled: !!tenantId && !!from && !!to,
+  });
+
+  const qualityQ = useQuery({
+    queryKey: ["reports", "image-quality", from, to],
+    queryFn: () => getImageQualityReport(from, to),
+    enabled: !!from && !!to,
   });
 
   const chartData = useMemo(
@@ -362,6 +369,68 @@ export function ReportsPage() {
             <div className="py-12 text-center text-xs text-text-muted">
               {t("reports.noData")}
             </div>
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Fingerprint quality by bank (all clients, same date range) */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>{t("reports.quality.title")}</CardTitle>
+        </CardHeader>
+        <CardBody className="p-0">
+          <p className="px-4 pt-3 pb-2 text-xs text-text-muted">{t("reports.quality.subtitle")}</p>
+          {qualityQ.isLoading ? (
+            <PageLoader />
+          ) : (qualityQ.data?.length ?? 0) > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <THead>
+                  <Tr>
+                    <Th>{t("reports.quality.bank")}</Th>
+                    <Th>{t("reports.quality.images")}</Th>
+                    <Th>{t("reports.quality.scored")}</Th>
+                    <Th>{t("reports.quality.avg")}</Th>
+                    <Th>{t("reports.quality.lowest")}</Th>
+                    <Th>{t("reports.quality.rejected")}</Th>
+                    <Th>{t("reports.quality.rejectRate")}</Th>
+                    <Th>{t("reports.quality.bands")}</Th>
+                  </Tr>
+                </THead>
+                <TBody>
+                  {qualityQ.data!.map((row) => (
+                    <Tr key={row.tenantId}>
+                      <Td className="font-medium">{row.tenantName}</Td>
+                      <Td>{formatNumber(row.images)}</Td>
+                      <Td>{formatNumber(row.scored)}</Td>
+                      <Td className={row.avgNfiq2 != null && row.avgNfiq2 < 40 ? "text-accent-rose" : "text-accent-emerald"}>
+                        {row.avgNfiq2 ?? "—"}
+                      </Td>
+                      <Td>{row.minNfiq2 ?? "—"}</Td>
+                      <Td className="text-accent-rose">{formatNumber(row.rejected)}</Td>
+                      <Td>{Math.round(row.rejectRate * 100)}%</Td>
+                      <Td>
+                        <div className="flex items-end gap-0.5 h-6" dir="ltr" title="0–19 · 20–39 · 40–59 · 60–79 · 80–100">
+                          {row.buckets.map((n, i) => {
+                            const max = Math.max(1, ...row.buckets);
+                            return (
+                              <div
+                                key={i}
+                                className={i < 2 ? "w-3 rounded-sm bg-accent-rose/70" : "w-3 rounded-sm bg-accent-emerald/70"}
+                                style={{ height: `${Math.max(2, (n / max) * 24)}px` }}
+                                title={`${n}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </Td>
+                    </Tr>
+                  ))}
+                </TBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="py-8 text-center text-xs text-text-muted">{t("reports.quality.noData")}</div>
           )}
         </CardBody>
       </Card>

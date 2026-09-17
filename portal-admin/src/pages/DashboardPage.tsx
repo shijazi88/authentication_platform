@@ -21,8 +21,9 @@ import { listTenants } from "@/api/tenants";
 import { listPlans } from "@/api/plans";
 import { listTransactions } from "@/api/transactions";
 import { getBillingSummary } from "@/api/billing";
+import { getImageValidationSettings, getQualityServiceStatus } from "@/api/settings";
 import { useAuth } from "@/lib/auth";
-import { canManageBilling } from "@/lib/access";
+import { canManageBilling, canWrite } from "@/lib/access";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { MetricCard } from "@/components/viz/MetricCard";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -34,7 +35,26 @@ export function DashboardPage() {
   const { t } = useTranslation();
   // Billing/revenue is Finance + Super only. Skip the call for other roles
   // (e.g. Support) so a forbidden response never surfaces on the dashboard.
-  const canBilling = canManageBilling(useAuth((s) => s.role));
+  const role = useAuth((s) => s.role);
+  const canBilling = canManageBilling(role);
+  // Quality-service alert: settings endpoints are Super/Operation only.
+  const canSettings = canWrite(role);
+  const qualitySvcQ = useQuery({
+    queryKey: ["settings", "quality-service"],
+    queryFn: getQualityServiceStatus,
+    enabled: canSettings,
+    refetchInterval: 60_000,
+    retry: false,
+  });
+  const imageSettingsQ = useQuery({
+    queryKey: ["settings", "image-validation"],
+    queryFn: getImageValidationSettings,
+    enabled: canSettings,
+    retry: false,
+  });
+  const qualityDown =
+    canSettings && qualitySvcQ.data && !qualitySvcQ.data.available && (imageSettingsQ.data?.value.checkNfiq2 ?? true);
+  const failOpen = imageSettingsQ.data?.value.nfiq2FailOpen ?? true;
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
   const plansQ = useQuery({ queryKey: ["plans"], queryFn: listPlans });
 
@@ -74,6 +94,24 @@ export function DashboardPage() {
         title={t("dashboard.title")}
         description={t("dashboard.subtitle")}
       />
+
+      {qualityDown && (
+        <div
+          role="alert"
+          className={
+            "mb-6 rounded-lg border px-4 py-3 text-sm " +
+            (failOpen
+              ? "border-accent-amber/40 bg-accent-amber/10 text-text"
+              : "border-accent-rose/40 bg-accent-rose/10 text-text")
+          }
+        >
+          <div className="font-medium">{t("dashboard.qualityDown.title")}</div>
+          <div className="text-xs text-text-muted mt-0.5">
+            {failOpen ? t("dashboard.qualityDown.failOpen") : t("dashboard.qualityDown.failClosed")}{" "}
+            <Link to="/settings" className="underline">{t("dashboard.qualityDown.link")}</Link>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <MetricCard

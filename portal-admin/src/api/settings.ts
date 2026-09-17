@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { ImageValidationSettings, ResilienceSettings, BreakerStatus } from "@/types/api";
+import type { ImageValidationSettings, ResilienceSettings, BreakerStatus, QualityServiceStatus } from "@/types/api";
 
 export type SettingEnvelope<T> = {
   value: T;
@@ -21,6 +21,11 @@ export async function updateImageValidationSettings(
     "/admin/settings/image-validation",
     value,
   );
+  return data;
+}
+
+export async function getQualityServiceStatus(): Promise<QualityServiceStatus> {
+  const { data } = await api.get<QualityServiceStatus>("/admin/settings/image-validation/quality-service");
   return data;
 }
 

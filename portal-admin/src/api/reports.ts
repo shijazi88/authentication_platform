@@ -1,6 +1,6 @@
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
-import type { ReportGroupBy, ReportSummary } from "@/types/api";
+import type { ImageQualityRow, ReportGroupBy, ReportSummary } from "@/types/api";
 
 export type StatusFilter = "ALL" | "SUCCESS" | "FAILED";
 
@@ -18,6 +18,12 @@ export async function getDailyReport(params: ReportParams): Promise<ReportSummar
 
 export async function getMonthlyReport(params: ReportParams): Promise<ReportSummary> {
   const { data } = await api.get<ReportSummary>("/admin/reports/transactions/monthly", { params });
+  return data;
+}
+
+/** Fingerprint-quality figures per bank, inclusive date range (YYYY-MM-DD). */
+export async function getImageQualityReport(from: string, to: string): Promise<ImageQualityRow[]> {
+  const { data } = await api.get<ImageQualityRow[]>("/admin/reports/image-quality", { params: { from, to } });
   return data;
 }
 

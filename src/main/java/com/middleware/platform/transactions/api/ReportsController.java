@@ -1,6 +1,7 @@
 package com.middleware.platform.transactions.api;
 
 import com.middleware.platform.iam.repo.TenantRepository;
+import com.middleware.platform.transactions.dto.ImageQualityRow;
 import com.middleware.platform.transactions.dto.ReportSummary;
 import com.middleware.platform.transactions.service.ReportsService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -36,6 +38,14 @@ public class ReportsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "ALL") String status) {
         return reportsService.daily(tenantId, from, to, status);
+    }
+
+    /** Fingerprint-quality figures per bank (all tenants) for a date range, inclusive. */
+    @GetMapping("/image-quality")
+    public List<ImageQualityRow> imageQuality(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return reportsService.imageQuality(from, to);
     }
 
     @GetMapping("/transactions/monthly")

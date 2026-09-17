@@ -60,3 +60,9 @@ export async function setIpPolicy(
   });
   return data;
 }
+
+/** Bank-specific minimum NFIQ 2 score; null restores the platform default. */
+export async function setMinNfiq2(tenantId: string, minNfiq2: number | null): Promise<Tenant> {
+  const { data } = await api.put<Tenant>(`/admin/tenants/${tenantId}/quality`, { minNfiq2 });
+  return data;
+}

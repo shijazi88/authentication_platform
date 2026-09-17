@@ -166,12 +166,21 @@ can re-scan immediately.
 > scanner SDK cannot report NFIQ, at minimum enforce format, resolution, and single-finger
 > capture, and reject empty/over-compressed images.
 
-> **Platform-side check (since v1.4):** the platform inspects every image on receipt — container
-> (WSQ/PNG), pixel dimensions, declared resolution, decoded size, WSQ compression ratio, PNG colour
-> depth and a blank-image test — before any charge or provider call. An image that fails is rejected
-> with **HTTP 400 · `1002 VALIDATION_FAILED`** and a message starting `Fingerprint image rejected:`
-> that names the failing property (e.g. `resolution 300 ppi is outside the allowed 490–510 ppi`).
-> Do not retry the same image; re-capture. The image itself is never stored.
+> **Platform-side check (since v1.4, revised v1.5):** the platform inspects every image on receipt —
+> container (WSQ/PNG), pixel dimensions, declared resolution, decoded size, WSQ compression ratio, PNG
+> colour depth, blank/coverage tests and the **NFIQ 2 quality score** — before any charge or provider
+> call. An image that fails is rejected with **HTTP 400 · `1002 VALIDATION_FAILED`** and one of two
+> plain messages:
+>
+> | `message` | Meaning | Bank action |
+> |---|---|---|
+> | `Fingerprint image quality is not good. Please re-capture the fingerprint.` | Blank, partial, smudged or low-quality capture (NFIQ 2 below the minimum). | Operator re-captures the finger. **Do not** resend the same image. |
+> | `Fingerprint image format is not accepted. Please check the image requirements in the integration guide.` | Container, encoding, colour type, size or resolution outside this section. | Fix the capture/export code (see the table above). |
+>
+> The response body may also carry **`imageQuality`** (integer 0–100, the NFIQ 2 score) — on quality
+> rejections and on successful verifications — so the capture application can show the operator how
+> far the print is from the threshold. The field is absent when the score was not measured. The image
+> itself is never stored.
 >
 > Rules applied (v1.4): container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture; **NIST NFIQ 2 quality score ≥ 40** (0–100, measured by the platform; images NFIQ 2 cannot score — blank, partial, fingertip only — are rejected with the reason).
 
@@ -641,6 +650,7 @@ enabling production credentials.
 |---|---|---|
 | v1 | 2026-06-04 | Initial ICD for `POST /api/v1/verify/identity`. |
 | v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
+| v1.5 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
 | v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
 | v1.3 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
 | v1.4 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |

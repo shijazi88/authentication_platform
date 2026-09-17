@@ -6,6 +6,7 @@ import com.middleware.platform.iam.dto.CreateTenantRequest;
 import com.middleware.platform.iam.dto.CredentialResponse;
 import com.middleware.platform.iam.dto.TenantResponse;
 import com.middleware.platform.iam.dto.UpdateIpPolicyRequest;
+import com.middleware.platform.iam.dto.UpdateQualityRequest;
 import com.middleware.platform.iam.service.TenantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,13 @@ public class TenantController {
     public TenantResponse setIpPolicy(@PathVariable UUID id,
                                       @Valid @RequestBody UpdateIpPolicyRequest req) {
         return tenantService.setIpPolicy(id, req);
+    }
+
+    /** Bank-specific minimum NFIQ 2 score (null = platform default). */
+    @PutMapping("/{id}/quality")
+    public TenantResponse setQuality(@PathVariable UUID id,
+                                     @Valid @RequestBody UpdateQualityRequest req) {
+        return tenantService.setQuality(id, req);
     }
 
     @PostMapping("/{id}/credentials")

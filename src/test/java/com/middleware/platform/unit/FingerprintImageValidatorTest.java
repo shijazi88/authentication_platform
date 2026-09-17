@@ -22,7 +22,7 @@ class FingerprintImageValidatorTest {
         ImageValidationSettings d = ImageValidationSettings.defaults();
         return new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), d.requirePpi(), d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), d.requireGrayscale8Bit(), d.checkBlank(), d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
+                d.maxImageBytes(), d.requireGrayscale8Bit(), d.checkBlank(), d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
     }
 
     static ImageInfo goodPng() { return new ImageInfo(ImageFormat.PNG, 90_000, 500, 500, 8, true, 500, null, 60.0, 0.8, 0, null); }
@@ -39,7 +39,7 @@ class FingerprintImageValidatorTest {
         ImageValidationSettings d = ImageValidationSettings.defaults();
         ImageValidationSettings off = new ImageValidationSettings(false, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), false, d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
+                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
         assertThat(v.validate(ImageInfo.unreadable("image is empty"), off).status()).isEqualTo(Status.SKIP);
 
         ImageValidationResult r = v.validate(ImageInfo.unreadable("image is not valid base64"), d); // defaults = WARN
@@ -55,7 +55,7 @@ class FingerprintImageValidatorTest {
                 .contains("unsupported image format").contains("PNG or WSQ");
 
         ImageValidationSettings pngOnly = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(ImageFormat.PNG),
-                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
+                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
         assertThat(msg(goodWsq(), pngOnly)).contains("WSQ images are not accepted").contains("allowed: PNG");
 
         assertThat(msg(new ImageInfo(ImageFormat.PNG, 3_000_000, 500, 500, 8, true, null, null, 60.0, 0.8, 0, null), s))
@@ -68,7 +68,7 @@ class FingerprintImageValidatorTest {
                 .contains("8-bit greyscale").contains("RGB colour");
         // The Al-Qutaibi case (2026-09-14): indexed/palette PNG at 96 ppi → MOI ABIS 500 "number of image planes is invalid".
         assertThat(msg(new ImageInfo(ImageFormat.PNG, 86_364, 300, 375, 8, false, 96, null, 52.5, 0.84, 3, null), s))
-                .contains("indexed/palette").contains("re-save");
+                .contains("indexed/palette").contains("colour type 0");
         assertThat(msg(new ImageInfo(ImageFormat.PNG, 9000, 500, 500, 8, true, null, null, 60.0, 0.1, 0, null), s))
                 .contains("too little fingerprint area").contains("10%").contains("25%");
         assertThat(msg(new ImageInfo(ImageFormat.PNG, 9000, 500, 500, 8, true, 300, null, 60.0, 0.8, 0, null), s))
@@ -88,7 +88,7 @@ class FingerprintImageValidatorTest {
         ImageValidationSettings d = enforce();
         ImageValidationSettings strict = new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
                 d.minWidth(), d.minHeight(), d.maxWidth(), d.maxHeight(), true, d.ppiMin(), d.ppiMax(),
-                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true);
+                d.maxImageBytes(), true, true, d.minStdDev(), d.wsqMaxCompressionRatio(), true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
         assertThat(msg(noPpi, strict)).contains("does not declare its resolution");
     }
 
@@ -96,10 +96,10 @@ class FingerprintImageValidatorTest {
     void settingsCrossFieldValidation() {
         assertThat(ImageValidationSettings.defaults().validationError()).isNull();
         ImageValidationSettings bad = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(ImageFormat.PNG),
-                900, 200, 500, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
+                900, 200, 500, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
         assertThat(bad.validationError()).contains("minimum dimensions");
         ImageValidationSettings none = new ImageValidationSettings(true, Mode.ENFORCE, Set.of(),
-                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true);
+                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true, Mode.ENFORCE, 5000, null, null, true);
         assertThat(none.validationError()).contains("allowedFormats");
     }
 
@@ -114,7 +114,7 @@ class FingerprintImageValidatorTest {
     static class StubNfiq2 extends Nfiq2Client {
         final Result result;
         StubNfiq2(Result r) { super("http://stub", 1000, new com.fasterxml.jackson.databind.ObjectMapper()); this.result = r; }
-        @Override public Result score(byte[] image, ImageFormat format) { return result; }
+        @Override public Result score(byte[] image, ImageFormat format, int timeoutMs) { return result; }
     }
 
     static class StubSettings extends com.middleware.platform.common.settings.PlatformSettingsService {
@@ -144,7 +144,8 @@ class FingerprintImageValidatorTest {
         assertThat(low.nfiq2Score()).isEqualTo(23);
         ImageValidationResult unscorable = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(null, "fingerprint area is too small", true, 90))).validate(png);
         assertThat(unscorable.status()).isEqualTo(Status.FAIL);
-        assertThat(unscorable.message()).contains("too small").contains("re-capture");
+        assertThat(unscorable.message()).contains("too small");
+        assertThat(unscorable.reason()).isEqualTo(ImageValidationResult.Reason.QUALITY);
         // sidecar down: fail-open → WARN, call continues
         ImageValidationResult down = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(Nfiq2Client.Result.unavailable("quality service unreachable"))).validate(png);
         assertThat(down.status()).isEqualTo(Status.WARN);
@@ -153,5 +154,42 @@ class FingerprintImageValidatorTest {
         ImageValidationResult garbage = new FingerprintImageValidator(new StubSettings(s), new StubNfiq2(new Nfiq2Client.Result(99, null, true, 1))).validate("QUJDREVGR0g=");
         assertThat(garbage.status()).isEqualTo(Status.FAIL);
         assertThat(garbage.nfiq2Score()).isNull();
+        assertThat(garbage.reason()).isEqualTo(ImageValidationResult.Reason.FORMAT);
+    }
+
+    @Test
+    void bankSpecificMinimum_andWarnOnlyScoreAction() throws Exception {
+        ImageValidationSettings s = enforce();
+        String png = goodPngBase64();
+        StubNfiq2 scored35 = new StubNfiq2(new Nfiq2Client.Result(35, null, true, 100));
+        // platform minimum 40 rejects 35; a bank override of 30 lets it through
+        assertThat(new FingerprintImageValidator(new StubSettings(s), scored35).validate(png, null).status()).isEqualTo(Status.FAIL);
+        assertThat(new FingerprintImageValidator(new StubSettings(s), scored35).validate(png, 30).status()).isEqualTo(Status.PASS);
+        assertThat(new FingerprintImageValidator(new StubSettings(s), scored35).validate(png, 50).message()).contains("bank-specific");
+        // score action WARN: structural rules still enforce, the score only records
+        ImageValidationSettings scoreWarn = new ImageValidationSettings(true, Mode.ENFORCE, s.allowedFormats(),
+                s.minWidth(), s.minHeight(), s.maxWidth(), s.maxHeight(), s.requirePpi(), s.ppiMin(), s.ppiMax(),
+                s.maxImageBytes(), s.requireGrayscale8Bit(), s.checkBlank(), s.minStdDev(), s.wsqMaxCompressionRatio(), true, 0.25,
+                true, 40, true, Mode.WARN, 5000, null, null, true);
+        ImageValidationResult r = new FingerprintImageValidator(new StubSettings(scoreWarn), scored35).validate(png, null);
+        assertThat(r.status()).isEqualTo(Status.WARN);
+        assertThat(r.nfiq2Score()).isEqualTo(35);
+        assertThat(new FingerprintImageValidator(new StubSettings(scoreWarn), scored35).validate("QUJDREVGR0g=").status()).isEqualTo(Status.FAIL);
+    }
+
+    @Test
+    void plainBankMessages_andNormalisedDefaults() {
+        ImageValidationSettings d = ImageValidationSettings.defaults();
+        assertThat(d.bankMessage(ImageValidationResult.Reason.QUALITY)).isEqualTo(ImageValidationSettings.DEFAULT_QUALITY_MESSAGE)
+                .doesNotContain("NFIQ").doesNotContain("ppi").doesNotContain("%");
+        assertThat(d.bankMessage(ImageValidationResult.Reason.FORMAT)).isEqualTo(ImageValidationSettings.DEFAULT_FORMAT_MESSAGE);
+        // a document saved before these fields existed (Jackson leaves them null / 0)
+        ImageValidationSettings old = new ImageValidationSettings(true, Mode.ENFORCE, d.allowedFormats(),
+                200, 200, 2000, 2000, false, 490, 510, 2_097_152, true, true, 10, 15, true, 0.25, true, 40, true,
+                null, 0, null, "  ", false).normalized();
+        assertThat(old.nfiq2Mode()).isEqualTo(Mode.ENFORCE);
+        assertThat(old.nfiq2TimeoutMs()).isEqualTo(5000);
+        assertThat(old.qualityMessage()).isEqualTo(ImageValidationSettings.DEFAULT_QUALITY_MESSAGE);
+        assertThat(old.formatMessage()).isEqualTo(ImageValidationSettings.DEFAULT_FORMAT_MESSAGE);
     }
 }
