@@ -6,6 +6,10 @@ public enum ErrorCode {
     // 4xx
     BAD_REQUEST(1001, HttpStatus.BAD_REQUEST, "Bad request"),
     VALIDATION_FAILED(1002, HttpStatus.BAD_REQUEST, "Validation failed"),
+    // Fingerprint image refused by the platform before any charge or provider call (ICD §4.2.3).
+    // 1003: poor capture → the operator re-captures. 1004: wrong container/encoding → the bank's integration must change.
+    IMAGE_QUALITY_REJECTED(1003, HttpStatus.BAD_REQUEST, "Fingerprint image quality is not good. Please re-capture the fingerprint."),
+    IMAGE_FORMAT_REJECTED(1004, HttpStatus.BAD_REQUEST, "Fingerprint image format is not accepted. Please check the image requirements in the integration guide."),
     UNAUTHENTICATED(1101, HttpStatus.UNAUTHORIZED, "Authentication required"),
     INVALID_CREDENTIALS(1102, HttpStatus.UNAUTHORIZED, "Invalid credentials"),
     FORBIDDEN(1201, HttpStatus.FORBIDDEN, "Access denied"),

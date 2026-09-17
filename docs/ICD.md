@@ -7,6 +7,7 @@
 | **System** | MOTABIQ Verification Middleware |
 | **Audience** | Integrating service providers (banks) and their backend engineering teams |
 | **Interface version** | `v1` |
+| **Document version** | v2.0 (2026-09-17) — see Appendix B |
 | **Transport** | HTTPS / REST / JSON |
 | **Status** | Released |
 
@@ -166,23 +167,22 @@ can re-scan immediately.
 > scanner SDK cannot report NFIQ, at minimum enforce format, resolution, and single-finger
 > capture, and reject empty/over-compressed images.
 
-> **Platform-side check (since v1.4, revised v1.5):** the platform inspects every image on receipt —
-> container (WSQ/PNG), pixel dimensions, declared resolution, decoded size, WSQ compression ratio, PNG
-> colour depth, blank/coverage tests and the **NFIQ 2 quality score** — before any charge or provider
-> call. An image that fails is rejected with **HTTP 400 · `1002 VALIDATION_FAILED`** and one of two
-> plain messages:
+> **Platform-side check (since doc v1.8, codes since v2.0):** the platform inspects every image on
+> receipt — container (WSQ/PNG), pixel dimensions, declared resolution, decoded size, WSQ compression
+> ratio, PNG colour depth, blank/coverage tests and the **NFIQ 2 quality score** — before any charge or
+> provider call. An image that fails is rejected with **HTTP 400** and one of two dedicated error codes:
 >
-> | `message` | Meaning | Bank action |
-> |---|---|---|
-> | `Fingerprint image quality is not good. Please re-capture the fingerprint.` | Blank, partial, smudged or low-quality capture (NFIQ 2 below the minimum). | Operator re-captures the finger. **Do not** resend the same image. |
-> | `Fingerprint image format is not accepted. Please check the image requirements in the integration guide.` | Container, encoding, colour type, size or resolution outside this section. | Fix the capture/export code (see the table above). |
+> | `errorCode` | `error` | `message` | Meaning | Bank action |
+> |---|---|---|---|---|
+> | `1003` | `IMAGE_QUALITY_REJECTED` | `Fingerprint image quality is not good. Please re-capture the fingerprint.` | Blank, partial, smudged or low-quality capture (NFIQ 2 below the minimum). | Show the message to the operator and **re-capture**. Never resend the same image. |
+> | `1004` | `IMAGE_FORMAT_REJECTED` | `Fingerprint image format is not accepted. Please check the image requirements in the integration guide.` | Container, encoding, colour type, size or resolution outside this section. | A software defect on the bank side: **log and escalate to the integration team**; re-capturing will not help. |
 >
 > The response body may also carry **`imageQuality`** (integer 0–100, the NFIQ 2 score) — on quality
 > rejections and on successful verifications — so the capture application can show the operator how
 > far the print is from the threshold. The field is absent when the score was not measured. The image
 > itself is never stored.
 >
-> Rules applied (v1.4): container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture; **NIST NFIQ 2 quality score ≥ 40** (0–100, measured by the platform; images NFIQ 2 cannot score — blank, partial, fingertip only — are rejected with the reason).
+> Rules applied: container is WSQ or PNG; PNG is 8-bit greyscale colour type 0; 200–2000 px per side; declared resolution, when present, within 490–510 ppi; decoded size ≤ 2 MB; WSQ compression ≤ 15:1; image not blank (grey-level std dev ≥ 10); at least 25 % of 16×16 blocks contain ridge texture; **NIST NFIQ 2 quality score ≥ 40** (0–100, measured by the platform; images NFIQ 2 cannot score — blank, partial, fingertip only — are rejected with the reason).
 
 #### 4.2.4 Payload encryption (JWE)
 
@@ -400,6 +400,7 @@ All `4xx` and `5xx` responses use a single, uniform JSON structure:
 | `message` | string | Human-readable detail. For backend errors this includes the upstream provider's own error code (e.g. `provider code 220`). |
 | `requestId` | string | Echo of `X-Request-Id` for correlation. May be null if none was supplied/generated. |
 | `fieldErrors` | array | Present only for validation failures; `[{ "field": ..., "message": ... }]`. Omitted otherwise. |
+| `imageQuality` | integer | Present only on `1003` when the platform measured an NFIQ 2 score (0–100). Omitted otherwise. |
 
 ### 6.2 Error response headers
 In addition to the body, error responses carry:
@@ -415,7 +416,9 @@ In addition to the body, error responses carry:
 | HTTP | `errorCode` | `error` | When it occurs | Caller action |
 |---|---|---|---|---|
 | 400 | `1001` | `BAD_REQUEST` | Malformed request (e.g. unparseable JSON); **`encryptedPayload` missing**; or an `encryptedPayload` that is malformed/undecryptable or carries an unknown `kid`. | Fix the request structure; send `encryptedPayload` (§4.2.4) built against the current certificate (§4.4). |
-| 400 | `1002` | `VALIDATION_FAILED` | Field validation failed (e.g. blank `nationalNumber`, `fingerPosition` out of 1–10) or backend rejected input (invalid/corrupt image, bad ID shape). `message` carries the provider's code. | Show user-facing error; let user re-scan. **Do not retry** identical input. |
+| 400 | `1002` | `VALIDATION_FAILED` | Field validation failed (e.g. blank `nationalNumber`, `fingerPosition` out of 1–10) or the provider rejected input (bad ID shape, image refused downstream). `message` carries the provider's code. | Show user-facing error; let user re-scan. **Do not retry** identical input. |
+| 400 | `1003` | `IMAGE_QUALITY_REJECTED` | The platform measured the fingerprint image and found it unusable: blank, partial, smudged, or NFIQ 2 score below the minimum (§4.2.3). No charge. `imageQuality` carries the score when measured. | Show the message; **re-capture** the finger with firm, even pressure. Never resend the same image. |
+| 400 | `1004` | `IMAGE_FORMAT_REJECTED` | The image container or encoding does not meet §4.2.3: not WSQ/PNG, PNG not 8-bit greyscale (colour type 0), wrong size/resolution, WSQ over-compressed. No charge. | Integration defect: **log, alert the bank's engineering team**, and fix the capture/export code. Re-capturing does not help. |
 | 401 | `1101` | `UNAUTHENTICATED` | Missing/malformed `Authorization` header. | Add valid Basic auth. |
 | 401 | `1102` | `INVALID_CREDENTIALS` | Wrong client_id/secret, or upstream token rejected. | Verify/rotate credentials. |
 | 403 | `1201` | `FORBIDDEN` | IP allow-list mismatch or upstream permission denied. | Contact platform operator. |
@@ -458,6 +461,31 @@ In addition to the body, error responses carry:
   "error": "VALIDATION_FAILED",
   "message": "Provider error 220 · Invalid biometrics.",
   "requestId": "019dece4-91a1-7877-a37d-ffb20006fcd1"
+}
+```
+
+**400 — fingerprint image rejected for quality (platform-side, no charge):**
+
+```json
+{
+  "timestamp": "2026-09-17T05:29:05.387Z",
+  "errorCode": 1003,
+  "error": "IMAGE_QUALITY_REJECTED",
+  "message": "Fingerprint image quality is not good. Please re-capture the fingerprint.",
+  "requestId": "01a0add7-028c-7b15-a139-76e53b5d0a30",
+  "imageQuality": 32
+}
+```
+
+**400 — fingerprint image rejected for format (platform-side, no charge):**
+
+```json
+{
+  "timestamp": "2026-09-17T05:29:02.878Z",
+  "errorCode": 1004,
+  "error": "IMAGE_FORMAT_REJECTED",
+  "message": "Fingerprint image format is not accepted. Please check the image requirements in the integration guide.",
+  "requestId": "01a0add6-f8b1-7c0e-9a52-3d2f7e1c4b90"
 }
 ```
 
@@ -544,7 +572,9 @@ clear messages. "MUST" = required for go-live; "SHOULD" = strongly recommended.
 | V8 | `biometrics` — presence | If your KYC flow requires a biometric verdict, the `biometrics` object **must** be included; otherwise the verdict will be `NO_VERIFICATION_POSSIBLE`. | MUST (for biometric KYC) | Capture a fingerprint before submitting. |
 | V9 | `biometrics.fingerPosition` | Required when `biometrics` is present; integer in **1–10**. | MUST | Block; out-of-range is rejected by the server (400). |
 | V10 | `biometrics.image` — presence | Required when `biometrics` is present; non-empty. | MUST | Block; re-capture. |
-| V11 | `biometrics.image` — encoding & quality | Valid **base64**; raw WSQ or PNG from the certified scanner SDK; strip any `data:` URI prefix; meet the capture-quality constraints in **§4.2.3** (format, 500 ppi, single finger, NFIQ). | MUST | Block; re-capture. |
+| V11 | `biometrics.image` — encoding | Valid **base64** of the raw bytes; strip any `data:` URI prefix; no double-encoding. | MUST | Block; fix the export code. |
+| V11a | `biometrics.image` — container & format | **WSQ** or **PNG** only. PNG **must** be 8-bit greyscale, colour type 0 (never indexed/palette, RGB or grey+alpha). 500 ppi (±10) declared; 200–2000 px per side; WSQ compression ≤ 15:1. Export via the scanner SDK's WSQ/greyscale-PNG function, not a generic image library. Violations return `400 · 1004`. | MUST | Block; fix the capture/export code. |
+| V11b | `biometrics.image` — capture quality | One finger, centred, full pad, no blank/partial/smudged prints. Enforce the scanner SDK's quality indicator at capture; target **NFIQ 2 ≥ 40** when the SDK reports it. Poor captures return `400 · 1003` with `imageQuality`. | MUST | Block; operator re-captures. |
 | V12 | `biometrics.image` — size | Keep within a sane bound (**SHOULD ≤ ~256 KB base64**; hard server/transport limit is ~2 MB). | SHOULD | Re-capture / re-encode at lower size. |
 | V13 | Unknown fields | Send only the documented fields; do not rely on extra fields being processed. | SHOULD | Remove before sending. |
 | V14 | Transport | HTTPS only; validate the server TLS certificate (no "trust-all"). | MUST | Refuse to send over plain HTTP / on cert error. |
@@ -558,6 +588,7 @@ clear messages. "MUST" = required for go-live; "SHOULD" = strongly recommended.
 | V16 | Verdict, not status | **A `200` does not mean the identity matched.** Always read `result.verification.verification` and branch on `MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE` (§5). | MUST |
 | V17 | Field projection tolerance | The `result` shape depends on the plan — fields outside entitlement are **absent**, not null. Read defensively; never assume `person`/`demographics` exist; ignore unknown fields. | MUST |
 | V18 | `transaction.id` | Persist it against your record for reconciliation and support. | MUST |
+| V18a | Image rejection codes | Branch on `errorCode`: **`1003`** → show `message` and re-capture (never resend the same image); **`1004`** → log, raise an integration defect, do not prompt the user to retry. When `imageQuality` is present, you MAY display it (e.g. "quality 32 of 100, minimum 40") to guide the operator. | MUST |
 | V19 | `X-Request-Id` round-trip | Confirm the response `X-Request-Id` / error `requestId` matches what you sent; log both sides. | SHOULD |
 | V20 | UTF-8 / scripts | Decode and store names as UTF-8; correctly render both Latin and non-Latin scripts (e.g. Arabic RTL). | MUST |
 | V21 | Retry policy | Retry **only** `5xx` connector errors (`2101`/`2102`/`2103`) with exponential backoff; back off on `429`; **never** retry `4xx` (deterministic). | MUST |
@@ -615,6 +646,9 @@ onboarding.
 | AC-17 | PII / biometric hygiene. | Review bank logs: no `nationalNumber` or biometric image stored/logged in plaintext (per V23). | Must |
 | AC-18 | Reconciliation. | `transaction.id` is persisted and matches the corresponding transaction in the MOTABIQ portal. | Should |
 | AC-19 | Timeout handling. | Client read timeout ≥ 30 s; slow responses handled gracefully without duplicate submission (per V22). | Should |
+| AC-20 | Low-quality fingerprint (light pressure, partial or smudged capture). | `400`; `errorCode 1003 IMAGE_QUALITY_REJECTED`; `imageQuality` present when scored; operator is prompted to re-capture; the same image is **not** resent; no wallet charge. | Must |
+| AC-21 | Wrong image format (e.g. PNG exported as indexed/palette or RGB, or WSQ over-compressed). | `400`; `errorCode 1004 IMAGE_FORMAT_REJECTED`; bank logs the event as an integration defect and does not prompt the user to retry; no wallet charge. | Must |
+| AC-22 | Good fingerprint — quality score returned. | `200`; response carries `imageQuality` (0–100) alongside the verdict; bank stores it with `transaction.id`. | Should |
 
 **Sign-off:** record pass/fail per AC ID with the `X-Request-Id` and `transaction.id` used,
 attach to the UAT report, and obtain joint approval from the bank and MOTABIQ before
@@ -639,7 +673,7 @@ enabling production credentials.
 3. Build the `Authorization: Basic` header from `clientId:clientSecret`.
 4. Generate a UUIDv7 `X-Request-Id` per call and log it.
 5. Send a test call to a valid test NID (provided separately during onboarding); expect `200 OK`.
-6. Enforce the fingerprint image quality constraints (§4.2.3) at capture time.
+6. Enforce the fingerprint image quality constraints (§4.2.3) at capture time, and handle `1003` (re-capture) and `1004` (integration defect) separately.
 7. Handle the verdict (`MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE`) — not just the HTTP status.
 8. Implement backoff for `429` and retry only for `5xx` connector errors.
 9. Rotate the Client Secret before going to production.
@@ -650,11 +684,12 @@ enabling production credentials.
 |---|---|---|
 | v1 | 2026-06-04 | Initial ICD for `POST /api/v1/verify/identity`. |
 | v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
-| v1.5 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
 | v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
-| v1.3 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
-| v1.4 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
 | v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
 | v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
 | v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |
 | v1.6 | 2026-06-17 | Removed all environment URLs; the base URL is shared with the API keys after onboarding. Examples use a `{baseUrl}` placeholder (§2.1). |
+| v1.7 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
+| v1.8 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
+| v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
+| v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |

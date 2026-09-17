@@ -3,6 +3,7 @@ package com.middleware.platform.unit;
 import com.middleware.platform.gateway.imagecheck.FingerprintImageValidator;
 import com.middleware.platform.gateway.imagecheck.ImageFormat;
 import com.middleware.platform.gateway.imagecheck.ImageInfo;
+import com.middleware.platform.gateway.imagecheck.ImageRejectedException;
 import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
 import com.middleware.platform.gateway.imagecheck.ImageValidationResult.Status;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
@@ -175,6 +176,20 @@ class FingerprintImageValidatorTest {
         assertThat(r.status()).isEqualTo(Status.WARN);
         assertThat(r.nfiq2Score()).isEqualTo(35);
         assertThat(new FingerprintImageValidator(new StubSettings(scoreWarn), scored35).validate("QUJDREVGR0g=").status()).isEqualTo(Status.FAIL);
+    }
+
+    @Test
+    void imageRejectionCodesFollowTheReason() {
+        assertThat(ImageRejectedException.codeFor(ImageValidationResult.Reason.FORMAT))
+                .isEqualTo(com.middleware.platform.common.error.ErrorCode.IMAGE_FORMAT_REJECTED);
+        assertThat(ImageRejectedException.codeFor(ImageValidationResult.Reason.QUALITY))
+                .isEqualTo(com.middleware.platform.common.error.ErrorCode.IMAGE_QUALITY_REJECTED);
+        assertThat(com.middleware.platform.common.error.ErrorCode.IMAGE_QUALITY_REJECTED.code()).isEqualTo(1003);
+        assertThat(com.middleware.platform.common.error.ErrorCode.IMAGE_FORMAT_REJECTED.code()).isEqualTo(1004);
+        ImageRejectedException ex = new ImageRejectedException(
+                com.middleware.platform.common.error.ErrorCode.IMAGE_QUALITY_REJECTED, "Fingerprint image quality is not good.", 32);
+        assertThat(ex.getErrorCode().status().value()).isEqualTo(400);
+        assertThat(ex.getImageQuality()).isEqualTo(32);
     }
 
     @Test

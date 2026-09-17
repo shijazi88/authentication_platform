@@ -117,10 +117,11 @@ public class VerificationOrchestrator {
                 // technical detail stays on the transaction's image-check fields.
                 ImageValidationSettings s = imageValidator.currentSettings();
                 String bankMsg = s.bankMessage(imageResult.reason());
-                log.warn("Fingerprint image rejected for tenant {}: {}", tenant.tenantName(), imageResult.message());
+                ErrorCode code = ImageRejectedException.codeFor(imageResult.reason());
+                log.warn("Fingerprint image rejected ({}) for tenant {}: {}", code.code(), tenant.tenantName(), imageResult.message());
                 transactionService.rejectImage(tenant.tenantId(), tenant.credentialId(),
-                        service.getId(), operation.getId(), bankMsg, imageResult);
-                throw new ImageRejectedException(bankMsg, s.returnScoreToBank() ? imageResult.nfiq2Score() : null);
+                        service.getId(), operation.getId(), code, bankMsg, imageResult);
+                throw new ImageRejectedException(code, bankMsg, s.returnScoreToBank() ? imageResult.nfiq2Score() : null);
             }
             if (imageResult.status() == ImageValidationResult.Status.WARN) {
                 log.warn("Fingerprint image warning for tenant {}: {}", tenant.tenantName(), imageResult.message());

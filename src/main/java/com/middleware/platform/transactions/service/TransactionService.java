@@ -118,9 +118,8 @@ public class TransactionService {
     /** Image failed structural validation (ENFORCE mode): recorded as a rejection with what we saw. */
     @Transactional
     public void rejectImage(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
-                            String message, ImageValidationResult result) {
-        Transaction tx = recordRejection(tenantId, credentialId, serviceId, operationId,
-                ErrorCode.VALIDATION_FAILED, message);
+                            ErrorCode code, String message, ImageValidationResult result) {
+        Transaction tx = recordRejection(tenantId, credentialId, serviceId, operationId, code, message);
         applyImageInfo(tx, result);
         transactionRepository.save(tx);
     }
