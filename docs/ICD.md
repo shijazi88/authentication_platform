@@ -24,7 +24,7 @@
 
 | Version | Date | Changes |
 |---|---|---|
-| v2.2 | 2026-09-27 | **Encryption enforced** on all environments (plaintext → `400 · 1001`). **New required field `deviceId`** (scanner serial) inside the envelope; recorded per transaction, all devices accepted for now, `1205 DEVICE_NOT_ALLOWED` reserved for registered-only mode; V7a, AC-04a/04b added. Authentication failures on the bank API now carry the §6.1 body (`1101` no usable `Authorization`, `1102` rejected credential) instead of an empty 401; `fingerPosition`/`image` are validated inside the envelope. |
+| v2.2 | 2026-09-27 | **Encryption enforced** on all environments (plaintext → `400 · 1001`). **New required field `deviceId`** (scanner serial) inside the envelope; recorded per transaction, all devices accepted for now, `1205 DEVICE_NOT_ALLOWED` reserved for registered-only mode; V7a, AC-04a/04b added. Authentication failures on the bank API now carry the §6.1 body (`1101` no usable `Authorization`, `1102` rejected credential) instead of an empty 401; `fingerPosition`/`image` are validated inside the envelope. Sample identities replaced with fictitious data. |
 | v2.1 | 2026-09-27 | Platform now conforms to §4.3.2/§5: the `verification` block (verdict + biometric score) is returned on every `200`; a non-match is `200` + `NO_MATCH` with `person` withheld (it was `422 · 1302` between 2026-07-29 and 2026-09-27); added the `EXEMPT` verdict and the `exception` request block (§4.2.2, §4.3.7, AC-05a); `imageQuality` added to the §4.3.1 envelope; `1403 INSUFFICIENT_FUNDS` added to §6.3; duplicate `X-Request-Id` response header removed. |
 | v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |
 | v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
@@ -301,6 +301,8 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
 >
 > **On a `NO_MATCH` verdict the `person` block is never returned**, whatever the plan: a fingerprint that does not belong to the national number must not disclose whose record it is. Only `transaction` and `verification` are present.
 
+> All identities, names, numbers and dates in the samples of this document are **fictitious** and cannot be verified against any provider. Test identities for the sandbox are supplied separately at onboarding.
+
 #### 4.3.3 Sample response — full-data plan
 
 ```json
@@ -317,17 +319,17 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
       "biometrics": { "exists": true, "score": 92 }
     },
     "person": {
-      "nationalNumber": "2132-7404-0424",
+      "nationalNumber": "0000-0000-0001",
       "demographics": {
         "names": {
-          "arabic": { "first": "فهد", "second": "صالح", "third": "الخضر",
-                      "fourth": "سفيان", "last": null,
-                      "full": "فهد صالح الخضر سفيان" },
-          "latin":  { "first": "FAHD", "second": "SALEH", "third": "ALKHADHER",
-                      "fourth": "SUFYAN", "last": null,
-                      "full": "FAHD SALEH ALKHADHER SUFYAN" }
+          "arabic": { "first": "مثال", "second": "تجريبي", "third": "غير",
+                      "fourth": "حقيقي", "last": null,
+                      "full": "مثال تجريبي غير حقيقي" },
+          "latin":  { "first": "SAMPLE", "second": "TEST", "third": "NOT",
+                      "fourth": "REAL", "last": null,
+                      "full": "SAMPLE TEST NOT REAL" }
         },
-        "dateOfBirth": "1994-11-17T00:00:00",
+        "dateOfBirth": "1990-01-01T00:00:00",
         "nationality": { "id": "YEM" },
         "addresses": { "birth": { }, "home": { }, "work": { } }
       }
@@ -369,7 +371,7 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
       "biometrics": { "exists": false }
     },
     "person": {
-      "nationalNumber": "2132-7404-0424",
+      "nationalNumber": "0000-0000-0001",
       "demographics": { "names": { } }
     }
   }
@@ -412,7 +414,7 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
       "biometrics": { "exists": false }
     },
     "person": {
-      "nationalNumber": "2132-7404-0424",
+      "nationalNumber": "0000-0000-0001",
       "demographics": { "names": { } }
     }
   }
