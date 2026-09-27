@@ -7,7 +7,7 @@
 | **System** | MOTABIQ Verification Middleware |
 | **Audience** | Integrating service providers (banks) and their backend engineering teams |
 | **Interface version** | `v1` |
-| **Document version** | v2.2 (2026-09-27) — see Appendix B |
+| **Document version** | v2.2 (2026-09-27) — see Document control below |
 | **Transport** | HTTPS / REST / JSON |
 | **Status** | Released |
 
