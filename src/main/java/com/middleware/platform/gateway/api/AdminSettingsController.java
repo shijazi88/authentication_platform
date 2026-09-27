@@ -6,6 +6,7 @@ import com.middleware.platform.common.settings.PlatformSetting;
 import com.middleware.platform.common.settings.PlatformSettingsService;
 import com.middleware.platform.common.resilience.ResilienceSettings;
 import com.middleware.platform.common.resilience.ResilienceSettingsService;
+import com.middleware.platform.device.DevicePolicySettings;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
 import com.middleware.platform.gateway.imagecheck.Nfiq2Client;
 import jakarta.validation.Valid;
@@ -61,6 +62,23 @@ public class AdminSettingsController {
     @GetMapping("/image-validation/quality-service")
     public Nfiq2Client.Health qualityService() {
         return nfiq2Client.health();
+    }
+
+    // ── Capture device policy ────────────────────────────────────────────────
+
+    @GetMapping("/device-policy")
+    public SettingEnvelope<DevicePolicySettings> getDevicePolicy() {
+        DevicePolicySettings v = settings.get(DevicePolicySettings.KEY, DevicePolicySettings.class,
+                DevicePolicySettings::defaults).normalized();
+        PlatformSetting meta = settings.meta(DevicePolicySettings.KEY);
+        return new SettingEnvelope<>(v, meta == null ? null : meta.getUpdatedBy(), meta == null ? null : meta.getUpdatedAt());
+    }
+
+    @PutMapping("/device-policy")
+    public SettingEnvelope<DevicePolicySettings> putDevicePolicy(@Valid @RequestBody DevicePolicySettings req, Authentication auth) {
+        DevicePolicySettings saved = settings.put(DevicePolicySettings.KEY, req.normalized(), auth.getName());
+        PlatformSetting meta = settings.meta(DevicePolicySettings.KEY);
+        return new SettingEnvelope<>(saved, meta.getUpdatedBy(), meta.getUpdatedAt());
     }
 
     // ── Service protection (circuit breaker + retry) ─────────────────────────

@@ -16,4 +16,6 @@ public interface FingerprintDeviceRepository extends JpaRepository<FingerprintDe
     boolean existsBySerialNumberIgnoreCaseAndDeletedFalse(String serialNumber);
 
     Optional<FingerprintDevice> findBySerialNumberIgnoreCaseAndDeletedFalse(String serialNumber);
+
+    boolean existsByTenantIdAndSerialNumberIgnoreCaseAndDeletedFalse(UUID tenantId, String serialNumber);
 }

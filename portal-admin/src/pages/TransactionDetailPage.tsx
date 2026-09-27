@@ -231,6 +231,14 @@ export function TransactionDetailPage() {
                 {t(`status.${tx.status}`, tx.status)}
               </Badge>
             </Field>
+            {tx.deviceId && (
+              <Field label={t("transactions.detail.device")}>
+                <span className="font-mono text-xs" dir="ltr">{tx.deviceId}</span>{" "}
+                <Badge tone={tx.deviceRegistered ? "emerald" : "amber"}>
+                  {tx.deviceRegistered ? t("transactions.detail.deviceRegistered") : t("transactions.detail.deviceUnregistered")}
+                </Badge>
+              </Field>
+            )}
             <Field label={t("transactions.fields.verdict")}>
               {tx.verdict ? (
                 <Badge tone={verdictTone(tx.verdict)}>{t(`verdict.${tx.verdict}`, tx.verdict)}</Badge>

@@ -304,6 +304,8 @@ export type Transaction = {
   imageNfiq2?: number | null;
   /** ICD §5 verdict of a processed verification. */
   verdict?: "MATCH" | "NO_MATCH" | "NO_VERIFICATION_POSSIBLE" | "EXEMPT" | null;
+  deviceId?: string | null;
+  deviceRegistered?: boolean | null;
   createdAt: string;
 };
 
@@ -339,6 +341,12 @@ export type ImageValidationSettings = {
   formatMessage: string;
   /** Include the NFIQ 2 score as `imageQuality` in API responses. */
   returnScoreToBank: boolean;
+};
+
+/** Capture-device policy (admin Settings → Capture devices). */
+export type DevicePolicySettings = {
+  deviceIdRequired: boolean;
+  mode: "ALLOW_ALL" | "REGISTERED_ONLY";
 };
 
 /** Live status of the NFIQ 2 quality service (sidecar). */

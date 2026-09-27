@@ -18,6 +18,9 @@ import com.middleware.platform.gateway.imagecheck.ImageRejectedException;
 import com.middleware.platform.gateway.imagecheck.ImageValidationSettings;
 import com.middleware.platform.iam.domain.Tenant;
 import com.middleware.platform.iam.repo.TenantRepository;
+import com.middleware.platform.device.DevicePolicySettings;
+import com.middleware.platform.device.repo.FingerprintDeviceRepository;
+import com.middleware.platform.common.settings.PlatformSettingsService;
 
 import com.middleware.platform.gateway.projection.FieldProjector;
 import com.middleware.platform.subscription.dto.ResolvedEntitlement;
@@ -53,6 +56,8 @@ public class VerificationOrchestrator {
     private final WalletService walletService;
     private final FingerprintImageValidator imageValidator;
     private final TenantRepository tenantRepository;
+    private final FingerprintDeviceRepository deviceRepository;
+    private final PlatformSettingsService settings;
 
     /**
      * Prepaid enforcement is ON by default (business rule since 2026-09-10:
@@ -129,6 +134,22 @@ public class VerificationOrchestrator {
             }
         }
 
+        // Capture device policy (ICD §4.2.2). The serial is always recorded; it is
+        // only enforced when the admin policy is REGISTERED_ONLY.
+        String deviceId = canonicalRequestPayload.get("deviceId") instanceof String d && !d.isBlank() ? d : null;
+        Boolean deviceRegistered = deviceId == null ? null
+                : deviceRepository.existsByTenantIdAndSerialNumberIgnoreCaseAndDeletedFalse(tenant.tenantId(), deviceId);
+        DevicePolicySettings devicePolicy = settings.get(DevicePolicySettings.KEY, DevicePolicySettings.class,
+                DevicePolicySettings::defaults).normalized();
+        if (deviceId != null && devicePolicy.mode() == DevicePolicySettings.Mode.REGISTERED_ONLY
+                && !Boolean.TRUE.equals(deviceRegistered)) {
+            String msg = "Capture device " + deviceId + " is not registered for this client";
+            log.warn("Device rejected for tenant {}: {}", tenant.tenantName(), msg);
+            transactionService.rejectDevice(tenant.tenantId(), tenant.credentialId(),
+                    service.getId(), operation.getId(), deviceId, ErrorCode.DEVICE_NOT_ALLOWED.defaultMessage());
+            throw new ApplicationException(ErrorCode.DEVICE_NOT_ALLOWED, ErrorCode.DEVICE_NOT_ALLOWED.defaultMessage());
+        }
+
         // Prepaid gate: fail fast if the wallet clearly can't cover the call.
         if (prepaidEnforced) {
             try {
@@ -153,6 +174,8 @@ public class VerificationOrchestrator {
         );
 
         TransactionService.applyImageInfo(tx, imageResult);
+        tx.setDeviceId(deviceId);
+        tx.setDeviceRegistered(deviceRegistered);
 
         // Flag fingerprint-exception requests so they're recorded and searchable.
         // The fingerprint is never present in the payload for these.

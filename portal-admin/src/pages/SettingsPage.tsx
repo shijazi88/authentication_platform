@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { ShieldAlert, Fingerprint, Zap, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ShieldAlert, Fingerprint, Zap, ScanLine, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { listTransactions } from "@/api/transactions";
 import { listTenants } from "@/api/tenants";
@@ -18,6 +18,7 @@ import { PageLoader } from "@/components/ui/Spinner";
 import { PinGate } from "@/components/PinGate";
 import { ImageValidationSettingsCard } from "@/components/ImageValidationSettingsCard";
 import { ResilienceSettingsCard } from "@/components/ResilienceSettingsCard";
+import { DevicePolicySettingsCard } from "@/components/DevicePolicySettingsCard";
 import { cn } from "@/lib/cn";
 import { formatDate, shortId } from "@/lib/format";
 
@@ -30,6 +31,7 @@ export function SettingsPage() {
   const tabs = [
     { key: "exceptions", label: t("settings.tabs.exceptions"), icon: ShieldAlert },
     { key: "image", label: t("settings.tabs.image"), icon: Fingerprint },
+    { key: "devices", label: t("settings.tabs.devices"), icon: ScanLine },
     { key: "resilience", label: t("settings.tabs.resilience"), icon: Zap },
   ];
 
@@ -64,6 +66,8 @@ export function SettingsPage() {
       )}
 
       {tab === "image" && <ImageValidationSettingsCard />}
+
+      {tab === "devices" && <DevicePolicySettingsCard />}
 
       {tab === "resilience" && <ResilienceSettingsCard />}
     </div>

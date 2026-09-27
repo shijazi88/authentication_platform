@@ -98,6 +98,14 @@ public class Transaction {
     private String imageCheckMessage;
 
     /** NIST NFIQ 2 quality score (0–100) measured by the platform; null when not measured. */
+    /** Serial number of the fingerprint scanner the bank sent (ICD §4.2.2 deviceId). */
+    @Column(name = "device_id", length = 128)
+    private String deviceId;
+
+    /** Whether device_id was registered for the tenant at call time (null = no device sent). */
+    @Column(name = "device_registered")
+    private Boolean deviceRegistered;
+
     /** ICD §5 verdict of a processed verification: MATCH | NO_MATCH | NO_VERIFICATION_POSSIBLE | EXEMPT. */
     @Column(name = "verdict", length = 32)
     private String verdict;

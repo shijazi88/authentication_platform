@@ -22,6 +22,7 @@ public record TenantTransactionView(
         String imageFormat, Integer imageWidth, Integer imageHeight, Integer imagePpi, Integer imageBytes,
         String imageCheck, String imageCheckMessage, Integer imageNfiq2,
         String verdict,
+        String deviceId, Boolean deviceRegistered,
         Instant createdAt
 ) {
     public static TenantTransactionView from(Transaction t) {
@@ -34,6 +35,7 @@ public record TenantTransactionView(
                 t.getImageFormat(), t.getImageWidth(), t.getImageHeight(), t.getImagePpi(), t.getImageBytes(),
                 t.getImageCheck(), t.getImageCheckMessage(), t.getImageNfiq2(),
                 t.getVerdict(),
+                t.getDeviceId(), t.getDeviceRegistered(),
                 t.getCreatedAt());
     }
 

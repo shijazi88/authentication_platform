@@ -117,6 +117,15 @@ public class TransactionService {
 
     /** Image failed structural validation (ENFORCE mode): recorded as a rejection with what we saw. */
     @Transactional
+    public void rejectDevice(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
+                             String deviceId, String message) {
+        Transaction tx = recordRejection(tenantId, credentialId, serviceId, operationId,
+                ErrorCode.DEVICE_NOT_ALLOWED, message);
+        tx.setDeviceId(deviceId);
+        tx.setDeviceRegistered(false);
+        transactionRepository.save(tx);
+    }
+
     public void rejectImage(UUID tenantId, UUID credentialId, UUID serviceId, UUID operationId,
                             ErrorCode code, String message, ImageValidationResult result) {
         Transaction tx = recordRejection(tenantId, credentialId, serviceId, operationId, code, message);

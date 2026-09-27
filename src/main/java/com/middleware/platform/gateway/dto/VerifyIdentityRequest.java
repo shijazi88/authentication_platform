@@ -24,6 +24,8 @@ public record VerifyIdentityRequest(
         @Size(max = 32) String nationalNumber,
         @Valid Biometrics biometrics,
         Exception exception,
+        /** Serial number of the capture device (ICD §4.2.2). Inside the JWE when encrypted. */
+        @Size(max = 128) String deviceId,
         String encryptedPayload
 ) {
     public record Biometrics(

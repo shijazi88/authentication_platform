@@ -5,6 +5,8 @@ import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.common.tenant.TenantContext;
 import com.middleware.platform.connector.yemenid.YemenIdConnector;
 import com.middleware.platform.gateway.dto.BiometricExceptionReason;
+import com.middleware.platform.common.settings.PlatformSettingsService;
+import com.middleware.platform.device.DevicePolicySettings;
 import com.middleware.platform.gateway.dto.VerifyIdentityRequest;
 import com.middleware.platform.gateway.dto.VerifyIdentityResponse;
 import com.middleware.platform.gateway.orchestrator.VerificationOrchestrator;
@@ -39,6 +41,7 @@ public class VerifyController {
     private final VerificationOrchestrator orchestrator;
     private final PiiCryptoService piiCryptoService;
     private final TenantRepository tenantRepository;
+    private final PlatformSettingsService settings;
 
     /** Global enforcement override; per-tenant flag applies on top. */
     @Value("${platform.crypto.require-encrypted-pii:false}")
@@ -52,6 +55,7 @@ public class VerifyController {
         boolean isException;
         String excReason;
         String excNote;
+        String deviceId;
 
         if (req.isEncrypted()) {
             UUID tenantId = TenantContext.currentTenantId();
@@ -68,6 +72,7 @@ public class VerifyController {
                 fingerPosition = null;
                 image = null;
             }
+            deviceId = asString(pii.get("deviceId"));
             Object excObj = pii.get("exception");
             isException = excObj instanceof Map<?, ?>;
             if (excObj instanceof Map<?, ?> ex) {
@@ -88,14 +93,30 @@ public class VerifyController {
             isException = req.exception() != null;
             excReason = req.exception() != null ? req.exception().reason() : null;
             excNote = req.exception() != null ? req.exception().note() : null;
+            deviceId = req.deviceId();
         }
 
         if (nationalNumber == null || nationalNumber.isBlank()) {
             throw new ApplicationException(ErrorCode.VALIDATION_FAILED, "nationalNumber is required");
         }
 
+        // Capture device (ICD §4.2.2): required by default for fingerprint requests,
+        // never for exception requests (no capture happened). Enforcement of
+        // *which* devices are allowed happens in the orchestrator (device policy).
+        deviceId = deviceId == null ? null : deviceId.trim();
+        if (deviceId != null && deviceId.length() > 128) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED, "deviceId must be at most 128 characters");
+        }
+        DevicePolicySettings devicePolicy = settings.get(DevicePolicySettings.KEY, DevicePolicySettings.class,
+                DevicePolicySettings::defaults).normalized();
+        if (!isException && devicePolicy.deviceIdRequired() && (deviceId == null || deviceId.isBlank())) {
+            throw new ApplicationException(ErrorCode.VALIDATION_FAILED,
+                    "deviceId is required: the serial number of the fingerprint capture device");
+        }
+
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("nationalNumber", nationalNumber);
+        if (deviceId != null && !deviceId.isBlank()) payload.put("deviceId", deviceId);
 
         if (isException) {
             // Fingerprint exemption: validate the reason, drop any biometrics, and

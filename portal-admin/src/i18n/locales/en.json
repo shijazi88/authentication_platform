@@ -270,7 +270,10 @@
       "providerResponse": "Provider response (raw)",
       "moiCalls": "MOI HTTP calls",
       "noPayload": "Not recorded for this transaction.",
-      "noMoiCalls": "No MOI calls captured for this transaction yet."
+      "noMoiCalls": "No MOI calls captured for this transaction yet.",
+      "device": "Capture device",
+      "deviceRegistered": "registered",
+      "deviceUnregistered": "not registered"
     },
     "exception": "Exception",
     "exceptionsOnly": "Exceptions only",
@@ -662,7 +665,8 @@
     "tabs": {
       "exceptions": "Exception lookup",
       "image": "Fingerprint image",
-      "resilience": "Service protection"
+      "resilience": "Service protection",
+      "devices": "Capture devices"
     },
     "resilience": {
       "statusTitle": "Live connector state",
@@ -771,6 +775,19 @@
         "title": "No exception verifications",
         "description": "Fingerprint-exception requests will appear here."
       }
+    },
+    "devices": {
+      "title": "Capture device policy",
+      "intro": "Every fingerprint verification carries the serial number of the scanner that captured it (deviceId). The serial is recorded on the transaction and compared with the devices registered on the client's page.",
+      "required": "Require deviceId on every fingerprint verification",
+      "requiredHint": "Missing deviceId is rejected with 400 / 1002. Fingerprint-exception requests never need one.",
+      "modeAll": "Allow all devices",
+      "modeAllHint": "Record the serial and whether it is registered, but never reject. Use this while banks register their scanners.",
+      "modeRegistered": "Registered devices only",
+      "modeRegisteredHint": "Reject verifications from a serial that is not registered for the client (403 / 1205).",
+      "save": "Save policy",
+      "saved": "Device policy updated",
+      "error": "Could not update the device policy"
     }
   },
   "tenantQuality": {

@@ -7,7 +7,7 @@
 | **System** | MOTABIQ Verification Middleware |
 | **Audience** | Integrating service providers (banks) and their backend engineering teams |
 | **Interface version** | `v1` |
-| **Document version** | v2.1 (2026-09-27) — see Appendix B |
+| **Document version** | v2.2 (2026-09-27) — see Appendix B |
 | **Transport** | HTTPS / REST / JSON |
 | **Status** | Released |
 
@@ -126,7 +126,9 @@ Verifies a person against the configured national identity provider by national 
 #### 4.2.2 Body fields
 
 The request body carries a **single field** — the encrypted envelope. All verification
-requests **must** be encrypted (§4.2.4); unencrypted requests are rejected.
+requests **must** be encrypted (§4.2.4); an unencrypted request is rejected with
+**HTTP 400 · `1001 BAD_REQUEST`** (`Encrypted payload is required`). Enforced on every
+environment since 2026-09-27.
 
 | Field | Type | Required | Constraints | Description |
 |---|---|---|---|---|
@@ -140,11 +142,14 @@ The **decrypted** content of `encryptedPayload` is the following JSON object:
 | `biometrics` | object | **Yes** | — | Fingerprint block. **Mandatory** so the provider can compute a biometric match verdict. |
 | `biometrics.fingerPosition` | integer | **Yes** | 1–10 | Finger position. `1` = right thumb, `2` = right index, … `10` = left little. |
 | `biometrics.image` | string | **Yes** | base64; must meet §4.2.3 | Base64-encoded fingerprint image (WSQ or PNG). Must satisfy the capture-quality constraints in **§4.2.3**. |
+| `deviceId` | string | **Yes** (with `biometrics`) | ≤ 128 chars | Serial number of the fingerprint scanner that captured `biometrics.image`, exactly as printed on the device / reported by its SDK. Recorded on every transaction and compared with the devices registered for your organisation in the client portal (**Devices**). Not needed with `exception`. Missing → `400 · 1002`. |
 | `exception` | object | No | Mutually exclusive with `biometrics` | **Fingerprint exception**: the person cannot provide a usable fingerprint. The provider performs an identity lookup only; the verdict is `EXEMPT` and no biometric comparison is made. Use only under your KYC policy for such cases. |
 | `exception.reason` | string | Yes (with `exception`) | `HAND_INJURY`, `AMPUTATION`, `WORN_PRINTS`, `MEDICAL`, `OTHER` | Why no fingerprint could be captured. |
 | `exception.note` | string | No | Free text | Operator note, stored with the transaction for audit. |
 
-> **Note:** inside the encrypted envelope, `nationalNumber` and `biometrics` (both `fingerPosition` and `image`) must be present and meaningful for the provider to compute a verdict. `fingerPosition` outside 1–10 fails validation (HTTP 400).
+> **Note:** inside the encrypted envelope, `nationalNumber`, `deviceId` and `biometrics` (both `fingerPosition` and `image`) must be present and meaningful for the provider to compute a verdict. `fingerPosition` outside 1–10 fails validation (HTTP 400).
+>
+> **Device policy.** Today every device is accepted and its serial is only recorded ("allow all"). Once your scanners are registered in the client portal the platform can be switched to **registered devices only**, after which a verification from an unregistered serial is rejected with **HTTP 403 · `1205 DEVICE_NOT_ALLOWED`**. Register every scanner before go-live so this switch is transparent.
 
 #### 4.2.3 Fingerprint image quality constraints
 
@@ -475,6 +480,7 @@ In addition to the body, error responses carry:
 | 401 | `1102` | `INVALID_CREDENTIALS` | Wrong client_id/secret, or upstream token rejected. | Verify/rotate credentials. |
 | 403 | `1201` | `FORBIDDEN` | IP allow-list mismatch or upstream permission denied. | Contact platform operator. |
 | 403 | `1202` | `ENTITLEMENT_DENIED` | Subscription does not entitle this operation. | Review plan with operator. |
+| 403 | `1205` | `DEVICE_NOT_ALLOWED` | `deviceId` is not a scanner registered for your organisation and the platform enforces registered devices only. No charge. | Register the scanner in the client portal (Devices) or contact the operator; do not retry until registered. |
 | 402 | `1403` | `INSUFFICIENT_FUNDS` | The tenant's prepaid balance cannot cover the verification. No provider call is made. | Contact the platform operator to top up. Do not retry until topped up. |
 | 404 | `1301` | `NOT_FOUND` | National number not found at the provider. | Show "ID not found" to the user. |
 | 409 | `1401` | `CONFLICT` | Resource conflict. | Inspect `message`. |
@@ -622,6 +628,7 @@ clear messages. "MUST" = required for go-live; "SHOULD" = strongly recommended.
 | V5 | `nationalNumber` — length | ≤ 32 characters. | MUST | Block before sending. |
 | V6 | `nationalNumber` — format | Expected `NNNN-NNNN-NNNN` (12 digits, dashes). If you collect 12 bare digits, either send them bare (server auto-formats) or format them yourself; reject anything that is not 12 digits / not the dashed form. | SHOULD | Block; prompt re-entry. |
 | V7 | `nationalNumber` — charset | Digits (and dashes) only; strip spaces; reject letters/symbols. | SHOULD | Block; prompt re-entry. |
+| V7a | `deviceId` — presence | Present (≤ 128 chars) on every request that carries `biometrics`; taken from the scanner SDK, never typed by the operator. | MUST | Block; fix the capture application. |
 | V8 | `biometrics` / `exception` — presence | Exactly one of `biometrics` (normal) or `exception` (fingerprint-exempt person, §4.2.2) **must** be included. | MUST | Capture a fingerprint, or record the exception reason, before submitting. |
 | V9 | `biometrics.fingerPosition` | Required when `biometrics` is present; integer in **1–10**. | MUST | Block; out-of-range is rejected by the server (400). |
 | V10 | `biometrics.image` — presence | Required when `biometrics` is present; non-empty. | MUST | Block; re-capture. |
@@ -685,6 +692,8 @@ onboarding.
 | AC-03 | Wrong client_id / client_secret. | `401`; `errorCode 1102 INVALID_CREDENTIALS`. | Must |
 | AC-04 | Valid NID + valid fingerprint of the enrolled person. | `200`; verdict `MATCH`; `biometrics.score` present; bank treats as identity pass. | Must |
 | AC-05 | Valid NID + fingerprint of a different person. | `200`; verdict `NO_MATCH`; `result.person` absent; bank treats as identity **failure** (not accepted). | Must |
+| AC-04a | Valid request without `deviceId`. | `400`; `errorCode 1002`; message names `deviceId`. | Must |
+| AC-04b | Plaintext body (no `encryptedPayload`). | `400`; `errorCode 1001 BAD_REQUEST`; bank never sends plaintext. | Must |
 | AC-05a | Valid NID + `exception` block (no fingerprint). | `200`; `transaction.status = "EXEMPT"`; verdict `EXEMPT`; demographics per plan; bank records the exception reason. | Must |
 | AC-06 | Blank `nationalNumber`. | `400`; `errorCode 1002 VALIDATION_FAILED`; `fieldErrors` lists `nationalNumber`; bank shows error and does **not** retry. | Must |
 | AC-07 | `fingerPosition` out of range (e.g. `11`). | `400`; `errorCode 1002`; bank blocks this client-side per V9 before sending. | Must |
@@ -748,3 +757,4 @@ enabling production credentials.
 | v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
 | v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |
 | v2.1 | 2026-09-27 | Platform now conforms to §4.3.2/§5: the `verification` block (verdict + biometric score) is returned on every `200`; a non-match is `200` + `NO_MATCH` with `person` withheld (it was `422 · 1302` between 2026-07-29 and 2026-09-27); added the `EXEMPT` verdict and the `exception` request block (§4.2.2, §4.3.7, AC-05a); `imageQuality` added to the §4.3.1 envelope; `1403 INSUFFICIENT_FUNDS` added to §6.3; duplicate `X-Request-Id` response header removed. |
+| v2.2 | 2026-09-27 | **Encryption enforced** on all environments (plaintext → `400 · 1001`). **New required field `deviceId`** (scanner serial) inside the envelope; recorded per transaction, all devices accepted for now, `1205 DEVICE_NOT_ALLOWED` reserved for registered-only mode; V7a, AC-04a/04b added. |

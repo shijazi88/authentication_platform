@@ -55,6 +55,8 @@ services:
       PLATFORM_WALLET_PREPAID_ENFORCED: ${PLATFORM_WALLET_PREPAID_ENFORCED:-true}
       # NFIQ 2 quality-score sidecar (Settings → Fingerprint image → quality score).
       PLATFORM_NFIQ2_URL: http://nfiq2:8090
+      # ICD §4.2.2: plaintext verification requests are rejected (400 / 1001).
+      PLATFORM_CRYPTO_REQUIRE_ENCRYPTED_PII: ${PLATFORM_CRYPTO_REQUIRE_ENCRYPTED_PII:-true}
       YEMEN_ID_MODE: ${YEMEN_ID_MODE:-wiremock}
       YEMEN_ID_BASE_URL: ${YEMEN_ID_BASE_URL:-http://wiremock:8080/base_path}
       YEMEN_ID_BEARER_TOKEN: ${YEMEN_ID_BEARER_TOKEN:-dev-token}

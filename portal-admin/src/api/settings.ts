@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { ImageValidationSettings, ResilienceSettings, BreakerStatus, QualityServiceStatus } from "@/types/api";
+import type { ImageValidationSettings, ResilienceSettings, BreakerStatus, QualityServiceStatus, DevicePolicySettings } from "@/types/api";
 
 export type SettingEnvelope<T> = {
   value: T;
@@ -55,5 +55,17 @@ export async function resetCircuitBreaker(connector?: string): Promise<BreakerSt
     null,
     { params: connector ? { connector } : {} },
   );
+  return data;
+}
+
+// ── Capture device policy ───────────────────────────────────────────────────
+
+export async function getDevicePolicy(): Promise<SettingEnvelope<DevicePolicySettings>> {
+  const { data } = await api.get<SettingEnvelope<DevicePolicySettings>>("/admin/settings/device-policy");
+  return data;
+}
+
+export async function updateDevicePolicy(value: DevicePolicySettings): Promise<SettingEnvelope<DevicePolicySettings>> {
+  const { data } = await api.put<SettingEnvelope<DevicePolicySettings>>("/admin/settings/device-policy", value);
   return data;
 }

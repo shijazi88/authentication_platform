@@ -45,6 +45,10 @@ server:
 platform:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  crypto:
+    # ICD §4.2.2: every verification request must be a JWE envelope. Enforced
+    # for all tenants since 2026-09-27; the per-tenant flag is a stricter add-on.
+    require-encrypted-pii: ${PLATFORM_CRYPTO_REQUIRE_ENCRYPTED_PII:true}
   nfiq2:
     # NIST NFIQ 2 quality sidecar (nfiq2/ in this repo). Compose: http://nfiq2:8090
     url: ${PLATFORM_NFIQ2_URL:http://localhost:8090}
