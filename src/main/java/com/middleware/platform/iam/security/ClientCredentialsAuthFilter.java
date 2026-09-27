@@ -62,8 +62,10 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
         String header = request.getHeader(AUTH_HEADER);
+        boolean bankApi = request.getRequestURI() != null && request.getRequestURI().startsWith("/api/");
         if (header == null || !header.startsWith(BASIC_PREFIX)) {
             log.debug("Auth: no Basic header on {}", request.getRequestURI());
+            if (bankApi) { reject(request, response, 401, 1101, "UNAUTHENTICATED", "Authentication required: send HTTP Basic clientId:clientSecret"); return; }
             chain.doFilter(request, response);
             return;
         }
@@ -74,12 +76,14 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
                     StandardCharsets.UTF_8);
         } catch (IllegalArgumentException ex) {
             log.debug("Auth: malformed base64 in Basic header");
+            if (bankApi) { reject(request, response, 401, 1101, "UNAUTHENTICATED", "Malformed Authorization header"); return; }
             chain.doFilter(request, response);
             return;
         }
         int idx = decoded.indexOf(':');
         if (idx < 0) {
             log.debug("Auth: missing ':' separator in decoded credentials");
+            if (bankApi) { reject(request, response, 401, 1101, "UNAUTHENTICATED", "Malformed Authorization header"); return; }
             chain.doFilter(request, response);
             return;
         }
@@ -89,23 +93,27 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
         Optional<ApiCredential> credOpt = credentialRepository.findByClientId(clientId);
         if (credOpt.isEmpty()) {
             log.debug("Auth: clientId={} not found", clientId);
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
         ApiCredential cred = credOpt.get();
         if (!cred.isActive()) {
             log.debug("Auth: credential {} (clientId={}) is inactive", cred.getId(), clientId);
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
         if (cred.getExpiresAt() != null && cred.getExpiresAt().isBefore(Instant.now())) {
             log.debug("Auth: credential {} (clientId={}) expired at {}",
                     cred.getId(), clientId, cred.getExpiresAt());
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
         if (!passwordEncoder.matches(clientSecret, cred.getClientSecretHash())) {
             log.debug("Auth: secret mismatch for clientId={}", clientId);
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
@@ -133,6 +141,7 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
         if (tenantOpt.isEmpty()) {
             log.warn("Auth: credential {} references missing tenant {}",
                     cred.getId(), cred.getTenantId());
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
@@ -140,6 +149,7 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
         if (tenant.getStatus() != TenantStatus.ACTIVE) {
             log.debug("Auth: tenant {} ({}) is not active (status={})",
                     tenant.getId(), tenant.getCode(), tenant.getStatus());
+            if (bankApi) { reject(request, response, 401, 1102, "INVALID_CREDENTIALS", "Invalid credentials"); return; }
             chain.doFilter(request, response);
             return;
         }
@@ -181,11 +191,26 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
      * egress IP. Body mirrors {@code ApiError}.
      */
     private void rejectIp(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        reject(null, response, HttpServletResponse.SC_FORBIDDEN, 1201, "FORBIDDEN",
+                "Source IP is not in the approved IP allow-list for this client");
+    }
+
+    /**
+     * Writes the uniform ICD §6.1 error body from inside the filter chain (the
+     * exception handler is not reachable here). Credential problems on the bank
+     * API answer 401 with 1101 (no usable header) or 1102 (rejected credential)
+     * instead of Spring's empty 401, so integrators can branch on {@code errorCode}.
+     * The message never says which of clientId / secret / status / expiry failed.
+     */
+    private void reject(HttpServletRequest request, HttpServletResponse response,
+                        int status, int code, String name, String message) throws IOException {
+        Object rid = request == null ? null : request.getAttribute("X-Request-Id");
+        response.setStatus(status);
         response.setContentType("application/json");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(
-                "{\"errorCode\":1201,\"error\":\"FORBIDDEN\","
-                + "\"message\":\"Source IP is not in the approved IP allow-list for this client\"}");
+        response.setHeader("X-Error-Code", String.valueOf(code));
+        response.getWriter().write("{\"timestamp\":\"" + Instant.now() + "\",\"errorCode\":" + code
+                + ",\"error\":\"" + name + "\",\"message\":\"" + message + "\""
+                + (rid != null ? ",\"requestId\":\"" + rid + "\"" : "") + "}");
     }
 }

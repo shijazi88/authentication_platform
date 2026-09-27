@@ -100,6 +100,17 @@ public class VerifyController {
             throw new ApplicationException(ErrorCode.VALIDATION_FAILED, "nationalNumber is required");
         }
 
+        // Biometrics block (ICD §4.2.2 / V9–V10) — validated here so the encrypted
+        // and legacy shapes share one rule set (bean validation only sees the latter).
+        if (!isException) {
+            if (image == null || image.isBlank()) {
+                throw new ApplicationException(ErrorCode.VALIDATION_FAILED, "biometrics.image is required");
+            }
+            if (fingerPosition == null || fingerPosition < 1 || fingerPosition > 10) {
+                throw new ApplicationException(ErrorCode.VALIDATION_FAILED, "biometrics.fingerPosition must be between 1 and 10");
+            }
+        }
+
         // Capture device (ICD §4.2.2): required by default for fingerprint requests,
         // never for exception requests (no capture happened). Enforcement of
         // *which* devices are allowed happens in the orchestrator (device policy).
