@@ -5,6 +5,7 @@ import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
 import com.middleware.platform.connector.spi.ConnectorRequest;
 import com.middleware.platform.connector.spi.ConnectorResponse;
+import com.middleware.platform.connector.spi.VerdictNormalizer;
 import com.middleware.platform.connector.spi.VerificationConnector;
 import com.middleware.platform.connector.yemenid.dto.YemenIdVerifyRequest;
 import com.middleware.platform.connector.yemenid.dto.YemenIdVerifyResponse;
@@ -90,6 +91,11 @@ public class YemenIdConnector implements VerificationConnector {
 
             long latency = System.currentTimeMillis() - start;
             Map<String, Object> canonical = toCanonical(providerRes);
+            String verdict = VerdictNormalizer.normalize(canonical, request.payload().get("exception") != null);
+            if (verdict == null) {
+                throw new ApplicationException(ErrorCode.CONNECTOR_ERROR, "Provider response carried no verification verdict");
+            }
+            if (VerdictNormalizer.NO_MATCH.equals(verdict)) VerdictNormalizer.withholdPerson(canonical);
             String providerRequestId = providerRes != null && providerRes.transaction() != null
                     ? providerRes.transaction().id()
                     : null;

@@ -80,8 +80,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ec.status())
                 .header("X-Error-Code", String.valueOf(ec.code()))
                 .header("X-Error-Msg", headerSafe(body.message()))
-                .header("X-Request-Id", requestId == null ? "" : requestId)
-                .body(body);
+                .body(body);   // X-Request-Id is set once by RequestIdFilter
     }
 
     /**

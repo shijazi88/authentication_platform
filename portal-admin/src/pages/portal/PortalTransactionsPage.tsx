@@ -5,7 +5,7 @@ import { X } from "lucide-react";
 import { listTransactions } from "@/api/tenant";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Table, TBody, THead, Th, Td, Tr } from "@/components/ui/Table";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge, statusTone, verdictTone } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
@@ -229,6 +229,9 @@ export function PortalTransactionsPage() {
                       <Td>
                         <div className="flex flex-col items-start gap-1">
                           <Badge tone={statusTone(tx.status)}>{t(`status.${tx.status}`, tx.status)}</Badge>
+                          {tx.verdict && (
+                            <Badge tone={verdictTone(tx.verdict)}>{t(`verdict.${tx.verdict}`, tx.verdict)}</Badge>
+                          )}
                           {tx.exception && (
                             <span title={tx.exceptionNote ?? undefined}>
                               <Badge tone="violet">

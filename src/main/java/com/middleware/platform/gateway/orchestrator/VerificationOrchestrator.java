@@ -10,6 +10,7 @@ import com.middleware.platform.common.tenant.TenantContext;
 import com.middleware.platform.connector.spi.ConnectorRegistry;
 import com.middleware.platform.connector.spi.ConnectorRequest;
 import com.middleware.platform.connector.spi.ConnectorResponse;
+import com.middleware.platform.connector.spi.VerdictNormalizer;
 import com.middleware.platform.connector.spi.VerificationConnector;
 import com.middleware.platform.gateway.imagecheck.FingerprintImageValidator;
 import com.middleware.platform.gateway.imagecheck.ImageValidationResult;
@@ -221,6 +222,7 @@ public class VerificationOrchestrator {
                 connectorResponse.payload(),
                 entitlement.visibleFieldPaths()
         );
+        tx.setVerdict(VerdictNormalizer.verdictOf(connectorResponse.payload()));
 
         transactionService.completeSuccess(tx,
                 connectorResponse.providerRequestId(),

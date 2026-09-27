@@ -45,6 +45,17 @@ export function Badge({
 /**
  * Maps a domain status string to a sensible Badge tone.
  */
+/** Tone for an ICD §5 verification verdict. */
+export function verdictTone(verdict: string | null | undefined): BadgeTone {
+  switch (verdict) {
+    case "MATCH": return "emerald";
+    case "NO_MATCH": return "rose";
+    case "EXEMPT": return "violet";
+    case "NO_VERIFICATION_POSSIBLE": return "amber";
+    default: return "neutral";
+  }
+}
+
 export function statusTone(status: string): BadgeTone {
   switch (status) {
     case "ACTIVE":

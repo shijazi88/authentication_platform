@@ -302,6 +302,8 @@ export type Transaction = {
   imageCheck?: "PASS" | "WARN" | "FAIL" | "SKIP" | null;
   imageCheckMessage?: string | null;
   imageNfiq2?: number | null;
+  /** ICD §5 verdict of a processed verification. */
+  verdict?: "MATCH" | "NO_MATCH" | "NO_VERIFICATION_POSSIBLE" | "EXEMPT" | null;
   createdAt: string;
 };
 

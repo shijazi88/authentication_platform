@@ -239,7 +239,8 @@
       "latency": "Latency",
       "price": "Price",
       "billable": "Billable",
-      "exception": "Fingerprint exception"
+      "exception": "Fingerprint exception",
+      "verdict": "Verdict"
     },
     "empty": {
       "title": "No transactions",
@@ -786,5 +787,11 @@
     "save": "Save threshold",
     "saved": "Quality threshold updated",
     "error": "Could not update the quality threshold"
+  },
+  "verdict": {
+    "MATCH": "Match",
+    "NO_MATCH": "No match",
+    "NO_VERIFICATION_POSSIBLE": "No biometric on file",
+    "EXEMPT": "Exempt (no fingerprint)"
   }
 }

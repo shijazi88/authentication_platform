@@ -98,6 +98,10 @@ public class Transaction {
     private String imageCheckMessage;
 
     /** NIST NFIQ 2 quality score (0–100) measured by the platform; null when not measured. */
+    /** ICD §5 verdict of a processed verification: MATCH | NO_MATCH | NO_VERIFICATION_POSSIBLE | EXEMPT. */
+    @Column(name = "verdict", length = 32)
+    private String verdict;
+
     @Column(name = "image_nfiq2")
     private Integer imageNfiq2;
 

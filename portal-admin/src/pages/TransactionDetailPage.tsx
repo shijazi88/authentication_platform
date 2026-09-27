@@ -17,7 +17,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge, statusTone, verdictTone } from "@/components/ui/Badge";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, formatMoneyMinor, shortId } from "@/lib/format";
@@ -230,6 +230,13 @@ export function TransactionDetailPage() {
               <Badge tone={statusTone(tx.status)}>
                 {t(`status.${tx.status}`, tx.status)}
               </Badge>
+            </Field>
+            <Field label={t("transactions.fields.verdict")}>
+              {tx.verdict ? (
+                <Badge tone={verdictTone(tx.verdict)}>{t(`verdict.${tx.verdict}`, tx.verdict)}</Badge>
+              ) : (
+                "—"
+              )}
             </Field>
             <Field label={t("transactions.fields.latency")}>
               {tx.latencyMs != null ? `${tx.latencyMs} ms` : "—"}

@@ -8,7 +8,7 @@ import { listTransactions } from "@/api/transactions";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Table, TBody, THead, Th, Td, Tr } from "@/components/ui/Table";
-import { Badge, statusTone } from "@/components/ui/Badge";
+import { Badge, statusTone, verdictTone } from "@/components/ui/Badge";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -286,6 +286,9 @@ export function TransactionsPage() {
                           <Badge tone={statusTone(tx.status)}>
                             {t(`status.${tx.status}`, tx.status)}
                           </Badge>
+                          {tx.verdict && (
+                            <Badge tone={verdictTone(tx.verdict)}>{t(`verdict.${tx.verdict}`, tx.verdict)}</Badge>
+                          )}
                           {tx.exception && (
                             <span title={tx.exceptionNote ?? undefined}>
                               <Badge tone="violet">

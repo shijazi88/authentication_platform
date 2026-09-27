@@ -17,6 +17,7 @@ public enum ErrorCode {
     PIN_UNLOCK_REQUIRED(1203, HttpStatus.LOCKED, "PIN unlock required"),
     INVALID_PIN(1204, HttpStatus.UNAUTHORIZED, "Invalid PIN"),
     NOT_FOUND(1301, HttpStatus.NOT_FOUND, "Resource not found"),
+    /** Legacy (2026-07-29 … 2026-09-27). No longer raised: per ICD §5 a non-match is a 200 with verdict NO_MATCH. Kept for stored transactions. */
     BIOMETRIC_NO_MATCH(1302, HttpStatus.UNPROCESSABLE_ENTITY, "Fingerprint did not match the national ID"),
     CONFLICT(1401, HttpStatus.CONFLICT, "Resource conflict"),
     QUOTA_EXCEEDED(1402, HttpStatus.TOO_MANY_REQUESTS, "Quota exceeded"),

@@ -10,6 +10,7 @@ import com.middleware.platform.connector.moi.domain.MoiCredentials;
 import com.middleware.platform.connector.moi.domain.MoiCredentialsRepository;
 import com.middleware.platform.connector.spi.ConnectorRequest;
 import com.middleware.platform.connector.spi.ConnectorResponse;
+import com.middleware.platform.connector.spi.VerdictNormalizer;
 import com.middleware.platform.connector.spi.VerificationConnector;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -167,27 +168,18 @@ public class MoiYemenIdConnector implements VerificationConnector {
             // enforce a biometric match for these — the person couldn't provide a
             // print — and mark the result as EXEMPT instead.
             boolean isException = request.payload().get("exception") != null;
-            if (isException) {
-                if (canonical.get("verification") instanceof Map<?, ?> v) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> vm = (Map<String, Object>) v;
-                    vm.put("verification", "EXEMPT");
-                } else {
-                    canonical.put("verification", Map.of("verification", "EXEMPT"));
-                }
-            } else {
-                // MOI returns HTTP 200 even when the fingerprint does NOT match: the body
-                // carries verification.verification = NO_MATCH (and still includes the
-                // person's demographics). Relaying that as a 2xx would let a wrong finger
-                // look "accepted" and would leak demographics on a non-match. Enforce the
-                // match result here — fail closed: only an explicit MATCH is a success.
-                String matchResult = extractMatchResult(canonical);
-                if (!"MATCH".equalsIgnoreCase(matchResult)) {
-                    audit.record(auditBuilder.errorMessage(
-                            "Biometric did not match (verification=" + matchResult + ")").build());
-                    throw new ApplicationException(ErrorCode.BIOMETRIC_NO_MATCH,
-                            "Fingerprint did not match the national ID");
-                }
+            // ICD §5: the verdict (MATCH / NO_MATCH / NO_VERIFICATION_POSSIBLE / EXEMPT)
+            // is part of a 200 response, in the ICD shape, never an HTTP error.
+            // MOI still returns the person's demographics on a NO_MATCH; those are
+            // withheld so a wrong finger never discloses whose record it was.
+            String verdict = VerdictNormalizer.normalize(canonical, isException);
+            if (verdict == null) {
+                audit.record(auditBuilder.errorMessage("MOI 200 without a verification verdict").build());
+                throw new ApplicationException(ErrorCode.CONNECTOR_ERROR,
+                        "MOI response carried no verification verdict");
+            }
+            if (VerdictNormalizer.NO_MATCH.equals(verdict)) {
+                VerdictNormalizer.withholdPerson(canonical);
             }
             audit.record(auditBuilder.build());
 
@@ -249,22 +241,6 @@ public class MoiYemenIdConnector implements VerificationConnector {
             throw new ApplicationException(ErrorCode.CONNECTOR_ERROR,
                     "MOI response was not JSON: " + ex.getMessage(), ex);
         }
-    }
-
-    /**
-     * Pulls the biometric match result out of MOI's 200 body. Real MOI shape is
-     * {@code {"verification":{"verification":"MATCH"|"NO_MATCH", ...}}}; the
-     * legacy/mock shape used {@code verification.status}. Returns null if neither
-     * is present (treated as a non-match by the caller — fail closed).
-     */
-    private static String extractMatchResult(Map<String, Object> canonical) {
-        Object v = canonical != null ? canonical.get("verification") : null;
-        if (v instanceof Map<?, ?> vm) {
-            Object r = vm.get("verification");
-            if (r == null) r = vm.get("status");
-            if (r != null) return r.toString();
-        }
-        return null;
     }
 
     private String serialize(Object o) {

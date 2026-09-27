@@ -7,7 +7,7 @@
 | **System** | MOTABIQ Verification Middleware |
 | **Audience** | Integrating service providers (banks) and their backend engineering teams |
 | **Interface version** | `v1` |
-| **Document version** | v2.0 (2026-09-17) — see Appendix B |
+| **Document version** | v2.1 (2026-09-27) — see Appendix B |
 | **Transport** | HTTPS / REST / JSON |
 | **Status** | Released |
 
@@ -103,7 +103,7 @@ A missing, malformed, or invalid `Authorization` header — or a rejected creden
 ## 4. Operation: Identity Verification
 
 ### 4.1 Description
-Verifies a person against the configured national identity provider by national number, and — when a fingerprint is supplied — returns a biometric match verdict. Without biometrics, the operation returns demographic data only (subject to plan entitlement) and a `NO_VERIFICATION_POSSIBLE` verdict.
+Verifies a person against the configured national identity provider by national number and a fingerprint, and returns a biometric match **verdict** (§5) together with the person's data (subject to plan entitlement). Every request carries either `biometrics` (normal case) or an `exception` block for a person who physically cannot provide a fingerprint (§4.2.2); the latter is an identity lookup only and yields the verdict `EXEMPT`.
 
 | Attribute | Value |
 |---|---|
@@ -140,6 +140,9 @@ The **decrypted** content of `encryptedPayload` is the following JSON object:
 | `biometrics` | object | **Yes** | — | Fingerprint block. **Mandatory** so the provider can compute a biometric match verdict. |
 | `biometrics.fingerPosition` | integer | **Yes** | 1–10 | Finger position. `1` = right thumb, `2` = right index, … `10` = left little. |
 | `biometrics.image` | string | **Yes** | base64; must meet §4.2.3 | Base64-encoded fingerprint image (WSQ or PNG). Must satisfy the capture-quality constraints in **§4.2.3**. |
+| `exception` | object | No | Mutually exclusive with `biometrics` | **Fingerprint exception**: the person cannot provide a usable fingerprint. The provider performs an identity lookup only; the verdict is `EXEMPT` and no biometric comparison is made. Use only under your KYC policy for such cases. |
+| `exception.reason` | string | Yes (with `exception`) | `HAND_INJURY`, `AMPUTATION`, `WORN_PRINTS`, `MEDICAL`, `OTHER` | Why no fingerprint could be captured. |
+| `exception.note` | string | No | Free text | Operator note, stored with the transaction for audit. |
 
 > **Note:** inside the encrypted envelope, `nationalNumber` and `biometrics` (both `fingerPosition` and `image`) must be present and meaningful for the provider to compute a verdict. `fingerPosition` outside 1–10 fails validation (HTTP 400).
 
@@ -239,8 +242,9 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
 | `transaction` | object | Middleware transaction metadata. Always present. |
 | `transaction.id` | string (UUID) | Unique transaction id (UUIDv7). Quote this for reconciliation and support. |
 | `transaction.timestamp` | string (ISO-8601 / RFC 3339) | Server time the verification was processed. |
-| `transaction.status` | string | `"OK"` for a processed verification. |
+| `transaction.status` | string | `"OK"` for a processed verification; `"EXEMPT"` for a fingerprint-exception request. |
 | `result` | object | The projected canonical verification payload (see below). Fields present depend on the tenant's plan entitlement. |
+| `imageQuality` | integer | NFIQ 2 quality score (0–100) of the submitted fingerprint, measured by the platform (§4.2.3). Absent when not measured or for `exception` requests. |
 
 #### 4.3.2 `result` fields (maximum set)
 
@@ -248,7 +252,7 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
 |---|---|---|
 | `result.transaction.id` | string | Provider-side transaction id. |
 | `result.transaction.timestamp` | string | Provider-side timestamp. |
-| `result.verification.verification` | string | Verdict: `MATCH`, `NO_MATCH`, or `NO_VERIFICATION_POSSIBLE` (see §5). |
+| `result.verification.verification` | string | Verdict: `MATCH`, `NO_MATCH`, `NO_VERIFICATION_POSSIBLE` or `EXEMPT` (see §5). **Always present** on a `200`, on every plan. |
 | `result.verification.biometrics.exists` | boolean | Whether a biometric comparison was performed. |
 | `result.verification.biometrics.score` | number | Match score (provider scale, e.g. 0–100). |
 | `result.person.nationalNumber` | string | Echoed national number. |
@@ -260,6 +264,8 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
 | `result.person.cards` | array | Identity document records (when entitled). |
 
 > The `result` object is loosely typed and tolerant to additive provider changes; integrators should read fields defensively and ignore unknown fields.
+>
+> **On a `NO_MATCH` verdict the `person` block is never returned**, whatever the plan: a fingerprint that does not belong to the national number must not disclose whose record it is. Only `transaction` and `verification` are present.
 
 #### 4.3.3 Sample response — full-data plan
 
@@ -336,6 +342,49 @@ ready-to-run Postman collection are provided at onboarding — see the *Referenc
 }
 ```
 
+#### 4.3.6 Sample response — fingerprint did not match (`NO_MATCH`)
+
+```json
+{
+  "transaction": {
+    "id": "01a0db4b-2c1e-7f3a-9b1d-5e6f7a8b9c0d",
+    "timestamp": "2026-09-26T00:52:50.203Z",
+    "status": "OK"
+  },
+  "result": {
+    "transaction": { "id": "1a0db4-b1c2-7d3e-8f4a", "timestamp": "2026-09-26T03:52:49" },
+    "verification": {
+      "verification": "NO_MATCH",
+      "biometrics": { "exists": true, "score": 14 }
+    }
+  },
+  "imageQuality": 63
+}
+```
+
+#### 4.3.7 Sample response — fingerprint exception (`EXEMPT`)
+
+```json
+{
+  "transaction": {
+    "id": "01a0db4c-8d2f-7a1b-8c3d-1e2f3a4b5c6d",
+    "timestamp": "2026-09-26T01:03:12.117Z",
+    "status": "EXEMPT"
+  },
+  "result": {
+    "transaction": { "id": "1a0db4-c8d2-7a1b-8c3d", "timestamp": "2026-09-26T04:03:11" },
+    "verification": {
+      "verification": "EXEMPT",
+      "biometrics": { "exists": false }
+    },
+    "person": {
+      "nationalNumber": "2132-7404-0424",
+      "demographics": { "names": { } }
+    }
+  }
+}
+```
+
 ### 4.4 Encryption certificate retrieval
 
 Fetch your tenant's active encryption certificate, used to build the `encryptedPayload`
@@ -382,8 +431,11 @@ The `result.verification.verification` field carries the identity outcome. A `20
 | Verdict | Meaning | Recommended bank action |
 |---|---|---|
 | `MATCH` | Fingerprint matched the template enrolled at the identity provider. | Accept as a successful biometric identity verification. |
-| `NO_MATCH` | Fingerprint did **not** match. | Treat as KYC/identity failure. |
-| `NO_VERIFICATION_POSSIBLE` | Record found but no biometric template enrolled at the provider for this person, or no biometric was sent. Demographics only. | Fall back to demographic checks; cannot assert biometric identity. |
+| `NO_MATCH` | Fingerprint did **not** match the record. `person` is **not** returned (§4.3.2). | Treat as KYC/identity failure. Do not retry the same image; a different finger may be tried as a new request. |
+| `NO_VERIFICATION_POSSIBLE` | Record found but the provider holds no biometric template for this person, so no comparison could be made. Demographics returned per plan. | Fall back to demographic checks; cannot assert biometric identity. |
+| `EXEMPT` | The request carried an `exception` block instead of a fingerprint (§4.2.2): identity lookup only, no biometric comparison. Demographics returned per plan. | Apply your KYC policy for fingerprint-exempt customers; record the exception reason. |
+
+> Every one of these verdicts is delivered with **HTTP 200**. Only transport, authentication, validation, quota and provider failures use error statuses (§6).
 
 ---
 
@@ -423,6 +475,7 @@ In addition to the body, error responses carry:
 | 401 | `1102` | `INVALID_CREDENTIALS` | Wrong client_id/secret, or upstream token rejected. | Verify/rotate credentials. |
 | 403 | `1201` | `FORBIDDEN` | IP allow-list mismatch or upstream permission denied. | Contact platform operator. |
 | 403 | `1202` | `ENTITLEMENT_DENIED` | Subscription does not entitle this operation. | Review plan with operator. |
+| 402 | `1403` | `INSUFFICIENT_FUNDS` | The tenant's prepaid balance cannot cover the verification. No provider call is made. | Contact the platform operator to top up. Do not retry until topped up. |
 | 404 | `1301` | `NOT_FOUND` | National number not found at the provider. | Show "ID not found" to the user. |
 | 409 | `1401` | `CONFLICT` | Resource conflict. | Inspect `message`. |
 | 429 | `1402` | `QUOTA_EXCEEDED` | Per-minute rate limit or usage quota exhausted. | Back off and retry later. |
@@ -569,7 +622,7 @@ clear messages. "MUST" = required for go-live; "SHOULD" = strongly recommended.
 | V5 | `nationalNumber` — length | ≤ 32 characters. | MUST | Block before sending. |
 | V6 | `nationalNumber` — format | Expected `NNNN-NNNN-NNNN` (12 digits, dashes). If you collect 12 bare digits, either send them bare (server auto-formats) or format them yourself; reject anything that is not 12 digits / not the dashed form. | SHOULD | Block; prompt re-entry. |
 | V7 | `nationalNumber` — charset | Digits (and dashes) only; strip spaces; reject letters/symbols. | SHOULD | Block; prompt re-entry. |
-| V8 | `biometrics` — presence | If your KYC flow requires a biometric verdict, the `biometrics` object **must** be included; otherwise the verdict will be `NO_VERIFICATION_POSSIBLE`. | MUST (for biometric KYC) | Capture a fingerprint before submitting. |
+| V8 | `biometrics` / `exception` — presence | Exactly one of `biometrics` (normal) or `exception` (fingerprint-exempt person, §4.2.2) **must** be included. | MUST | Capture a fingerprint, or record the exception reason, before submitting. |
 | V9 | `biometrics.fingerPosition` | Required when `biometrics` is present; integer in **1–10**. | MUST | Block; out-of-range is rejected by the server (400). |
 | V10 | `biometrics.image` — presence | Required when `biometrics` is present; non-empty. | MUST | Block; re-capture. |
 | V11 | `biometrics.image` — encoding | Valid **base64** of the raw bytes; strip any `data:` URI prefix; no double-encoding. | MUST | Block; fix the export code. |
@@ -585,7 +638,7 @@ clear messages. "MUST" = required for go-live; "SHOULD" = strongly recommended.
 | # | Item | Rule | Level |
 |---|---|---|---|
 | V15 | HTTP status | Treat only `200` as processed. Any `4xx`/`5xx` → parse the uniform error body (§6) and branch on `errorCode`. | MUST |
-| V16 | Verdict, not status | **A `200` does not mean the identity matched.** Always read `result.verification.verification` and branch on `MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE` (§5). | MUST |
+| V16 | Verdict, not status | **A `200` does not mean the identity matched.** Always read `result.verification.verification` and branch on `MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE` / `EXEMPT` (§5). Never infer a match from the presence of `person`. | MUST |
 | V17 | Field projection tolerance | The `result` shape depends on the plan — fields outside entitlement are **absent**, not null. Read defensively; never assume `person`/`demographics` exist; ignore unknown fields. | MUST |
 | V18 | `transaction.id` | Persist it against your record for reconciliation and support. | MUST |
 | V18a | Image rejection codes | Branch on `errorCode`: **`1003`** → show `message` and re-capture (never resend the same image); **`1004`** → log, raise an integration defect, do not prompt the user to retry. When `imageQuality` is present, you MAY display it (e.g. "quality 32 of 100, minimum 40") to guide the operator. | MUST |
@@ -631,7 +684,8 @@ onboarding.
 | AC-02 | Missing / malformed `Authorization` header. | `401`; `errorCode 1101 UNAUTHENTICATED`. | Must |
 | AC-03 | Wrong client_id / client_secret. | `401`; `errorCode 1102 INVALID_CREDENTIALS`. | Must |
 | AC-04 | Valid NID + valid fingerprint of the enrolled person. | `200`; verdict `MATCH`; `biometrics.score` present; bank treats as identity pass. | Must |
-| AC-05 | Valid NID + fingerprint of a different person. | `200`; verdict `NO_MATCH`; bank treats as identity **failure** (not accepted). | Must |
+| AC-05 | Valid NID + fingerprint of a different person. | `200`; verdict `NO_MATCH`; `result.person` absent; bank treats as identity **failure** (not accepted). | Must |
+| AC-05a | Valid NID + `exception` block (no fingerprint). | `200`; `transaction.status = "EXEMPT"`; verdict `EXEMPT`; demographics per plan; bank records the exception reason. | Must |
 | AC-06 | Blank `nationalNumber`. | `400`; `errorCode 1002 VALIDATION_FAILED`; `fieldErrors` lists `nationalNumber`; bank shows error and does **not** retry. | Must |
 | AC-07 | `fingerPosition` out of range (e.g. `11`). | `400`; `errorCode 1002`; bank blocks this client-side per V9 before sending. | Must |
 | AC-08 | Corrupt / invalid biometric image. | `400`; `errorCode 1002` (message includes the upstream provider code); user re-scans; no retry of identical input. | Must |
@@ -674,7 +728,7 @@ enabling production credentials.
 4. Generate a UUIDv7 `X-Request-Id` per call and log it.
 5. Send a test call to a valid test NID (provided separately during onboarding); expect `200 OK`.
 6. Enforce the fingerprint image quality constraints (§4.2.3) at capture time, and handle `1003` (re-capture) and `1004` (integration defect) separately.
-7. Handle the verdict (`MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE`) — not just the HTTP status.
+7. Handle the verdict (`MATCH` / `NO_MATCH` / `NO_VERIFICATION_POSSIBLE` / `EXEMPT`) — not just the HTTP status.
 8. Implement backoff for `429` and retry only for `5xx` connector errors.
 9. Rotate the Client Secret before going to production.
 
@@ -693,3 +747,4 @@ enabling production credentials.
 | v1.8 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
 | v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
 | v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |
+| v2.1 | 2026-09-27 | Platform now conforms to §4.3.2/§5: the `verification` block (verdict + biometric score) is returned on every `200`; a non-match is `200` + `NO_MATCH` with `person` withheld (it was `422 · 1302` between 2026-07-29 and 2026-09-27); added the `EXEMPT` verdict and the `exception` request block (§4.2.2, §4.3.7, AC-05a); `imageQuality` added to the §4.3.1 envelope; `1403 INSUFFICIENT_FUNDS` added to §6.3; duplicate `X-Request-Id` response header removed. |
