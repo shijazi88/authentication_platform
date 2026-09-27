@@ -11,6 +11,35 @@
 | **Transport** | HTTPS / REST / JSON |
 | **Status** | Released |
 
+## Document control
+
+| | |
+|---|---|
+| **Current version** | v2.2 |
+| **Owner** | MOTABIQ integration team (promatrix.ai) |
+| **Distribution** | Integrating banks and their engineering teams |
+| **Versioning** | Major = breaking change to request/response/auth (banks must act); minor = additive or clarifying. Every change is listed below, newest first. Banks should re-run the acceptance criteria (§9) after any major version. |
+
+### Revision history
+
+| Version | Date | Changes |
+|---|---|---|
+| v2.2 | 2026-09-27 | **Encryption enforced** on all environments (plaintext → `400 · 1001`). **New required field `deviceId`** (scanner serial) inside the envelope; recorded per transaction, all devices accepted for now, `1205 DEVICE_NOT_ALLOWED` reserved for registered-only mode; V7a, AC-04a/04b added. Authentication failures on the bank API now carry the §6.1 body (`1101` no usable `Authorization`, `1102` rejected credential) instead of an empty 401; `fingerPosition`/`image` are validated inside the envelope. |
+| v2.1 | 2026-09-27 | Platform now conforms to §4.3.2/§5: the `verification` block (verdict + biometric score) is returned on every `200`; a non-match is `200` + `NO_MATCH` with `person` withheld (it was `422 · 1302` between 2026-07-29 and 2026-09-27); added the `EXEMPT` verdict and the `exception` request block (§4.2.2, §4.3.7, AC-05a); `imageQuality` added to the §4.3.1 envelope; `1403 INSUFFICIENT_FUNDS` added to §6.3; duplicate `X-Request-Id` response header removed. |
+| v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |
+| v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
+| v1.8 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
+| v1.7 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
+| v1.6 | 2026-06-17 | Removed all environment URLs; the base URL is shared with the API keys after onboarding. Examples use a `{baseUrl}` placeholder (§2.1). |
+| v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |
+| v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
+| v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
+| v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
+| v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
+| v1 | 2026-06-04 | Initial ICD for `POST /api/v1/verify/identity`. |
+
+> **Migration checklist for banks moving from a version before v2.0:** encrypt every request (§4.2.4) — plaintext is rejected; add `deviceId` to the encrypted content (§4.2.2); branch on `result.verification.verification` (§5) — a non-match is a `200` with `NO_MATCH`; handle error codes `1003`, `1004`, `1205` (§6.3); register your scanners in the client portal.
+
 ---
 
 ## 1. Introduction
@@ -743,18 +772,4 @@ enabling production credentials.
 
 ## Appendix B — Change log
 
-| Version | Date | Notes |
-|---|---|---|
-| v1 | 2026-06-04 | Initial ICD for `POST /api/v1/verify/identity`. |
-| v1.1 | 2026-06-04 | Added §7 Integration validation requirements (bank side) and §10 Acceptance criteria; renumbered Operational/Test data/Reference sections. |
-| v1.2 | 2026-06-04 | Made the document provider-agnostic (no longer Yemen/MOI specific); added §4.2.3 fingerprint image quality constraints; made the IP allow-list mandatory; clarified UTF-8 covers Latin and non-Latin scripts; removed billing/payment details (technical scope only). |
-| v1.3 | 2026-06-10 | Made `biometrics` mandatory; removed the no-biometrics sample request; removed the Test data section (provided separately at onboarding); acceptance criteria sign-off tracked in a companion `.xlsx`; renumbered Reference materials. |
-| v1.4 | 2026-06-17 | Added end-to-end **payload encryption**: per-tenant JWE (`RSA-OAEP-256` + `A256GCM`) of the PII via `encryptedPayload` and the certificate-retrieval endpoint `GET /api/v1/crypto/certificate` (§4.4); added request validation V15 and encryption error guidance (§6.3). |
-| v1.5 | 2026-06-17 | Made encryption **mandatory** — removed the legacy plaintext request shape and all dual-accept/enforcement wording. The request body is now solely `encryptedPayload` (§4.2.2); the encryption scheme + sample is §4.2.4. |
-| v1.6 | 2026-06-17 | Removed all environment URLs; the base URL is shared with the API keys after onboarding. Examples use a `{baseUrl}` placeholder (§2.1). |
-| v1.7 | 2026-09-13 | Connector failures `2101`/`2102` now return HTTP **503** (previously 502/504) so the JSON error body is never replaced by the CDN's generic error page; `2103` unchanged. No change to `errorCode` values or body shape. |
-| v1.8 | 2026-09-15 | Platform-side structural validation of `biometrics.image` (§4.2.3): failing images return `400 · 1002` with a `Fingerprint image rejected: …` message before any charge. |
-| v1.9 | 2026-09-17 | Platform-side image check now returns two plain messages (quality / format) instead of technical detail; NFIQ 2 score (≥ 40, bank-specific thresholds possible) measured server-side; optional `imageQuality` field on success and quality-rejection responses. |
-| v2.0 | 2026-09-17 | **New error codes** `1003 IMAGE_QUALITY_REJECTED` and `1004 IMAGE_FORMAT_REJECTED` for platform-side image rejections (previously `1002`); `imageQuality` documented in §6.1; bank validations V11 split into V11/V11a/V11b and V18a added; acceptance criteria AC-20 – AC-22 added. |
-| v2.1 | 2026-09-27 | Platform now conforms to §4.3.2/§5: the `verification` block (verdict + biometric score) is returned on every `200`; a non-match is `200` + `NO_MATCH` with `person` withheld (it was `422 · 1302` between 2026-07-29 and 2026-09-27); added the `EXEMPT` verdict and the `exception` request block (§4.2.2, §4.3.7, AC-05a); `imageQuality` added to the §4.3.1 envelope; `1403 INSUFFICIENT_FUNDS` added to §6.3; duplicate `X-Request-Id` response header removed. |
-| v2.2 | 2026-09-27 | **Encryption enforced** on all environments (plaintext → `400 · 1001`). **New required field `deviceId`** (scanner serial) inside the envelope; recorded per transaction, all devices accepted for now, `1205 DEVICE_NOT_ALLOWED` reserved for registered-only mode; V7a, AC-04a/04b added. Authentication failures on the bank API now carry the §6.1 body (`1101` no usable `Authorization`, `1102` rejected credential) instead of an empty 401; `fingerPosition`/`image` are validated inside the envelope. |
+See **Document control → Revision history** at the front of this document.
