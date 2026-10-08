@@ -24,7 +24,8 @@ import java.util.UUID;
  *
  * <p>All endpoints accept an optional {@code status} filter:
  * {@code ALL} (default), {@code SUCCESS}, {@code FAILED}. Date ranges are
- * inclusive of both {@code from} and {@code to}.
+ * inclusive of both {@code from} and {@code to}. PDF exports take {@code lang}
+ * ({@code en} default, or {@code ar} for an Arabic right-to-left document).
  */
 @RestController
 @RequestMapping("/admin/reports")
@@ -89,9 +90,10 @@ public class ReportsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "en") String lang,
             HttpServletResponse response) throws IOException {
         attachPdfHeaders(response, "motabiq-transaction-details-" + from + "-to-" + to + ".pdf");
-        reportsService.exportDetailsPdf(tenantId, tenantName(tenantId), from, to, status, response.getOutputStream());
+        reportsService.exportDetailsPdf(tenantId, tenantName(tenantId), from, to, status, lang, response.getOutputStream());
     }
 
     @GetMapping(value = "/transactions/daily/export.csv", produces = "text/csv; charset=UTF-8")
@@ -122,9 +124,10 @@ public class ReportsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "en") String lang,
             HttpServletResponse response) throws IOException {
         attachPdfHeaders(response, "motabiq-transactions-daily-" + from + "-to-" + to + ".pdf");
-        reportsService.exportDailyPdf(tenantId, tenantName(tenantId), from, to, status, response.getOutputStream());
+        reportsService.exportDailyPdf(tenantId, tenantName(tenantId), from, to, status, lang, response.getOutputStream());
     }
 
     @GetMapping(value = "/transactions/monthly/export.pdf", produces = "application/pdf")
@@ -133,9 +136,10 @@ public class ReportsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "en") String lang,
             HttpServletResponse response) throws IOException {
         attachPdfHeaders(response, "motabiq-transactions-monthly-" + from + "-to-" + to + ".pdf");
-        reportsService.exportMonthlyPdf(tenantId, tenantName(tenantId), from, to, status, response.getOutputStream());
+        reportsService.exportMonthlyPdf(tenantId, tenantName(tenantId), from, to, status, lang, response.getOutputStream());
     }
 
     private String tenantName(UUID tenantId) {

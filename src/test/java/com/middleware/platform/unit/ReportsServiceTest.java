@@ -88,11 +88,28 @@ class ReportsServiceTest {
     void summaryPdfBranding() throws Exception {
         stubSummary();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        service.exportDailyPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", out);
+        service.exportDailyPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
         String text = pdfText(out.toByteArray());
         assertThat(text).contains("MOTABIQ — Transaction Report", "Failure reasons", "Verification results",
                 "motabiq.ai", "2026-10-01 → 2026-10-08");
         assertThat(text.toLowerCase()).doesNotContain("sannad").doesNotContain("sanad");
+    }
+
+    @Test
+    @DisplayName("Arabic summary and details PDFs embed the Arabic font")
+    void arabicPdfs() throws Exception {
+        stubSummary();
+        ByteArrayOutputStream summary = new ByteArrayOutputStream();
+        service.exportDailyPdf(TENANT, "بنك القطيبي", FROM, TO, "ALL", "ar", summary);
+        assertThat(new String(summary.toByteArray(), StandardCharsets.ISO_8859_1)).contains("IBMPlexSansArabic-Bold", "IBMPlexSansArabic-Regular");
+        assertThat(pdfText(summary.toByteArray())).contains("motabiq.ai");
+
+        stubDetails(List.of(tx(0, TransactionStatus.SUCCESS), tx(1, TransactionStatus.REJECTED)));
+        ByteArrayOutputStream details = new ByteArrayOutputStream();
+        service.exportDetailsPdf(TENANT, "بنك القطيبي", FROM, TO, "ALL", "ar", details);
+        PdfReader reader = new PdfReader(details.toByteArray());
+        assertThat(reader.getNumberOfPages()).isEqualTo(1);
+        assertThat(new String(details.toByteArray(), StandardCharsets.ISO_8859_1)).contains("IBMPlexSansArabic-Regular");
     }
 
     @Test
@@ -126,7 +143,7 @@ class ReportsServiceTest {
         stubDetails(all);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        service.exportDetailsPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", out);
+        service.exportDetailsPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
 
         PdfReader reader = new PdfReader(out.toByteArray());
         assertThat(reader.getNumberOfPages()).isGreaterThan(10);
@@ -145,7 +162,7 @@ class ReportsServiceTest {
     void detailsPdfEmpty() throws Exception {
         stubDetails(List.of());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        service.exportDetailsPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", out);
+        service.exportDetailsPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
         assertThat(pdfText(out.toByteArray())).contains("No transactions in this range.");
     }
 

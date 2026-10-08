@@ -1,3 +1,4 @@
+import i18n from "@/i18n";
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import type { ImageQualityRow, Page, ReportDetailRow, ReportGroupBy, ReportSummary } from "@/types/api";
@@ -44,7 +45,13 @@ export async function getImageQualityReport(from: string, to: string): Promise<I
  * instance so dev (relative URLs + Vite proxy) and prod (VITE_API_URL) both
  * work without any per-call changes.
  */
-async function downloadBlob(path: string, params: ReportParams, prefix: string, ext: string): Promise<void> {
+async function downloadBlob(
+  path: string,
+  params: ReportParams,
+  prefix: string,
+  ext: string,
+  extra: Record<string, string> = {},
+): Promise<void> {
   const base = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
   const token = useAuth.getState().token;
   const qs = new URLSearchParams({
@@ -52,6 +59,7 @@ async function downloadBlob(path: string, params: ReportParams, prefix: string, 
     from: params.from,
     to: params.to,
     status: params.status ?? "ALL",
+    ...extra,
   }).toString();
 
   const response = await fetch(`${base}${path}?${qs}`, {
@@ -82,6 +90,8 @@ export function downloadReportCsv(kind: ReportKind, params: ReportParams) {
   return downloadBlob(`/admin/reports/transactions/${kind}/export.csv`, params, FILE_PREFIX[kind], "csv");
 }
 
+/** The PDF follows the portal language: Arabic UI → Arabic, right-to-left PDF. */
 export function downloadReportPdf(kind: ReportKind, params: ReportParams) {
-  return downloadBlob(`/admin/reports/transactions/${kind}/export.pdf`, params, FILE_PREFIX[kind], "pdf");
+  const lang = i18n.language?.startsWith("ar") ? "ar" : "en";
+  return downloadBlob(`/admin/reports/transactions/${kind}/export.pdf`, params, FILE_PREFIX[kind], "pdf", { lang });
 }

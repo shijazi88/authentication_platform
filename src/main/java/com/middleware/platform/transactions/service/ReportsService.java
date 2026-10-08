@@ -117,13 +117,13 @@ public class ReportsService {
     }
 
     public void exportDailyPdf(UUID tenantId, String tenantName, LocalDate from, LocalDate to,
-                               String statusFilter, OutputStream out) {
-        pdfExporter.export(daily(tenantId, from, to, statusFilter), tenantName, statusFilter, out);
+                               String statusFilter, String lang, OutputStream out) {
+        pdfExporter.export(daily(tenantId, from, to, statusFilter), tenantName, statusFilter, lang, out);
     }
 
     public void exportMonthlyPdf(UUID tenantId, String tenantName, LocalDate from, LocalDate to,
-                                 String statusFilter, OutputStream out) {
-        pdfExporter.export(monthly(tenantId, from, to, statusFilter), tenantName, statusFilter, out);
+                                 String statusFilter, String lang, OutputStream out) {
+        pdfExporter.export(monthly(tenantId, from, to, statusFilter), tenantName, statusFilter, lang, out);
     }
 
     @Transactional(readOnly = true)
@@ -151,9 +151,9 @@ public class ReportsService {
 
     @Transactional(readOnly = true)
     public void exportDetailsPdf(UUID tenantId, String tenantName, LocalDate from, LocalDate to,
-                                 String statusFilter, OutputStream out) {
+                                 String statusFilter, String lang, OutputStream out) {
         try (ReportPdfExporter.DetailsWriter pdf =
-                     pdfExporter.openDetails(tenantName, from.toString(), to.toString(), statusFilter, out)) {
+                     pdfExporter.openDetails(tenantName, from.toString(), to.toString(), statusFilter, lang, out)) {
             forEachDetailChunk(tenantId, from, to, statusFilter, pdf::addRows);
         }
     }
