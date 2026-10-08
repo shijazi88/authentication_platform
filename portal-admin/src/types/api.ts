@@ -424,15 +424,62 @@ export type ReportTotals = {
   successRate: number;       // 0..1
 };
 
+export type ReportVerdictCount = {
+  verdict: string | null;    // MATCH | NO_MATCH | NO_VERIFICATION_POSSIBLE | EXEMPT | null (not recorded)
+  count: number;
+};
+
+export type ReportFailureReason = {
+  errorCode: number | null;
+  error: string | null;      // e.g. IMAGE_QUALITY_REJECTED
+  message: string | null;    // bank-facing description
+  count: number;
+};
+
+export type ReportBreakdown = {
+  verdicts: ReportVerdictCount[];
+  failureReasons: ReportFailureReason[];
+  avgLatencyMs: number | null;
+  maxLatencyMs: number | null;
+  billableCount: number;
+  exceptionCount: number;
+};
+
 export type ReportSummary = {
   groupBy: "daily" | "monthly";
   from: string;
-  to: string;
+  to: string;                // inclusive
   rows: ReportRow[];
   totals: ReportTotals;
+  breakdown: ReportBreakdown;
 };
 
 export type ReportGroupBy = "daily" | "monthly";
+
+/** One transaction in the detailed report (no personal data). */
+export type ReportDetailRow = {
+  createdAt: string;
+  transactionId: string;
+  type: "FINGERPRINT" | "EXCEPTION";
+  status: TransactionStatus;
+  verdict: string | null;
+  errorCode: number | null;
+  error: string | null;
+  errorMessage: string | null;
+  exceptionReason: string | null;
+  exceptionNote: string | null;
+  deviceId: string | null;
+  deviceRegistered: boolean | null;
+  imageFormat: string | null;
+  imageNfiq2: number | null;
+  imageCheck: string | null;
+  latencyMs: number | null;
+  billable: boolean;
+  amountMinor: number | null;
+  currency: string | null;
+  apiKey: string | null;
+  providerRef: string | null;
+};
 
 export type BillingEvent = {
   id: string;

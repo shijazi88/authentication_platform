@@ -294,7 +294,7 @@
   },
   "reports": {
     "title": "Reports",
-    "subtitle": "Daily and monthly transaction reports with success rate, revenue, and CSV export.",
+    "subtitle": "Summary and per-transaction reports — results, failure reasons, response times and revenue. Export as CSV or PDF.",
     "groupBy": "Group by",
     "daily": "Daily",
     "monthly": "Monthly",
@@ -333,6 +333,43 @@
       "rejectRate": "Rejected %",
       "bands": "Score bands",
       "noData": "No fingerprint images in this range"
+    },
+    "reportType": "Report",
+    "summary": "Summary",
+    "details": "Transaction details",
+    "count": "Count",
+    "share": "Share",
+    "results": {
+      "title": "Verification results",
+      "subtitle": "Successful transactions by result.",
+      "notRecorded": "Not recorded"
+    },
+    "failures": {
+      "title": "Failure reasons",
+      "subtitle": "Failed transactions by response code, most frequent first.",
+      "code": "Code",
+      "reason": "Reason",
+      "none": "No failures in this range"
+    },
+    "perf": {
+      "avg": "Average response time",
+      "max": "Slowest response",
+      "charged": "Charged transactions",
+      "exceptions": "Fingerprint exceptions"
+    },
+    "detail": {
+      "title": "Transaction details",
+      "subtitle": "Every transaction in the range, oldest first. Click a row to open it. Exports include all rows.",
+      "time": "Time",
+      "transaction": "Transaction",
+      "type": "Type",
+      "fingerprint": "Fingerprint",
+      "exception": "Exception",
+      "code": "Response code",
+      "device": "Device",
+      "nfiq2": "NFIQ 2",
+      "latency": "Response",
+      "amount": "Amount"
     }
   },
   "billing": {

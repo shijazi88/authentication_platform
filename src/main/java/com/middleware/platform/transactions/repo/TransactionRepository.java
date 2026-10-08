@@ -125,6 +125,73 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
             """, nativeQuery = true)
     List<Object[]> imageQualityByTenantRaw(@Param("from") Instant from, @Param("to") Instant to);
 
+    /** Successful transactions per verdict for a tenant in [from, to). Columns: verdict (may be null), count. */
+    @Query(value = """
+            SELECT verdict, COUNT(*) AS cnt
+              FROM transactions
+             WHERE tenant_id = :tenantId
+               AND status = 'SUCCESS'
+               AND created_at >= :from
+               AND created_at <  :to
+             GROUP BY verdict
+             ORDER BY cnt DESC
+            """, nativeQuery = true)
+    List<Object[]> verdictBreakdownRaw(@Param("tenantId") String tenantId,
+                                       @Param("from") Instant from,
+                                       @Param("to") Instant to);
+
+    /**
+     * Failed transactions per error code for a tenant in [from, to), most frequent first.
+     * Columns: error_code (may be null), count, a sample error_message.
+     */
+    @Query(value = """
+            SELECT error_code, COUNT(*) AS cnt, MAX(error_message) AS sample
+              FROM transactions
+             WHERE tenant_id = :tenantId
+               AND status IN ('FAILED','TIMEOUT','REJECTED')
+               AND created_at >= :from
+               AND created_at <  :to
+             GROUP BY error_code
+             ORDER BY cnt DESC
+            """, nativeQuery = true)
+    List<Object[]> failureReasonsRaw(@Param("tenantId") String tenantId,
+                                     @Param("from") Instant from,
+                                     @Param("to") Instant to);
+
+    /**
+     * Response-time and billing figures for a tenant in [from, to), limited to the given statuses.
+     * Columns: avg latency ms, max latency ms, billable count, exception count.
+     */
+    @Query(value = """
+            SELECT AVG(latency_ms), MAX(latency_ms),
+                   COALESCE(SUM(CASE WHEN billable = 1 THEN 1 ELSE 0 END), 0),
+                   COALESCE(SUM(CASE WHEN is_exception = 1 THEN 1 ELSE 0 END), 0)
+              FROM transactions
+             WHERE tenant_id = :tenantId
+               AND status IN (:statuses)
+               AND created_at >= :from
+               AND created_at <  :to
+            """, nativeQuery = true)
+    List<Object[]> performanceRaw(@Param("tenantId") String tenantId,
+                                  @Param("statuses") List<String> statuses,
+                                  @Param("from") Instant from,
+                                  @Param("to") Instant to);
+
+    /** Per-transaction report rows for a tenant in [from, to), oldest first. */
+    @Query("""
+            select t from Transaction t
+             where t.tenantId = :tenantId
+               and t.status in :statuses
+               and t.createdAt >= :from
+               and t.createdAt <  :to
+             order by t.createdAt asc
+            """)
+    Page<Transaction> reportDetails(@Param("tenantId") UUID tenantId,
+                                    @Param("statuses") List<TransactionStatus> statuses,
+                                    @Param("from") Instant from,
+                                    @Param("to") Instant to,
+                                    Pageable pageable);
+
     @Query(value = """
             SELECT * FROM transactions
              WHERE LOWER(CAST(id AS CHAR)) LIKE LOWER(CONCAT(:q, '%'))

@@ -1,8 +1,11 @@
 import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
-import type { ImageQualityRow, ReportGroupBy, ReportSummary } from "@/types/api";
+import type { ImageQualityRow, Page, ReportDetailRow, ReportGroupBy, ReportSummary } from "@/types/api";
 
 export type StatusFilter = "ALL" | "SUCCESS" | "FAILED";
+
+/** What an export contains: a daily / monthly summary, or one row per transaction. */
+export type ReportKind = ReportGroupBy | "details";
 
 export interface ReportParams {
   tenantId: string;
@@ -21,6 +24,14 @@ export async function getMonthlyReport(params: ReportParams): Promise<ReportSumm
   return data;
 }
 
+/** One page of the per-transaction report (oldest first); `from`/`to` are inclusive. */
+export async function getReportDetails(
+  params: ReportParams & { page: number; size: number },
+): Promise<Page<ReportDetailRow>> {
+  const { data } = await api.get<Page<ReportDetailRow>>("/admin/reports/transactions/details", { params });
+  return data;
+}
+
 /** Fingerprint-quality figures per bank, inclusive date range (YYYY-MM-DD). */
 export async function getImageQualityReport(from: string, to: string): Promise<ImageQualityRow[]> {
   const { data } = await api.get<ImageQualityRow[]>("/admin/reports/image-quality", { params: { from, to } });
@@ -33,7 +44,7 @@ export async function getImageQualityReport(from: string, to: string): Promise<I
  * instance so dev (relative URLs + Vite proxy) and prod (VITE_API_URL) both
  * work without any per-call changes.
  */
-async function downloadBlob(path: string, params: ReportParams, ext: string): Promise<void> {
+async function downloadBlob(path: string, params: ReportParams, prefix: string, ext: string): Promise<void> {
   const base = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
   const token = useAuth.getState().token;
   const qs = new URLSearchParams({
@@ -51,7 +62,7 @@ async function downloadBlob(path: string, params: ReportParams, ext: string): Pr
 
   const blob = await response.blob();
   const blobUrl = URL.createObjectURL(blob);
-  const filename = `transactions-${params.from}-to-${params.to}.${ext}`;
+  const filename = `${prefix}-${params.from}-to-${params.to}.${ext}`;
   const a = document.createElement("a");
   a.href = blobUrl;
   a.download = filename;
@@ -61,10 +72,16 @@ async function downloadBlob(path: string, params: ReportParams, ext: string): Pr
   URL.revokeObjectURL(blobUrl);
 }
 
-export function downloadReportCsv(groupBy: ReportGroupBy, params: ReportParams) {
-  return downloadBlob(`/admin/reports/transactions/${groupBy}/export.csv`, params, "csv");
+const FILE_PREFIX: Record<ReportKind, string> = {
+  daily: "motabiq-transactions-daily",
+  monthly: "motabiq-transactions-monthly",
+  details: "motabiq-transaction-details",
+};
+
+export function downloadReportCsv(kind: ReportKind, params: ReportParams) {
+  return downloadBlob(`/admin/reports/transactions/${kind}/export.csv`, params, FILE_PREFIX[kind], "csv");
 }
 
-export function downloadReportPdf(groupBy: ReportGroupBy, params: ReportParams) {
-  return downloadBlob(`/admin/reports/transactions/${groupBy}/export.pdf`, params, "pdf");
+export function downloadReportPdf(kind: ReportKind, params: ReportParams) {
+  return downloadBlob(`/admin/reports/transactions/${kind}/export.pdf`, params, FILE_PREFIX[kind], "pdf");
 }

@@ -47,4 +47,13 @@ public enum ErrorCode {
     public int code() { return code; }
     public HttpStatus status() { return status; }
     public String defaultMessage() { return defaultMessage; }
+
+    /** The enum for a numeric code (as stored on transactions), or null if unknown. */
+    public static ErrorCode fromCode(Integer code) {
+        if (code == null) return null;
+        for (ErrorCode ec : values()) {
+            if (ec.code == code) return ec;
+        }
+        return null;
+    }
 }
