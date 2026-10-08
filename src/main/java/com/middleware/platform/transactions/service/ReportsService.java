@@ -152,8 +152,9 @@ public class ReportsService {
     @Transactional(readOnly = true)
     public void exportDetailsPdf(UUID tenantId, String tenantName, LocalDate from, LocalDate to,
                                  String statusFilter, String lang, OutputStream out) {
+        ReportSummary.Totals totals = daily(tenantId, from, to, statusFilter).totals();
         try (ReportPdfExporter.DetailsWriter pdf =
-                     pdfExporter.openDetails(tenantName, from.toString(), to.toString(), statusFilter, lang, out)) {
+                     pdfExporter.openDetails(tenantName, from, to, statusFilter, totals, lang, out)) {
             forEachDetailChunk(tenantId, from, to, statusFilter, pdf::addRows);
         }
     }
@@ -289,7 +290,8 @@ public class ReportsService {
             }
         }
         List<String> statusNames = statuses(statusFilter).stream().map(Enum::name).toList();
-        Object[] p = transactionRepository.performanceRaw(tid, statusNames, start(from), end(to)).get(0);
+        List<Object[]> perf = transactionRepository.performanceRaw(tid, statusNames, start(from), end(to));
+        Object[] p = perf.isEmpty() ? new Object[4] : perf.get(0);
         return new ReportSummary.Breakdown(verdicts, reasons,
                 p[0] == null ? null : Math.round(num(p[0]).doubleValue()),
                 p[1] == null ? null : num(p[1]).longValue(),

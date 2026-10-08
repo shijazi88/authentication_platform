@@ -84,19 +84,19 @@ class ReportsServiceTest {
     }
 
     @Test
-    @DisplayName("summary PDF: MOTABIQ branding, plain error names, Arabic client name, one page")
+    @DisplayName("summary PDF: report sections, plain error names, Arabic client name, page numbers")
     void summaryPdfBranding() throws Exception {
         stubSummary();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         service.exportDailyPdf(TENANT, "بنك القطيبي — Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
         String text = pdfText(out.toByteArray());
-        assertThat(text).contains("MOTABIQ — Transaction Report", "Failure reasons", "Verification results",
-                "motabiq.ai", "Times in UTC", "2026-10-01 → 2026-10-08", "Al-Qutaibi Bank",
-                "Verification service unavailable");
+        assertThat(text).contains("Verification Activity Report", "Executive summary", "Failure analysis",
+                "Verification results", "Definitions", "motabiq.ai", "1 Oct 2026 – 8 Oct 2026", "Al-Qutaibi Bank",
+                "Verification service unavailable", "Page 1 of", "Confidential");
         assertThat(text.toLowerCase()).doesNotContain("sannad").doesNotContain("sanad");
         // Arabic client names need the embedded Arabic-capable font even in English reports
         assertThat(new String(out.toByteArray(), StandardCharsets.ISO_8859_1)).contains("IBMPlexSansArabic");
-        assertThat(new PdfReader(out.toByteArray()).getNumberOfPages()).isEqualTo(1);
+        assertThat(new PdfReader(out.toByteArray()).getNumberOfPages()).isBetween(1, 3);
     }
 
     @Test
@@ -153,9 +153,9 @@ class ReportsServiceTest {
         assertThat(reader.getNumberOfPages()).isGreaterThan(10);
         assertThat(reader.getPageSizeWithRotation(1).getWidth()).isGreaterThan(reader.getPageSizeWithRotation(1).getHeight());
         PdfTextExtractor extractor = new PdfTextExtractor(reader);
-        assertThat(extractor.getTextFromPage(1)).contains("MOTABIQ — Transaction Details", "Time (UTC)");
+        assertThat(extractor.getTextFromPage(1)).contains("Transaction Detail Report", "Time (UTC)", "Page 1 of");
         String last = extractor.getTextFromPage(reader.getNumberOfPages());
-        assertThat(last).contains(all.get(2499).getId().toString(), "2500 transactions");
+        assertThat(last).contains(all.get(2499).getId().toString(), "2,500 transactions");
         // header repeats on continuation pages
         assertThat(extractor.getTextFromPage(2)).contains("Transaction ID");
         verify(transactions, times(3)).reportDetails(any(), any(), any(), any(), any());
@@ -167,7 +167,7 @@ class ReportsServiceTest {
         stubDetails(List.of());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         service.exportDetailsPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
-        assertThat(pdfText(out.toByteArray())).contains("No transactions in this range.");
+        assertThat(pdfText(out.toByteArray())).contains("No transactions in this period.");
     }
 
     // ---------------------------------------------------------------------
