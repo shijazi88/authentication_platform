@@ -27,6 +27,7 @@ import { PortalWalletPage } from "@/pages/portal/PortalWalletPage";
 import { PortalApiKeysPage } from "@/pages/portal/PortalApiKeysPage";
 import { PortalDevicesPage } from "@/pages/portal/PortalDevicesPage";
 import { PortalProfilePage } from "@/pages/portal/PortalProfilePage";
+import { PortalReportsPage } from "@/pages/portal/PortalReportsPage";
 
 export default function App() {
   return (
@@ -78,6 +79,7 @@ export default function App() {
       <Route path="/portal" element={<PortalLayout />}>
         <Route index element={<PortalDashboardPage />} />
         <Route path="transactions" element={<PortalTransactionsPage />} />
+        <Route path="reports" element={<PortalReportsPage />} />
         <Route path="subscriptions" element={<PortalSubscriptionsPage />} />
         <Route path="wallet" element={<PortalWalletPage />} />
         <Route path="api-keys" element={<PortalApiKeysPage />} />

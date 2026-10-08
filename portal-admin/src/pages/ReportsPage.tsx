@@ -30,13 +30,11 @@ import {
 import { toast } from "sonner";
 import { listTenants } from "@/api/tenants";
 import {
-  downloadReportCsv,
-  downloadReportPdf,
-  getDailyReport,
+  adminReportsApi,
   getImageQualityReport,
-  getMonthlyReport,
-  getReportDetails,
+  tenantReportsApi,
   type ReportKind,
+  type ReportsApi,
   type StatusFilter,
 } from "@/api/reports";
 import type { ReportGroupBy } from "@/types/api";
@@ -82,9 +80,20 @@ function isoFirstOfYear(): string {
 }
 
 export function ReportsPage() {
+  return <ReportsView scope="admin" />;
+}
+
+/**
+ * The Reports page. `admin`: any bank (bank picker) plus the cross-bank
+ * fingerprint-quality table. `tenant`: the bank's own portal — its own data
+ * only, amounts shown as "charged" rather than revenue.
+ */
+export function ReportsView({ scope }: { scope: "admin" | "tenant" }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
+  const isAdmin = scope === "admin";
+  const reportsApi: ReportsApi = isAdmin ? adminReportsApi : tenantReportsApi;
+  const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants, enabled: isAdmin });
 
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [reportType, setReportType] = useState<ReportType>("summary");
@@ -119,27 +128,27 @@ export function ReportsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupBy]);
 
+  // The bank portal is always scoped to the signed-in bank; the admin picks one.
+  const ready = (!isAdmin || !!tenantId) && !!from && !!to;
+  const params = { tenantId: tenantId ?? undefined, from, to, status: statusFilter };
+
   const reportQ = useQuery({
-    queryKey: ["reports", groupBy, tenantId, from, to, statusFilter],
-    queryFn: () => {
-      const params = { tenantId: tenantId!, from, to, status: statusFilter };
-      return groupBy === "daily" ? getDailyReport(params) : getMonthlyReport(params);
-    },
-    enabled: !!tenantId && !!from && !!to,
+    queryKey: ["reports", scope, groupBy, tenantId, from, to, statusFilter],
+    queryFn: () => reportsApi.summary(groupBy, params),
+    enabled: ready,
   });
 
   const detailsQ = useQuery({
-    queryKey: ["reports", "details", tenantId, from, to, statusFilter, page],
-    queryFn: () =>
-      getReportDetails({ tenantId: tenantId!, from, to, status: statusFilter, page, size: DETAILS_PAGE_SIZE }),
-    enabled: reportType === "details" && !!tenantId && !!from && !!to,
+    queryKey: ["reports", scope, "details", tenantId, from, to, statusFilter, page],
+    queryFn: () => reportsApi.details({ ...params, page, size: DETAILS_PAGE_SIZE }),
+    enabled: reportType === "details" && ready,
     placeholderData: (prev) => prev,
   });
 
   const qualityQ = useQuery({
     queryKey: ["reports", "image-quality", from, to],
     queryFn: () => getImageQualityReport(from, to),
-    enabled: !!from && !!to,
+    enabled: isAdmin && !!from && !!to,
   });
 
   const chartData = useMemo(
@@ -155,10 +164,10 @@ export function ReportsPage() {
   const exportKind: ReportKind = reportType === "details" ? "details" : groupBy;
 
   async function handleExportCsv() {
-    if (!tenantId) return;
+    if (!ready) return;
     setExporting(true);
     try {
-      await downloadReportCsv(exportKind, { tenantId, from, to, status: statusFilter });
+      await reportsApi.downloadCsv(exportKind, params);
       toast.success(t("reports.exportStarted"));
     } catch (e) {
       toast.error((e as Error).message);
@@ -168,10 +177,10 @@ export function ReportsPage() {
   }
 
   async function handleExportPdf() {
-    if (!tenantId) return;
+    if (!ready) return;
     setExporting(true);
     try {
-      await downloadReportPdf(exportKind, { tenantId, from, to, status: statusFilter });
+      await reportsApi.downloadPdf(exportKind, params);
       toast.success(t("reports.exportStarted"));
     } catch (e) {
       toast.error((e as Error).message);
@@ -189,13 +198,16 @@ export function ReportsPage() {
   const breakdown = reportQ.data?.breakdown;
   const totalPages = detailsQ.data?.totalPages ?? 0;
 
-  const canExport = !!tenantId && !!reportQ.data?.rows.length;
+  const canExport = ready && !!reportQ.data?.rows.length;
+  const filterCols = isAdmin
+    ? reportType === "summary" ? "md:grid-cols-6" : "md:grid-cols-5"
+    : reportType === "summary" ? "md:grid-cols-5" : "md:grid-cols-4";
 
   return (
     <div>
       <PageHeader
         title={t("reports.title")}
-        description={t("reports.subtitle")}
+        description={isAdmin ? t("reports.subtitle") : t("reports.tenantSubtitle")}
         actions={
           <>
             <Button
@@ -221,24 +233,24 @@ export function ReportsPage() {
 
       {/* Filter card */}
       <Card className="mb-6">
-        <CardBody
-          className={`grid grid-cols-1 gap-4 ${reportType === "summary" ? "md:grid-cols-6" : "md:grid-cols-5"}`}
-        >
-          <div>
-            <Label>{t("subscriptions.fields.tenant")}</Label>
-            <Select
-              value={tenantId}
-              onChange={setTenantId}
-              placeholder={t("common.selectTenant")}
-              options={
-                tenantsQ.data?.map((tenant) => ({
-                  value: tenant.id,
-                  label: tenant.legalName,
-                  description: tenant.code,
-                })) ?? []
-              }
-            />
-          </div>
+        <CardBody className={`grid grid-cols-1 gap-4 ${filterCols}`}>
+          {isAdmin && (
+            <div>
+              <Label>{t("subscriptions.fields.tenant")}</Label>
+              <Select
+                value={tenantId}
+                onChange={setTenantId}
+                placeholder={t("common.selectTenant")}
+                options={
+                  tenantsQ.data?.map((tenant) => ({
+                    value: tenant.id,
+                    label: tenant.legalName,
+                    description: tenant.code,
+                  })) ?? []
+                }
+              />
+            </div>
+          )}
           <div>
             <Label>{t("reports.reportType")}</Label>
             <Select<ReportType>
@@ -319,7 +331,7 @@ export function ReportsPage() {
           accentClass="from-accent-rose to-accent-amber"
         />
         <MetricCard
-          label={t("reports.metric.revenue")}
+          label={isAdmin ? t("reports.metric.revenue") : t("reports.metric.charged")}
           value={formatMoneyMinor(totals?.amountMinor ?? 0, totals?.currency || "YER")}
           icon={<TrendingUp className="h-4 w-4" />}
           accentClass="from-accent-amber to-accent-violet"
@@ -533,7 +545,8 @@ export function ReportsPage() {
             />
           </div>
 
-          {/* Fingerprint quality by bank (all clients, same date range) */}
+          {/* Fingerprint quality by bank (all clients, same date range) — admin only */}
+          {isAdmin && (
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>{t("reports.quality.title")}</CardTitle>
@@ -594,6 +607,7 @@ export function ReportsPage() {
               )}
             </CardBody>
           </Card>
+          )}
 
           {/* Detailed table */}
           <Card>
@@ -611,7 +625,7 @@ export function ReportsPage() {
                       <Th>{t("reports.totalTx")}</Th>
                       <Th>{t("reports.successCount")}</Th>
                       <Th>{t("reports.failedCount")}</Th>
-                      <Th>{t("reports.revenue")}</Th>
+                      <Th>{isAdmin ? t("reports.revenue") : t("reports.amount")}</Th>
                     </Tr>
                   </THead>
                   <TBody>
@@ -650,7 +664,7 @@ export function ReportsPage() {
               <CardTitle>{t("reports.detail.title")}</CardTitle>
             </CardHeader>
             <CardBody className="p-0">
-              <p className="px-4 pt-3 pb-2 text-xs text-text-muted">{t("reports.detail.subtitle")}</p>
+              <p className="px-4 pt-3 pb-2 text-xs text-text-muted">{isAdmin ? t("reports.detail.subtitle") : t("reports.detail.subtitleTenant")}</p>
               {detailsQ.isLoading ? (
                 <PageLoader />
               ) : (detailsQ.data?.content.length ?? 0) > 0 ? (
@@ -674,8 +688,8 @@ export function ReportsPage() {
                         {detailsQ.data!.content.map((row) => (
                           <Tr
                             key={row.transactionId}
-                            onClick={() => navigate(`/transactions/${row.transactionId}`)}
-                            className="cursor-pointer"
+                            onClick={isAdmin ? () => navigate(`/transactions/${row.transactionId}`) : undefined}
+                            className={isAdmin ? "cursor-pointer" : undefined}
                           >
                             <Td className="text-xs text-text-muted whitespace-nowrap">{formatDate(row.createdAt)}</Td>
                             <Td className="font-mono text-xs" title={row.transactionId}>

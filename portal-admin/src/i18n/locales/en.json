@@ -319,7 +319,8 @@
       "totalTx": "Total transactions",
       "success": "Successful",
       "failed": "Failed",
-      "revenue": "Revenue"
+      "revenue": "Revenue",
+      "charged": "Amount charged"
     },
     "quality": {
       "title": "Fingerprint quality by bank",
@@ -369,8 +370,11 @@
       "device": "Device",
       "nfiq2": "NFIQ 2",
       "latency": "Response",
-      "amount": "Amount"
-    }
+      "amount": "Amount",
+      "subtitleTenant": "Every transaction in the range, oldest first. Exports include all rows."
+    },
+    "tenantSubtitle": "Your verification activity — results, failure reasons, response times and amounts charged. Export as PDF or CSV.",
+    "amount": "Amount charged"
   },
   "billing": {
     "title": "Billing",
@@ -493,7 +497,8 @@
       "wallet": "Wallet",
       "apiKeys": "API Keys",
       "devices": "Devices",
-      "profile": "Profile"
+      "profile": "Profile",
+      "reports": "Reports"
     },
     "devices": {
       "search": "Search by name, model, type, or serial…",

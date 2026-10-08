@@ -24,6 +24,11 @@ export default defineConfig({
         target: "http://localhost:8080",
         changeOrigin: true,
       },
+      // Bank (tenant) portal API — nginx routes it in production.
+      "/portal-api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
       "/actuator": {
         target: "http://localhost:8080",
         changeOrigin: true,
