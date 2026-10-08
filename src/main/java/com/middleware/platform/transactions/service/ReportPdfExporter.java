@@ -33,11 +33,13 @@ import java.util.Map;
  * ({@link DetailsWriter}, A4 landscape, written in chunks).
  *
  * <p>Both come in English or Arabic ({@code lang} = "en" | "ar", following the
- * portal language). English uses the built-in Helvetica; Arabic embeds IBM Plex
- * Sans Arabic (SIL OFL — see resources/fonts/ibm-plex-sans-arabic) and lays
- * tables and text out right-to-left. OpenPDF shapes Arabic into the Unicode
- * presentation forms, so the font must map all of them (Cairo, the portal's
- * web font, does not — letters went missing).
+ * portal language). Both embed IBM Plex Sans Arabic (Latin + Arabic, SIL OFL —
+ * see resources/fonts/ibm-plex-sans-arabic), so Arabic client names render in
+ * English reports too; Arabic reports are laid out right-to-left. All text goes
+ * through table cells with an explicit run direction, because OpenPDF only
+ * applies bidi ordering and Arabic shaping there. It shapes Arabic into the
+ * Unicode presentation forms, so the font must map all of them (Cairo, the
+ * portal's web font, does not — letters went missing).
  *
  * <p>Uses OpenPDF (LGPL fork of iText 4.2).
  */
@@ -57,9 +59,8 @@ public class ReportPdfExporter {
             PdfWriter.getInstance(doc, out).setPageEvent(new Footer(st));
             doc.open();
 
-            addHeading(doc, st, st.t("title.summary"),
-                    st.t("client") + " " + tenantName + "  |  " + st.t(report.groupBy()) +
-                            "  |  " + st.range(report.from(), report.to()) +
+            addHeading(doc, st, st.t("title.summary"), tenantName,
+                    st.t(report.groupBy()) + "  |  " + st.range(report.from(), report.to()) +
                             "  |  " + st.t("status." + statusKey(statusFilter)) +
                             "  |  " + st.t("generated") + " " + generatedAt());
 
@@ -115,8 +116,6 @@ public class ReportPdfExporter {
 
             addBreakdown(doc, st, report.breakdown(), totals);
 
-            addText(doc, st, st.t("note"), st.note, 24, 0);
-
         } catch (DocumentException e) {
             throw new RuntimeException("Failed to generate PDF report", e);
         } finally {
@@ -155,11 +154,10 @@ public class ReportPdfExporter {
             try {
                 PdfWriter.getInstance(doc, out).setPageEvent(new Footer(st));
                 doc.open();
-                addHeading(doc, st, st.t("title.details"),
-                        st.t("client") + " " + tenantName + "  |  " + st.range(from, to) +
-                                "  |  " + st.t("status." + statusKey(statusFilter)) +
+                addHeading(doc, st, st.t("title.details"), tenantName,
+                        st.range(from, to) + "  |  " + st.t("status." + statusKey(statusFilter)) +
                                 "  |  " + st.t("generated") + " " + generatedAt());
-                setWidths(table, st, 1.7f, 3.1f, 1.1f, 1.0f, 1.5f, 0.6f, 2.6f, 1.6f, 0.7f, 0.7f, 1.1f);
+                setWidths(table, st, 1.6f, 3.1f, 1.0f, 0.8f, 1.4f, 0.55f, 2.3f, 2.4f, 0.7f, 0.9f, 0.95f);
                 table.setHeaderRows(1);
                 table.setComplete(false);
                 for (String c : COLUMNS) {
@@ -235,24 +233,19 @@ public class ReportPdfExporter {
 
     // ---------------------------------------------------------------------
 
-    private static void addHeading(Document doc, Style st, String title, String subtitle) throws DocumentException {
+    private static void addHeading(Document doc, Style st, String title, String tenantName, String meta)
+            throws DocumentException {
         addText(doc, st, title, st.title, 0, 4);
-        addText(doc, st, subtitle, st.subtitle, 0, 20);
+        addText(doc, st, st.t("client") + " " + tenantName, st.subtitle, 0, 0);
+        addText(doc, st, meta, st.subtitle, 0, 20);
     }
 
     /**
-     * A line of text. RTL text has to go through a table cell — OpenPDF only
-     * applies bidi ordering and Arabic shaping inside cells and ColumnText.
+     * A line of text, in a borderless one-cell table: OpenPDF only applies bidi
+     * ordering and Arabic shaping inside cells and ColumnText.
      */
     private static void addText(Document doc, Style st, String text, Font font, float before, float after)
             throws DocumentException {
-        if (!st.rtl) {
-            Paragraph p = new Paragraph(text, font);
-            p.setSpacingBefore(before);
-            p.setSpacingAfter(after);
-            doc.add(p);
-            return;
-        }
         PdfPTable t = table(st, 1);
         t.setSpacingBefore(before);
         t.setSpacingAfter(after);
@@ -309,7 +302,7 @@ public class ReportPdfExporter {
     private static PdfPTable table(Style st, int columns) {
         PdfPTable t = new PdfPTable(columns);
         t.setWidthPercentage(100);
-        if (st.rtl) t.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        t.setRunDirection(st.direction());
         return t;
     }
 
@@ -329,7 +322,7 @@ public class ReportPdfExporter {
 
     private static PdfPCell cell(Style st, String text, Font font) {
         PdfPCell c = new PdfPCell(new Phrase(text, font));
-        if (st.rtl) c.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        c.setRunDirection(st.direction());
         return c;
     }
 
@@ -375,7 +368,7 @@ public class ReportPdfExporter {
         return new DecimalFormat("#,##0.00").format(minor / 100.0) + " " + currency;
     }
 
-    /** Brand bottom-start and the page number bottom-end of every page. */
+    /** Brand + time-zone note bottom-start and the page number bottom-end of every page. */
     private static final class Footer extends PdfPageEventHelper {
         private final Style st;
 
@@ -384,8 +377,8 @@ public class ReportPdfExporter {
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
             float y = document.bottom() - 20;
-            int dir = st.rtl ? PdfWriter.RUN_DIRECTION_RTL : PdfWriter.RUN_DIRECTION_NO_BIDI;
-            Phrase brand = new Phrase(st.t("brand") + " · motabiq.ai", st.footer);
+            int dir = st.direction();
+            Phrase brand = new Phrase(st.t("brand") + " · motabiq.ai · " + st.t("utc"), st.footer);
             Phrase page = new Phrase(st.t("page") + " " + writer.getPageNumber(), st.footer);
             ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_LEFT,
                     st.rtl ? page : brand, document.left(), y, 0, dir, 0);
@@ -396,7 +389,7 @@ public class ReportPdfExporter {
 
     private static void addKpiCell(PdfPTable table, Style st, String label, String value) {
         PdfPCell cell = new PdfPCell();
-        if (st.rtl) cell.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        cell.setRunDirection(st.direction());
         cell.setBorder(0);
         cell.setPadding(8);
         cell.setBackgroundColor(new Color(248, 249, 252));
@@ -432,7 +425,7 @@ public class ReportPdfExporter {
         final boolean rtl;
         final Map<String, String> labels;
         final Font title, subtitle, section, header, cell, cellBold, smallHeader, smallCell, footer,
-                kpiLabel, kpiValue, revenue, note;
+                kpiLabel, kpiValue, revenue;
 
         private Style(boolean rtl, Map<String, String> labels, BaseFont regular, BaseFont bold) {
             this.rtl = rtl;
@@ -449,24 +442,27 @@ public class ReportPdfExporter {
             this.kpiLabel = font(regular, bold, 8, false, Color.GRAY);
             this.kpiValue = font(regular, bold, 14, true, BRAND_COLOR);
             this.revenue = font(regular, bold, 12, true, new Color(212, 160, 23));
-            this.note = font(regular, bold, 7, false, Color.GRAY);
         }
 
         private static Font font(BaseFont regular, BaseFont bold, float size, boolean isBold, Color color) {
-            if (regular == null) return new Font(Font.HELVETICA, size, isBold ? Font.BOLD : Font.NORMAL, color);
             return new Font(isBold ? bold : regular, size, Font.NORMAL, color);
+        }
+
+        /** OpenPDF run direction: bidi with an RTL or LTR base, never NO_BIDI (that skips Arabic shaping). */
+        int direction() {
+            return rtl ? PdfWriter.RUN_DIRECTION_RTL : PdfWriter.RUN_DIRECTION_LTR;
         }
 
         static Style of(String lang) {
             return "ar".equalsIgnoreCase(lang) ? Holder.AR : Holder.EN;
         }
 
-        /** Lazily built once; the Arabic style loads the embedded IBM Plex Sans Arabic font. */
+        /** Lazily built once; both languages embed IBM Plex Sans Arabic. */
         private static final class Holder {
-            static final Style EN = new Style(false, EN_LABELS, null, null);
-            static final Style AR = new Style(true, AR_LABELS,
-                    loadFont("fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.ttf"),
-                    loadFont("fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.ttf"));
+            static final BaseFont REGULAR = loadFont("fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Regular.ttf");
+            static final BaseFont BOLD = loadFont("fonts/ibm-plex-sans-arabic/IBMPlexSansArabic-Bold.ttf");
+            static final Style EN = new Style(false, EN_LABELS, REGULAR, BOLD);
+            static final Style AR = new Style(true, AR_LABELS, REGULAR, BOLD);
         }
 
         private static BaseFont loadFont(String resource) {
@@ -505,11 +501,10 @@ public class ReportPdfExporter {
             return named != null ? named : humanize(error);
         }
 
-        /** Failure-reasons row: English keeps the bank-facing sentence; Arabic shows the Arabic name. */
+        /** Failure-reasons row: the plain error name (same wording as the Support page). */
         String failureLabel(Integer code, String error, String message) {
             String name = errorName(code, error);
-            if (rtl || message == null) return name;
-            return name.isEmpty() ? message : name + " — " + message;
+            return name.isEmpty() && message != null ? message : name;
         }
     }
 
@@ -548,8 +543,7 @@ public class ReportPdfExporter {
             Map.entry("perf.max", "Slowest response"),
             Map.entry("perf.charged", "Charged transactions"),
             Map.entry("perf.exceptions", "Fingerprint exceptions"),
-            Map.entry("note", "\nThis report was generated automatically by the MOTABIQ platform (motabiq.ai). "
-                    + "Times are UTC. Use the transaction details report for a line-by-line listing."),
+            Map.entry("utc", "Times in UTC"),
             Map.entry("d.time", "Time (UTC)"),
             Map.entry("d.txid", "Transaction ID"),
             Map.entry("d.type", "Type"),
@@ -559,7 +553,7 @@ public class ReportPdfExporter {
             Map.entry("d.reason", "Reason"),
             Map.entry("d.device", "Device"),
             Map.entry("d.nfiq", "NFIQ 2"),
-            Map.entry("d.ms", "ms"),
+            Map.entry("d.ms", "Response (ms)"),
             Map.entry("d.amount", "Amount"),
             Map.entry("type.FINGERPRINT", "Fingerprint"),
             Map.entry("type.EXCEPTION", "Exception"),
@@ -572,7 +566,28 @@ public class ReportPdfExporter {
             Map.entry("verdict.MATCH", "Match"),
             Map.entry("verdict.NO_MATCH", "No match"),
             Map.entry("verdict.NO_VERIFICATION_POSSIBLE", "No biometric on file"),
-            Map.entry("verdict.EXEMPT", "Exempt (no fingerprint)"));
+            Map.entry("verdict.EXEMPT", "Exempt (no fingerprint)"),
+            // Plain error names — the Support page's playbook wording (portal-admin/src/data/errorPlaybook.ts)
+            Map.entry("err.1001", "Bad request"),
+            Map.entry("err.1002", "Validation failed / invalid biometrics"),
+            Map.entry("err.1003", "Fingerprint image quality rejected"),
+            Map.entry("err.1004", "Fingerprint image format rejected"),
+            Map.entry("err.1101", "Authentication required"),
+            Map.entry("err.1102", "Invalid credentials"),
+            Map.entry("err.1201", "Access denied (IP allow-list)"),
+            Map.entry("err.1202", "Not entitled by plan"),
+            Map.entry("err.1203", "PIN unlock required"),
+            Map.entry("err.1204", "Invalid PIN"),
+            Map.entry("err.1205", "Capture device not registered"),
+            Map.entry("err.1301", "National number not found"),
+            Map.entry("err.1302", "Fingerprint did not match the ID"),
+            Map.entry("err.1401", "Conflict"),
+            Map.entry("err.1402", "Quota / rate limit exceeded"),
+            Map.entry("err.1403", "Insufficient wallet balance"),
+            Map.entry("err.2001", "Internal server error"),
+            Map.entry("err.2101", "Verification service error"),
+            Map.entry("err.2102", "Verification service timed out"),
+            Map.entry("err.2103", "Verification service unavailable"));
 
     /** Arabic wording — status, verdict, exception and error names match the portal's ar.json / support playbook. */
     private static final Map<String, String> AR_LABELS = Map.ofEntries(
@@ -610,8 +625,7 @@ public class ReportPdfExporter {
             Map.entry("perf.max", "أبطأ استجابة"),
             Map.entry("perf.charged", "المعاملات المحتسبة"),
             Map.entry("perf.exceptions", "استثناءات البصمة"),
-            Map.entry("note", "أُنشئ هذا التقرير تلقائيًا بواسطة منصة مطابق (motabiq.ai). الأوقات بتوقيت UTC. "
-                    + "للاطلاع على كل معاملة على حدة استخدم تقرير تفاصيل المعاملات."),
+            Map.entry("utc", "الأوقات بتوقيت UTC"),
             Map.entry("d.time", "الوقت (UTC)"),
             Map.entry("d.txid", "رقم المعاملة"),
             Map.entry("d.type", "النوع"),
@@ -621,7 +635,7 @@ public class ReportPdfExporter {
             Map.entry("d.reason", "السبب"),
             Map.entry("d.device", "الجهاز"),
             Map.entry("d.nfiq", "NFIQ 2"),
-            Map.entry("d.ms", "ms"),
+            Map.entry("d.ms", "الاستجابة (ms)"),
             Map.entry("d.amount", "المبلغ"),
             Map.entry("type.FINGERPRINT", "بصمة"),
             Map.entry("type.EXCEPTION", "استثناء"),

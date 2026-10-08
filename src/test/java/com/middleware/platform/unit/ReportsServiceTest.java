@@ -84,15 +84,19 @@ class ReportsServiceTest {
     }
 
     @Test
-    @DisplayName("summary PDF is branded MOTABIQ, never Sannad, and carries the breakdown")
+    @DisplayName("summary PDF: MOTABIQ branding, plain error names, Arabic client name, one page")
     void summaryPdfBranding() throws Exception {
         stubSummary();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        service.exportDailyPdf(TENANT, "Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
+        service.exportDailyPdf(TENANT, "بنك القطيبي — Al-Qutaibi Bank", FROM, TO, "ALL", "en", out);
         String text = pdfText(out.toByteArray());
         assertThat(text).contains("MOTABIQ — Transaction Report", "Failure reasons", "Verification results",
-                "motabiq.ai", "2026-10-01 → 2026-10-08");
+                "motabiq.ai", "Times in UTC", "2026-10-01 → 2026-10-08", "Al-Qutaibi Bank",
+                "Verification service unavailable");
         assertThat(text.toLowerCase()).doesNotContain("sannad").doesNotContain("sanad");
+        // Arabic client names need the embedded Arabic-capable font even in English reports
+        assertThat(new String(out.toByteArray(), StandardCharsets.ISO_8859_1)).contains("IBMPlexSansArabic");
+        assertThat(new PdfReader(out.toByteArray()).getNumberOfPages()).isEqualTo(1);
     }
 
     @Test
