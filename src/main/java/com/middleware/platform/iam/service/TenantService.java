@@ -112,6 +112,18 @@ public class TenantService {
     }
 
     /**
+     * Unlimited wallet: verifications are never rejected for insufficient
+     * balance; charges are still debited, so the balance may go negative.
+     */
+    @Transactional
+    public TenantResponse setWalletPolicy(UUID tenantId, boolean unlimited) {
+        Tenant t = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> ApplicationException.notFound("Tenant"));
+        t.setWalletUnlimited(unlimited);
+        return TenantResponse.from(t);
+    }
+
+    /**
      * Sets the tenant's source-IP policy. RESTRICTED requires at least one
      * valid IPv4 / CIDR entry; ALL clears the stored list.
      */

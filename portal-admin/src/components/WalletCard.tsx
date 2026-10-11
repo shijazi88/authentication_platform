@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Wallet as WalletIcon, Plus, ArrowDownRight, ArrowUpRight, Check, X } from "lucide-react";
+import { Wallet as WalletIcon, Plus, ArrowDownRight, ArrowUpRight, Check, X, Infinity as InfinityIcon } from "lucide-react";
 import {
   getWallet,
   getWalletLedger,
@@ -10,6 +10,7 @@ import {
   listTopUpRequests,
   approveTopUpRequest,
   rejectTopUpRequest,
+  setWalletUnlimited,
 } from "@/api/wallet";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -80,6 +81,17 @@ export function WalletCard({ tenantId }: { tenantId: string }) {
   });
 
   const balance = walletQ.data?.balanceMinor ?? 0;
+  const unlimited = walletQ.data?.unlimited ?? false;
+
+  const unlimitedMut = useMutation({
+    mutationFn: (on: boolean) => setWalletUnlimited(tenantId, on),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["wallet", tenantId] });
+      qc.invalidateQueries({ queryKey: ["tenant", tenantId] });
+      toast.success(t("wallet.unlimited.updated"));
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.message ?? t("wallet.error")),
+  });
 
   return (
     <Card>
@@ -100,11 +112,38 @@ export function WalletCard({ tenantId }: { tenantId: string }) {
         )}
       </CardHeader>
       <CardBody>
-        <div className="mb-1 text-xs text-text-muted">{t("wallet.balance")}</div>
-        <div
-          className={`text-3xl font-bold ${balance <= 0 ? "text-accent-rose" : "text-text"}`}
-        >
-          {formatMoneyMinor(balance, currency)}
+        <div className="mb-1 text-xs text-text-muted">
+          {balance < 0 ? t("wallet.owed") : t("wallet.balance")}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className={`text-3xl font-bold ${balance <= 0 ? "text-accent-rose" : "text-text"}`}>
+            {formatMoneyMinor(balance, currency)}
+          </div>
+          {unlimited && <Badge tone="violet">{t("wallet.unlimited.badge")}</Badge>}
+        </div>
+
+        {/* Unlimited balance: the service never stops; charges continue and may take the balance negative. */}
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-bg-elevated/40 border border-border/10 p-3">
+          <div className="flex items-start gap-2">
+            <InfinityIcon className="h-4 w-4 text-text-muted mt-0.5" />
+            <div>
+              <div className="text-sm font-medium">{t("wallet.unlimited.title")}</div>
+              <div className="text-xs text-text-muted">{t("wallet.unlimited.hint")}</div>
+            </div>
+          </div>
+          <Button
+            variant={unlimited ? "primary" : "outline"}
+            size="sm"
+            disabled={!canManage || walletQ.isLoading}
+            loading={unlimitedMut.isPending}
+            onClick={() => {
+              if (confirm(t(unlimited ? "wallet.unlimited.confirmOff" : "wallet.unlimited.confirmOn"))) {
+                unlimitedMut.mutate(!unlimited);
+              }
+            }}
+          >
+            {unlimited ? t("wallet.unlimited.on") : t("wallet.unlimited.off")}
+          </Button>
         </div>
 
         {pending.length > 0 && (

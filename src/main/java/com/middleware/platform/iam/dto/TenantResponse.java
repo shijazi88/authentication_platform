@@ -20,6 +20,8 @@ public record TenantResponse(
         List<String> ipAllowlist,
         /** Bank-specific minimum NFIQ 2 score; null = platform default. */
         Integer minNfiq2,
+        /** Service never stops for lack of balance; the wallet may go negative. */
+        boolean walletUnlimited,
         Instant createdAt
 ) {
     public static TenantResponse from(Tenant t) {
@@ -33,6 +35,7 @@ public record TenantResponse(
                 t.getIpPolicy() == null ? IpPolicy.ALL : t.getIpPolicy(),
                 IpAllowlist.parse(t.getIpAllowlist()),
                 t.getMinNfiq2(),
+                t.isWalletUnlimited(),
                 t.getCreatedAt()
         );
     }

@@ -73,6 +73,8 @@ export type Wallet = {
   balanceMinor: number;
   currency: string;
   lowBalanceThresholdMinor: number | null;
+  /** Service never stops for lack of balance; a negative balance is the amount owed. */
+  unlimited: boolean;
   updatedAt: string;
 };
 
@@ -117,6 +119,8 @@ export type Tenant = {
   contactEmail: string | null;
   status: TenantStatus;
   requireEncryptedPii: boolean;
+  /** Service never stops for lack of balance; the wallet may go negative (amount owed). */
+  walletUnlimited: boolean;
   /** Source-IP policy for the bank API: ALL, or RESTRICTED to ipAllowlist. */
   ipPolicy: IpPolicy;
   ipAllowlist: string[];

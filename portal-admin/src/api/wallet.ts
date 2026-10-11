@@ -61,3 +61,11 @@ export async function rejectTopUpRequest(
   );
   return data;
 }
+
+/**
+ * Unlimited wallet: verifications are never rejected for insufficient balance;
+ * charges are still debited, so the balance may go negative. SUPER_ADMIN / FINANCE.
+ */
+export async function setWalletUnlimited(tenantId: string, unlimited: boolean): Promise<void> {
+  await api.put(`/admin/tenants/${tenantId}/wallet-policy?unlimited=${unlimited}`);
+}

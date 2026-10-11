@@ -170,7 +170,8 @@ public class TenantPortalController {
 
     @GetMapping("/wallet")
     public WalletResponse wallet() {
-        return WalletResponse.from(walletService.getOrCreate(CurrentTenant.id(), "YER"));
+        return WalletResponse.from(walletService.getOrCreate(CurrentTenant.id(), "YER"),
+                walletService.isUnlimited(CurrentTenant.id()));
     }
 
     @PostMapping("/wallet/topup-request")

@@ -171,7 +171,8 @@ public class ClientCredentialsAuthFilter extends OncePerRequestFilter {
                 principal, null, List.of(new SimpleGrantedAuthority("ROLE_TENANT")));
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        TenantContext.set(new TenantContext.TenantInfo(tenant.getId(), tenant.getCode(), cred.getId()));
+        TenantContext.set(new TenantContext.TenantInfo(tenant.getId(), tenant.getCode(), cred.getId(),
+                tenant.isWalletUnlimited()));
 
         // Off-the-hot-path: an async listener will UPDATE last_used_at.
         eventPublisher.publishEvent(new CredentialUsedEvent(cred.getId(), Instant.now()));

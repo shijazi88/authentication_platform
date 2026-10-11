@@ -37,7 +37,7 @@ public class WalletAdminController {
     @GetMapping("/{tenantId}")
     public WalletResponse get(@PathVariable UUID tenantId) {
         // getOrCreate so a tenant onboarded after the V11 backfill still resolves.
-        return WalletResponse.from(walletService.getOrCreate(tenantId, "YER"));
+        return WalletResponse.from(walletService.getOrCreate(tenantId, "YER"), walletService.isUnlimited(tenantId));
     }
 
     @GetMapping("/{tenantId}/ledger")
@@ -55,7 +55,7 @@ public class WalletAdminController {
                                 Authentication authentication) {
         return WalletResponse.from(walletService.credit(
                 tenantId, req.amountMinor(), WalletEntrySource.ADMIN,
-                null, req.note(), authentication.getName()));
+                null, req.note(), authentication.getName()), walletService.isUnlimited(tenantId));
     }
 
     // ── Client top-up requests ────────────────────────────────────────────────

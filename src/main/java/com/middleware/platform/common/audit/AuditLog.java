@@ -27,7 +27,7 @@ public class AuditLog {
     @Column(name = "actor_email", length = 255)
     private String actorEmail;
 
-    @Column(name = "action", nullable = false, length = 64)
+    @Column(name = "action", nullable = false, length = 255)
     private String action;
 
     @Column(name = "target_type", nullable = false, length = 64)

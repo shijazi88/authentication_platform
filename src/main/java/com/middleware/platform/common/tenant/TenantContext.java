@@ -23,5 +23,6 @@ public final class TenantContext {
 
     public static void clear() { CURRENT.remove(); }
 
-    public record TenantInfo(UUID tenantId, String tenantName, UUID credentialId) {}
+    /** @param walletUnlimited the service never stops for lack of wallet balance (balance may go negative) */
+    public record TenantInfo(UUID tenantId, String tenantName, UUID credentialId, boolean walletUnlimited) {}
 }

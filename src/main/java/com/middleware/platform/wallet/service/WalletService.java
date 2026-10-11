@@ -2,6 +2,8 @@ package com.middleware.platform.wallet.service;
 
 import com.middleware.platform.common.error.ApplicationException;
 import com.middleware.platform.common.error.ErrorCode;
+import com.middleware.platform.iam.domain.Tenant;
+import com.middleware.platform.iam.repo.TenantRepository;
 import com.middleware.platform.wallet.domain.TenantWallet;
 import com.middleware.platform.wallet.domain.WalletEntrySource;
 import com.middleware.platform.wallet.domain.WalletEntryType;
@@ -32,6 +34,7 @@ public class WalletService {
 
     private final TenantWalletRepository wallets;
     private final WalletLedgerRepository ledger;
+    private final TenantRepository tenants;
 
     @Transactional
     public TenantWallet getOrCreate(UUID tenantId, String currency) {
@@ -74,6 +77,12 @@ public class WalletService {
         }
     }
 
+    /** Whether the tenant's wallet is unlimited (the service never stops for lack of balance). */
+    @Transactional(readOnly = true)
+    public boolean isUnlimited(UUID tenantId) {
+        return tenants.findById(tenantId).map(Tenant::isWalletUnlimited).orElse(false);
+    }
+
     /**
      * Atomically debit the wallet for a transaction (the "reserve" before the
      * connector call). Idempotent on the transaction id. Throws
@@ -81,6 +90,17 @@ public class WalletService {
      */
     @Transactional
     public TenantWallet reserve(UUID tenantId, long amountMinor, String currency, UUID transactionId) {
+        return reserve(tenantId, amountMinor, currency, transactionId, false);
+    }
+
+    /**
+     * As {@link #reserve(UUID, long, String, UUID)}; with {@code allowNegative}
+     * (unlimited wallet) the amount is debited even when the balance can't
+     * cover it, so the balance may go below zero — the charge is never skipped.
+     */
+    @Transactional
+    public TenantWallet reserve(UUID tenantId, long amountMinor, String currency, UUID transactionId,
+                                boolean allowNegative) {
         if (amountMinor <= 0) return getOrCreate(tenantId, currency);
         String ref = transactionId.toString();
         if (ledger.existsByReferenceAndEntryType(ref, WalletEntryType.DEBIT)) {
@@ -89,7 +109,7 @@ public class WalletService {
         getOrCreate(tenantId, currency);
         TenantWallet w = wallets.findByTenantIdForUpdate(tenantId)
                 .orElseThrow(() -> new ApplicationException(ErrorCode.NOT_FOUND, "Wallet not found"));
-        if (w.getBalanceMinor() < amountMinor) {
+        if (!allowNegative && w.getBalanceMinor() < amountMinor) {
             throw new ApplicationException(ErrorCode.INSUFFICIENT_FUNDS,
                     "Wallet balance is insufficient for this transaction");
         }

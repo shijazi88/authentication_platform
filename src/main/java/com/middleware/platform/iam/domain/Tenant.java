@@ -51,6 +51,13 @@ public class Tenant {
     @Column(name = "min_nfiq2")
     private Integer minNfiq2;
 
+    /**
+     * When true the service never stops for lack of wallet balance: charges are
+     * still debited and the balance may go negative (the amount owed).
+     */
+    @Column(name = "wallet_unlimited", nullable = false)
+    private boolean walletUnlimited;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 

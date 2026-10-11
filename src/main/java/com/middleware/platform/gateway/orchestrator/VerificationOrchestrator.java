@@ -150,8 +150,10 @@ public class VerificationOrchestrator {
             throw new ApplicationException(ErrorCode.DEVICE_NOT_ALLOWED, ErrorCode.DEVICE_NOT_ALLOWED.defaultMessage());
         }
 
-        // Prepaid gate: fail fast if the wallet clearly can't cover the call.
-        if (prepaidEnforced) {
+        // Prepaid gate: fail fast if the wallet clearly can't cover the call —
+        // unless the tenant's wallet is unlimited (service never stops; may go negative).
+        boolean unlimitedWallet = tenant.walletUnlimited();
+        if (prepaidEnforced && !unlimitedWallet) {
             try {
                 walletService.assertCanDebit(tenant.tenantId(), entitlement.unitPriceMinor());
             } catch (ApplicationException ex) {
@@ -192,7 +194,7 @@ public class VerificationOrchestrator {
         if (prepaidEnforced) {
             try {
                 walletService.reserve(tenant.tenantId(), entitlement.unitPriceMinor(),
-                        entitlement.currency(), tx.getId());
+                        entitlement.currency(), tx.getId(), unlimitedWallet);
             } catch (ApplicationException ex) {
                 transactionService.completeFailed(tx, ErrorCode.INSUFFICIENT_FUNDS, ex.getMessage(),
                         canonicalRequestPayload, errorBody(ErrorCode.INSUFFICIENT_FUNDS, ex.getMessage()),

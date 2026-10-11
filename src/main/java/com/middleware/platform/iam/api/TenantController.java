@@ -11,6 +11,7 @@ import com.middleware.platform.iam.service.TenantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,6 +49,16 @@ public class TenantController {
     @PutMapping("/{id}/encryption-policy")
     public TenantResponse setEncryptionPolicy(@PathVariable UUID id, @RequestParam boolean required) {
         return tenantService.setEncryptionPolicy(id, required);
+    }
+
+    /**
+     * Unlimited wallet: the service never stops when the balance runs out —
+     * each charge is still debited and the balance may go negative.
+     */
+    @PutMapping("/{id}/wallet-policy")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','FINANCE')")
+    public TenantResponse setWalletPolicy(@PathVariable UUID id, @RequestParam boolean unlimited) {
+        return tenantService.setWalletPolicy(id, unlimited);
     }
 
     /** Approve which source IPs may call the bank API: ALL, or a RESTRICTED list. */

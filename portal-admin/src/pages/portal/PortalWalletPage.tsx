@@ -59,10 +59,13 @@ export function PortalWalletPage() {
       <Card>
         <CardBody className="p-6 flex items-start justify-between gap-4">
           <div>
-            <div className="text-xs text-text-muted mb-1">{t("wallet.balance")}</div>
+            <div className="text-xs text-text-muted mb-1">{balance < 0 ? t("wallet.owed") : t("wallet.balance")}</div>
             <div className={`text-4xl font-bold ${balance <= 0 ? "text-accent-rose" : ""}`}>
               {formatMoneyMinor(balance, currency)}
             </div>
+            {walletQ.data?.unlimited && (
+              <div className="mt-3 text-xs text-text-muted max-w-md">{t("wallet.unlimited.portalNote")}</div>
+            )}
             <p className="text-xs text-text-dim mt-2">{t("portal.topup.hint")}</p>
           </div>
           <Button leftIcon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>

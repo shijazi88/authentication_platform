@@ -664,6 +664,18 @@
       "DEBIT": "Charge",
       "REVERSAL": "Refund",
       "ADJUSTMENT": "Adjustment"
+    },
+    "owed": "Balance (amount owed)",
+    "unlimited": {
+      "badge": "Unlimited",
+      "title": "Unlimited balance",
+      "hint": "The service never stops when the balance runs out. Each verification is still charged, so the balance can go negative — that is the amount owed.",
+      "on": "Enabled",
+      "off": "Off",
+      "updated": "Wallet setting updated",
+      "confirmOn": "Enable unlimited balance? Verifications will continue when the balance runs out and the balance can go negative.",
+      "confirmOff": "Turn off unlimited balance? Verifications will be rejected again when the balance can't cover them.",
+      "portalNote": "Unlimited balance is enabled for your account: your service continues when the balance runs out. Charges are still recorded, and a negative balance is the amount due."
     }
   },
   "users": {
