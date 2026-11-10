@@ -543,3 +543,53 @@ export type MoiApiCallDetail = MoiApiCallSummary & {
   responseBodyJson: string | null;
 };
 
+
+// ── Support tickets ─────────────────────────────────────────────────────────
+
+export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING_ON_CLIENT" | "RESOLVED" | "CLOSED";
+export type TicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
+export type TicketCategory = "VERIFICATION" | "BILLING" | "INTEGRATION" | "ACCOUNT" | "OTHER";
+export type TicketAuthorType = "CLIENT" | "STAFF";
+
+export const TICKET_STATUSES: TicketStatus[] = ["OPEN", "IN_PROGRESS", "WAITING_ON_CLIENT", "RESOLVED", "CLOSED"];
+export const TICKET_PRIORITIES: TicketPriority[] = ["LOW", "NORMAL", "HIGH", "URGENT"];
+export const TICKET_CATEGORIES: TicketCategory[] = ["VERIFICATION", "BILLING", "INTEGRATION", "ACCOUNT", "OTHER"];
+
+export type TicketMessage = {
+  id: string;
+  authorType: TicketAuthorType;
+  /** Null in the client view for staff messages. */
+  authorEmail: string | null;
+  body: string;
+  internal: boolean;
+  createdAt: string;
+};
+
+export type Ticket = {
+  id: string;
+  ticketNo: number;
+  tenantId: string;
+  /** Admin side only. */
+  tenantName: string | null;
+  subject: string;
+  category: TicketCategory;
+  priority: TicketPriority;
+  status: TicketStatus;
+  reference: string | null;
+  createdBy: string;
+  /** Admin side only. */
+  assignedTo: string | null;
+  lastMessageAt: string;
+  lastMessageBy: TicketAuthorType;
+  createdAt: string;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  /** Filled on the detail endpoints, null in lists. */
+  messages: TicketMessage[] | null;
+};
+
+export type TicketCounts = {
+  needsReply: number;
+  active: number;
+  byStatus: Record<TicketStatus, number>;
+};

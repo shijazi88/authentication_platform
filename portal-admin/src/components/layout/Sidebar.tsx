@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
@@ -11,11 +12,13 @@ import {
   BarChart3,
   Users,
   LifeBuoy,
+  Inbox,
   Settings,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useAuth } from "@/lib/auth";
 import { canAccess } from "@/lib/access";
+import { getTicketCounts } from "@/api/tickets";
 
 const navItems = [
   { to: "/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard, end: true },
@@ -28,6 +31,7 @@ const navItems = [
   { to: "/billing", labelKey: "nav.billing", icon: Receipt },
   { to: "/users", labelKey: "nav.users", icon: Users },
   { to: "/settings", labelKey: "nav.settings", icon: Settings },
+  { to: "/tickets", labelKey: "nav.tickets", icon: Inbox },
   { to: "/support", labelKey: "nav.support", icon: LifeBuoy },
 ];
 
@@ -35,6 +39,14 @@ export function Sidebar() {
   const { t } = useTranslation();
   const role = useAuth((s) => s.role);
   const visibleItems = navItems.filter((item) => canAccess(role, item.to));
+  // Tickets waiting on the support team — shown as a count on the nav item.
+  const countsQ = useQuery({
+    queryKey: ["ticket-counts"],
+    queryFn: getTicketCounts,
+    enabled: canAccess(role, "/tickets"),
+    refetchInterval: 60_000,
+  });
+  const needsReply = countsQ.data?.needsReply ?? 0;
 
   return (
     <aside className="w-64 shrink-0 h-screen sticky top-0 glass border-e border-border/10 flex flex-col">
@@ -85,6 +97,11 @@ export function Sidebar() {
                   )}
                 />
                 <span>{t(labelKey)}</span>
+                {to === "/tickets" && needsReply > 0 && (
+                  <span className="ms-auto min-w-5 h-5 px-1.5 rounded-full bg-accent-amber/20 text-accent-amber text-[10px] font-semibold flex items-center justify-center">
+                    {needsReply}
+                  </span>
+                )}
               </>
             )}
           </NavLink>

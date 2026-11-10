@@ -1,6 +1,9 @@
 import { tenantApi } from "@/lib/tenantApi";
 import type {
   FingerprintDevice,
+  Ticket,
+  TicketCategory,
+  TicketPriority,
   WalletTopUpRequest,
   Subscription,
   Transaction,
@@ -229,5 +232,38 @@ export async function requestTopUp(amountMinor: number, note?: string): Promise<
 
 export async function listMyTopUpRequests(): Promise<WalletTopUpRequest[]> {
   const { data } = await tenantApi.get<WalletTopUpRequest[]>("/portal-api/wallet/topup-requests");
+  return data;
+}
+
+// ── Support tickets (client opens and replies, support team answers) ────────
+
+export async function listMyTickets(): Promise<Ticket[]> {
+  const { data } = await tenantApi.get<Ticket[]>("/portal-api/tickets");
+  return data;
+}
+
+export async function createTicket(body: {
+  subject: string;
+  category: TicketCategory;
+  priority?: TicketPriority;
+  reference?: string;
+  message: string;
+}): Promise<Ticket> {
+  const { data } = await tenantApi.post<Ticket>("/portal-api/tickets", body);
+  return data;
+}
+
+export async function getMyTicket(id: string): Promise<Ticket> {
+  const { data } = await tenantApi.get<Ticket>(`/portal-api/tickets/${id}`);
+  return data;
+}
+
+export async function replyToMyTicket(id: string, message: string): Promise<Ticket> {
+  const { data } = await tenantApi.post<Ticket>(`/portal-api/tickets/${id}/messages`, { message });
+  return data;
+}
+
+export async function resolveMyTicket(id: string): Promise<Ticket> {
+  const { data } = await tenantApi.post<Ticket>(`/portal-api/tickets/${id}/resolve`);
   return data;
 }

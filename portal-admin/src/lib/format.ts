@@ -1,4 +1,5 @@
 import { format, formatDistanceToNow, parseISO } from "date-fns";
+import { ar } from "date-fns/locale";
 
 /**
  * Active locale, derived from the <html lang="…"> attribute that the prefs
@@ -52,7 +53,8 @@ export function formatDate(iso: string | Date | null | undefined) {
 export function formatRelative(iso: string | Date | null | undefined) {
   if (!iso) return "—";
   const d = typeof iso === "string" ? parseISO(iso) : iso;
-  return formatDistanceToNow(d, { addSuffix: true });
+  const lang = typeof document === "undefined" ? "en" : document.documentElement.lang;
+  return formatDistanceToNow(d, { addSuffix: true, locale: lang === "ar" ? ar : undefined });
 }
 
 export function shortId(id: string | null | undefined, len = 8) {

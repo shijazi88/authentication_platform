@@ -16,6 +16,8 @@ import { BillingPage } from "@/pages/BillingPage";
 import { ReportsPage } from "@/pages/ReportsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { SupportPage } from "@/pages/SupportPage";
+import { TicketsPage } from "@/pages/TicketsPage";
+import { TicketDetailPage } from "@/pages/TicketDetailPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { PinGate } from "@/components/PinGate";
 import { PortalLayout } from "@/pages/portal/PortalLayout";
@@ -28,6 +30,8 @@ import { PortalApiKeysPage } from "@/pages/portal/PortalApiKeysPage";
 import { PortalDevicesPage } from "@/pages/portal/PortalDevicesPage";
 import { PortalProfilePage } from "@/pages/portal/PortalProfilePage";
 import { PortalReportsPage } from "@/pages/portal/PortalReportsPage";
+import { PortalSupportPage } from "@/pages/portal/PortalSupportPage";
+import { PortalTicketPage } from "@/pages/portal/PortalTicketPage";
 
 export default function App() {
   return (
@@ -71,6 +75,8 @@ export default function App() {
         <Route path="billing" element={<BillingPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="tickets" element={<TicketsPage />} />
+        <Route path="tickets/:id" element={<TicketDetailPage />} />
         <Route path="support" element={<SupportPage />} />
       </Route>
 
@@ -84,6 +90,8 @@ export default function App() {
         <Route path="wallet" element={<PortalWalletPage />} />
         <Route path="api-keys" element={<PortalApiKeysPage />} />
         <Route path="devices" element={<PortalDevicesPage />} />
+        <Route path="support" element={<PortalSupportPage />} />
+        <Route path="support/:id" element={<PortalTicketPage />} />
         <Route path="profile" element={<PortalProfilePage />} />
       </Route>
 

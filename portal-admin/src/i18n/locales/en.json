@@ -64,7 +64,8 @@
     "billing": "Billing",
     "users": "Users",
     "support": "Support",
-    "settings": "Settings"
+    "settings": "Settings",
+    "tickets": "Tickets"
   },
   "topbar": {
     "searchPlaceholder": "Search clients, transactions…",
@@ -498,7 +499,8 @@
       "apiKeys": "API Keys",
       "devices": "Devices",
       "profile": "Profile",
-      "reports": "Reports"
+      "reports": "Reports",
+      "support": "Support"
     },
     "devices": {
       "search": "Search by name, model, type, or serial…",
@@ -628,6 +630,59 @@
       "passwordMismatch": "Passwords do not match.",
       "passwordChanged": "Password changed",
       "passwordError": "Could not change password. Check your current password."
+    },
+    "tickets": {
+      "subtitle": "Need help? Open a ticket and our support team will reply here.",
+      "new": "New ticket",
+      "submit": "Send ticket",
+      "dialogHint": "Tell us what happened. The more detail you give, the faster we can help.",
+      "created": "Ticket #{{no}} sent. We'll reply here.",
+      "updated": "Updated",
+      "opened": "Opened",
+      "you": "You",
+      "supportTeam": "MOTABIQ Support",
+      "backToList": "All tickets",
+      "markSolved": "Mark as solved",
+      "markedSolved": "Marked as solved. Thank you!",
+      "replyPlaceholder": "Write a reply…",
+      "sendReply": "Send reply",
+      "replySent": "Reply sent",
+      "solvedNote": "This ticket is marked as solved. If you still need help, reply below and it will reopen.",
+      "closedNote": "This ticket is closed. If you need more help, please open a new ticket.",
+      "status": {
+        "OPEN": "Open",
+        "IN_PROGRESS": "In progress",
+        "WAITING_ON_CLIENT": "Awaiting your reply",
+        "RESOLVED": "Solved",
+        "CLOSED": "Closed"
+      },
+      "priority": {
+        "LOW": "Low — a question, no rush",
+        "NORMAL": "Normal",
+        "HIGH": "High — affecting our work",
+        "URGENT": "Urgent — service is stopped"
+      },
+      "category": {
+        "VERIFICATION": "Identity verification",
+        "BILLING": "Wallet & billing",
+        "INTEGRATION": "Connecting our systems",
+        "ACCOUNT": "Account & access",
+        "OTHER": "Something else"
+      },
+      "fields": {
+        "subject": "Subject",
+        "subjectPlaceholder": "e.g. Verification not working at one branch",
+        "category": "Topic",
+        "priority": "How urgent is it?",
+        "reference": "Request or transaction ID",
+        "referencePlaceholder": "Paste it here if you have one",
+        "message": "Describe the issue",
+        "messagePlaceholder": "What happened, when, and at which branch?"
+      },
+      "empty": {
+        "title": "No tickets yet",
+        "description": "When you need help, open a ticket and follow our replies here."
+      }
     }
   },
   "pin": {
@@ -864,5 +919,77 @@
     "NO_MATCH": "No match",
     "NO_VERIFICATION_POSSIBLE": "No biometric on file",
     "EXEMPT": "Exempt (no fingerprint)"
+  },
+  "tickets": {
+    "title": "Tickets",
+    "subtitle": "Support requests from clients. Reply, track and solve them here.",
+    "tabs": {
+      "ACTIVE": "Active",
+      "OPEN": "Needs reply",
+      "IN_PROGRESS": "In progress",
+      "WAITING_ON_CLIENT": "Waiting on client",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed",
+      "ALL": "All"
+    },
+    "status": {
+      "OPEN": "Needs reply",
+      "IN_PROGRESS": "In progress",
+      "WAITING_ON_CLIENT": "Waiting on client",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    },
+    "priority": {
+      "LOW": "Low",
+      "NORMAL": "Normal",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "category": {
+      "VERIFICATION": "Identity verification",
+      "BILLING": "Wallet & billing",
+      "INTEGRATION": "Integration",
+      "ACCOUNT": "Account & access",
+      "OTHER": "Other"
+    },
+    "fields": {
+      "subject": "Subject",
+      "client": "Client",
+      "priority": "Priority",
+      "lastActivity": "Last activity",
+      "assignedTo": "Assigned to",
+      "reference": "Client reference",
+      "resolvedAt": "Resolved",
+      "closedAt": "Closed"
+    },
+    "allClients": "All clients",
+    "searchPlaceholder": "Search subject or ticket number",
+    "unassigned": "Unassigned",
+    "assignToMe": "Assign to me",
+    "unassign": "Unassign",
+    "clientReplied": "Client replied last",
+    "backToList": "All tickets",
+    "details": "Ticket details",
+    "updated": "Ticket updated",
+    "empty": {
+      "title": "No tickets here",
+      "description": "Tickets that clients open from their portal appear in this list."
+    },
+    "thread": {
+      "client": "Client",
+      "staff": "Support",
+      "internal": "Internal note"
+    },
+    "reply": {
+      "placeholder": "Write your reply to the client…",
+      "notePlaceholder": "Internal note — only the team can see this…",
+      "internalToggle": "Internal note (the client won't see it)",
+      "thenSet": "Then set to",
+      "send": "Send reply",
+      "addNote": "Add note",
+      "sent": "Reply sent to the client",
+      "noteAdded": "Internal note added",
+      "closedHint": "This ticket is closed. Change its status to reopen it before replying to the client."
+    }
   }
 }

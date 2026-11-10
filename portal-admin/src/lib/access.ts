@@ -48,6 +48,8 @@ const routeAccess: Record<string, AdminRole[]> = {
   settings: ["SUPER_ADMIN", "PLATFORM_OPS"],
   // Internal support playbook — staff only, not the central-bank regulator.
   support: STAFF_ROLES,
+  // Client support tickets — private client conversations, staff only.
+  tickets: STAFF_ROLES,
 };
 
 function segmentOf(path: string): string {
@@ -77,4 +79,9 @@ export function canViewWallet(role: AdminRole | null): boolean {
 /** May this role view/manage wallets & billing? (Finance + Super.) */
 export function canManageBilling(role: AdminRole | null): boolean {
   return role === "SUPER_ADMIN" || role === "FINANCE";
+}
+
+/** May this role reply to tickets and change their status? (Everyone on staff but the legacy AUDITOR.) */
+export function canReplyTickets(role: AdminRole | null): boolean {
+  return role === "SUPER_ADMIN" || role === "PLATFORM_OPS" || role === "FINANCE" || role === "SUPPORT";
 }

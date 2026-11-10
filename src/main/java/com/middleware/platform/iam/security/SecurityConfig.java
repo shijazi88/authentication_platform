@@ -114,6 +114,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/admin/wallets/**").hasAnyRole(SUPER, FINANCE, SUPPORT)
                         // Billing + wallets (writes) — finance + super only.
                         .requestMatchers("/admin/billing/**", "/admin/wallets/**").hasAnyRole(SUPER, FINANCE)
+                        // Support tickets — internal staff read; everyone but the legacy
+                        // AUDITOR may reply. Never the central-bank regulator (private
+                        // client conversations).
+                        .requestMatchers(HttpMethod.GET, "/admin/tickets", "/admin/tickets/**")
+                                .hasAnyRole(SUPER, OPS, FINANCE, SUPPORT, AUDITOR)
+                        .requestMatchers("/admin/tickets", "/admin/tickets/**").hasAnyRole(SUPER, OPS, FINANCE, SUPPORT)
                         // Service catalog + connector credentials — operational config.
                         .requestMatchers("/admin/catalog/**", "/admin/moi-credentials/**").hasAnyRole(WRITE_ROLES)
                         // Operational data: anyone may read, only super/ops may write.

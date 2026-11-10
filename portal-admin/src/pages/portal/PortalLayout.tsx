@@ -13,6 +13,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BarChart3,
+  LifeBuoy,
 } from "lucide-react";
 import { useTenantAuth } from "@/lib/tenantAuth";
 import { cn } from "@/lib/cn";
@@ -30,6 +31,7 @@ const navItems = [
   { to: "/portal/wallet", labelKey: "portal.nav.wallet", icon: Wallet },
   { to: "/portal/api-keys", labelKey: "portal.nav.apiKeys", icon: KeyRound },
   { to: "/portal/devices", labelKey: "portal.nav.devices", icon: Fingerprint },
+  { to: "/portal/support", labelKey: "portal.nav.support", icon: LifeBuoy },
   { to: "/portal/profile", labelKey: "portal.nav.profile", icon: User },
 ];
 
