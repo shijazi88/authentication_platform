@@ -36,3 +36,11 @@ MOTABIQ_INFRA_BACKUP/
 MOI_VPN_ISSUE_REPORT.md
 *.local.sh
 MOI_VERIFY_500_REPORT.md
+ALBASIRI_HANDOVER.md
+ALTAMKEEN_HANDOVER.md
+TADHAMON_HANDOVER.md
+PRODUCTION_NEW_BANKS.md
+ADEN_AWAL_HANDOVER.md
+# VPN client configs and local notes hold credentials
+*.ovpn
+*.local.md

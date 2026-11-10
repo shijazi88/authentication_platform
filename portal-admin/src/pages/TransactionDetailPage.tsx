@@ -21,6 +21,8 @@ import { Badge, statusTone, verdictTone } from "@/components/ui/Badge";
 import { CopyButton } from "@/components/ui/CopyButton";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, formatMoneyMinor, shortId } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { canWrite } from "@/lib/access";
 import type { MoiApiCallSummary } from "@/types/api";
 
 /** Pretty-print JSON; pass strings through if they're not parseable. */
@@ -184,6 +186,9 @@ function MoiCallRow({ call }: { call: MoiApiCallSummary }) {
 export function TransactionDetailPage() {
   const { t } = useTranslation();
   const { id = "" } = useParams();
+  // The raw MOI audit lives under /admin/moi-credentials, which only
+  // Super Admin and Operation may read.
+  const showMoi = canWrite(useAuth((s) => s.role));
 
   const txQ = useQuery({
     queryKey: ["transaction", id],
@@ -194,7 +199,7 @@ export function TransactionDetailPage() {
   const moiQ = useQuery({
     queryKey: ["moi-calls", id],
     queryFn: () => listMoiCalls({ transactionId: id }),
-    enabled: !!id,
+    enabled: !!id && showMoi,
   });
 
   if (txQ.isLoading) return <PageLoader />;
@@ -360,25 +365,27 @@ export function TransactionDetailPage() {
       </div>
 
       {/* MOI raw HTTP audit (per round-trip) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("transactions.detail.moiCalls")}</CardTitle>
-          <span className="text-xs text-text-muted">
-            {moiQ.data ? moiQ.data.length : 0}
-          </span>
-        </CardHeader>
-        <CardBody className="space-y-2">
-          {moiQ.isLoading && <div className="text-xs text-text-muted">{t("common.loading")}</div>}
-          {moiQ.data?.length === 0 && (
-            <div className="text-sm text-text-muted italic">
-              {t("transactions.detail.noMoiCalls")}
-            </div>
-          )}
-          {moiQ.data?.map((call) => (
-            <MoiCallRow key={call.id} call={call} />
-          ))}
-        </CardBody>
-      </Card>
+      {showMoi && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("transactions.detail.moiCalls")}</CardTitle>
+            <span className="text-xs text-text-muted">
+              {moiQ.data ? moiQ.data.length : 0}
+            </span>
+          </CardHeader>
+          <CardBody className="space-y-2">
+            {moiQ.isLoading && <div className="text-xs text-text-muted">{t("common.loading")}</div>}
+            {moiQ.data?.length === 0 && (
+              <div className="text-sm text-text-muted italic">
+                {t("transactions.detail.noMoiCalls")}
+              </div>
+            )}
+            {moiQ.data?.map((call) => (
+              <MoiCallRow key={call.id} call={call} />
+            ))}
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 }

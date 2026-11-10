@@ -198,14 +198,16 @@ export function SubscriptionsPage() {
                         {formatDate(s.createdAt)}
                       </Td>
                       <Td className="text-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={<Pencil className="h-3.5 w-3.5" />}
-                          onClick={() => openEdit(s)}
-                        >
-                          {t("common.edit")}
-                        </Button>
+                        {writable && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            leftIcon={<Pencil className="h-3.5 w-3.5" />}
+                            onClick={() => openEdit(s)}
+                          >
+                            {t("common.edit")}
+                          </Button>
+                        )}
                       </Td>
                     </Tr>
                   );

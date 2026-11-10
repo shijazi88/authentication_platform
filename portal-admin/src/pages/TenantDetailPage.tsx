@@ -27,7 +27,7 @@ import { CopyButton } from "@/components/ui/CopyButton";
 import { PageLoader } from "@/components/ui/Spinner";
 import { formatDate, shortId } from "@/lib/format";
 import { useAuth } from "@/lib/auth";
-import { canViewWallet } from "@/lib/access";
+import { canViewWallet, canWrite } from "@/lib/access";
 import { WalletCard } from "@/components/WalletCard";
 import { TenantPortalUsersCard } from "@/components/TenantPortalUsersCard";
 import { TenantEncryptionCard } from "@/components/TenantEncryptionCard";
@@ -106,36 +106,38 @@ export function TenantDetailPage() {
           </div>
         }
         actions={
-          <>
-            {tenant.status === "ACTIVE" ? (
+          canWrite(role) && (
+            <>
+              {tenant.status === "ACTIVE" ? (
+                <Button
+                  variant="secondary"
+                  leftIcon={<ShieldAlert className="h-4 w-4" />}
+                  loading={statusMut.isPending}
+                  onClick={() => statusMut.mutate("SUSPENDED")}
+                >
+                  {t("tenants.suspend")}
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  leftIcon={<ShieldCheck className="h-4 w-4" />}
+                  loading={statusMut.isPending}
+                  onClick={() => statusMut.mutate("ACTIVE")}
+                >
+                  {t("tenants.activate")}
+                </Button>
+              )}
               <Button
-                variant="secondary"
-                leftIcon={<ShieldAlert className="h-4 w-4" />}
-                loading={statusMut.isPending}
-                onClick={() => statusMut.mutate("SUSPENDED")}
+                leftIcon={<KeyRound className="h-4 w-4" />}
+                onClick={() => {
+                  setIssuedCred(null);
+                  setCredDialogOpen(true);
+                }}
               >
-                {t("tenants.suspend")}
+                {t("tenants.issueCredential")}
               </Button>
-            ) : (
-              <Button
-                variant="secondary"
-                leftIcon={<ShieldCheck className="h-4 w-4" />}
-                loading={statusMut.isPending}
-                onClick={() => statusMut.mutate("ACTIVE")}
-              >
-                {t("tenants.activate")}
-              </Button>
-            )}
-            <Button
-              leftIcon={<KeyRound className="h-4 w-4" />}
-              onClick={() => {
-                setIssuedCred(null);
-                setCredDialogOpen(true);
-              }}
-            >
-              {t("tenants.issueCredential")}
-            </Button>
-          </>
+            </>
+          )
         }
       />
 

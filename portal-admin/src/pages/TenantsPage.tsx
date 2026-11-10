@@ -121,7 +121,7 @@ export function TenantsPage() {
                     {shortId(tenant.id)}
                   </Td>
                   <Td onClick={(e) => e.stopPropagation()}>
-                    {tenant.status !== "ACTIVE" && (
+                    {writable && tenant.status !== "ACTIVE" && (
                       <Button
                         size="sm"
                         variant="secondary"

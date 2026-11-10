@@ -26,6 +26,8 @@ import { Dialog } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { formatMoneyMinor, formatNumber } from "@/lib/format";
+import { useAuth } from "@/lib/auth";
+import { canWrite } from "@/lib/access";
 import type { PlanEntitlement } from "@/types/api";
 
 export function PlanDetailPage() {
@@ -33,6 +35,7 @@ export function PlanDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const writable = canWrite(useAuth((s) => s.role));
 
   const planQ = useQuery({
     queryKey: ["plan", id],
@@ -237,14 +240,16 @@ export function PlanDetailPage() {
                             )}
                           </Badge>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          leftIcon={<Pencil className="h-3.5 w-3.5" />}
-                          onClick={() => openLimits(e)}
-                        >
-                          {t("plans.detail.editLimits")}
-                        </Button>
+                        {writable && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            leftIcon={<Pencil className="h-3.5 w-3.5" />}
+                            onClick={() => openLimits(e)}
+                          >
+                            {t("plans.detail.editLimits")}
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <div className="text-xs text-text-muted mt-1.5 flex gap-4 flex-wrap">

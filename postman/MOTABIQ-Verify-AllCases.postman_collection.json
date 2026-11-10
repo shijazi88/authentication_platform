@@ -1,9 +1,9 @@
 {
   "info": {
-    "_postman_id": "880eb317-af18-42eb-8e7a-010b1c8b3365",
+    "_postman_id": "95cdf69f-0cc5-4ce2-bdfe-9b9a36820841",
     "name": "MOTABIQ — Identity Verification v1 — all cases (ICD v2.2)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "All request/response cases of the MOTABIQ verification API for <Bank>, per ICD v2.2.\n\n1. Import this collection and BOTH environment files (`YourBank-Test`, `YourBank-Production`). Select an environment top-right.\n2. Run **0 · Setup / Get encryption certificate** once per environment.\n3. Fill the collection variables `nationalNumber`, `deviceId` (scanner serial) and `biometricImage` (base64 WSQ / 8-bit grey PNG) for the real cases.\n4. Every encrypted request builds its JWE (RSA-OAEP-256 + A256GCM) in its pre-request script using node-forge, downloaded once from cdnjs.cloudflare.com (allow that host if your proxy filters egress).\n\nTest environment: safe to experiment. Production: real government lookups, billed per successful verification.\n\nError cases in folder 2 carry synthetic images (no real biometrics) and need no data from you."
+    "description": "All request/response cases of the MOTABIQ verification API for <Bank>, per ICD v2.2.\n\nEnvironment: **Production** — `https://api.motabiq.ai`. Real government lookups, billed per successful verification.\n\nThis file is self-contained: the server address and your credentials are collection variables (`baseUrl`, `clientId`, `clientSecret`) — **no environment file is needed**; import it and leave the environment selector on *No environment*.\n\n1. Run **0 · Setup / Get encryption certificate** first.\n2. Fill the collection variables `nationalNumber`, `deviceId` (scanner serial) and `biometricImage` (base64 WSQ / 8-bit grey PNG) for the real cases.\n3. Every encrypted request builds its JWE (RSA-OAEP-256 + A256GCM) in its pre-request script using node-forge, downloaded once from cdnjs.cloudflare.com (allow that host if your proxy filters egress).\n\nError cases in folder 2 carry synthetic images (no real biometrics) and need no data from you.\n\nSet `clientId` / `clientSecret` to the credential issued to you, and `baseUrl` to the environment you are calling."
   },
   "auth": {
     "type": "basic",
@@ -36,6 +36,20 @@
     }
   ],
   "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.motabiq.ai",
+      "description": "Production server"
+    },
+    {
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "key": "clientSecret",
+      "value": "",
+      "description": "Keep private. Issued once at onboarding; ask MOTABIQ to rotate it if lost."
+    },
     {
       "key": "nationalNumber",
       "value": "0101-0101-0101",

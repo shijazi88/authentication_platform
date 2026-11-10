@@ -12,11 +12,14 @@ This folder contains a Postman collection and environment files that you can sha
 > pre-request script using **node-forge**, downloaded once from `cdnjs.cloudflare.com` and cached in a
 > collection variable, so it runs in the Postman desktop app and in newman (the sandbox has no Node
 > `crypto` module — the older `MOTABIQ-Verify-Encrypted` collection relied on it and does not encrypt).
-> Per-bank copies with credentials are generated as `<Bank>-MOTABIQ-Verify.local.postman_collection.json`
-> plus `<Bank>-{Test,Production}.local.postman_environment.json` (git-ignored). Error cases use synthetic
+> Each bank gets **two self-contained files** (git-ignored, they hold the client secret):
+> `<Bank>-MOTABIQ-Verify-Test.local.postman_collection.json` and
+> `<Bank>-MOTABIQ-Verify-Production.local.postman_collection.json`. `baseUrl`, `clientId` and
+> `clientSecret` are collection variables, so **no environment file is needed**. The Test file omits
+> folder 3 (unknown national number), which needs real government data. Error cases use synthetic
 > images; banks only paste their own capture into `biometricImage` for the real cases.
 >
-> Run headless: `newman run <collection> -e <environment> --env-var biometricImage=<base64> --env-var deviceId=<serial>`.
+> Run headless: `newman run <collection> --env-var biometricImage=<base64> --env-var deviceId=<serial>`.
 
 
 | File | Purpose |
