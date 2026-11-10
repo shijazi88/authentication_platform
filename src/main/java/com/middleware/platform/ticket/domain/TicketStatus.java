@@ -2,8 +2,9 @@ package com.middleware.platform.ticket.domain;
 
 /**
  * OPEN → the support team owes a reply. IN_PROGRESS → someone is working on it.
- * WAITING_ON_CLIENT → we replied and need the client's answer. RESOLVED → solved;
- * a client reply reopens it. CLOSED → final, no more replies.
+ * WAITING_ON_CLIENT → we replied and need the client's answer. RESOLVED → the
+ * team says it is solved and waits for the client to confirm; a client reply
+ * reopens it. CLOSED → final, no more replies.
  */
 public enum TicketStatus {
     OPEN,

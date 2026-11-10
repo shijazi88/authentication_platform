@@ -75,6 +75,10 @@ public class SupportTicket {
     @Column(name = "closed_at")
     private Instant closedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "closed_by", length = 16)
+    private TicketClosedBy closedBy;
+
     @PrePersist
     void onCreate() {
         Instant now = Instant.now();

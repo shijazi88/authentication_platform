@@ -46,8 +46,9 @@ public class TicketPortalController {
         return ticketService.clientReply(CurrentTenant.id(), id, CurrentTenant.email(), req.message());
     }
 
-    @PostMapping("/{id}/resolve")
-    public TicketResponse resolve(@PathVariable UUID id) {
-        return ticketService.clientResolve(CurrentTenant.id(), id);
+    /** The client confirms the issue is solved; the ticket closes. */
+    @PostMapping("/{id}/confirm")
+    public TicketResponse confirm(@PathVariable UUID id) {
+        return ticketService.clientConfirm(CurrentTenant.id(), id);
     }
 }

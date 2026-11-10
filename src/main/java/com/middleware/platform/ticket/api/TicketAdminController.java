@@ -2,6 +2,7 @@ package com.middleware.platform.ticket.api;
 
 import com.middleware.platform.ticket.domain.TicketStatus;
 import com.middleware.platform.ticket.dto.StaffReplyRequest;
+import com.middleware.platform.ticket.dto.TicketAssigneeResponse;
 import com.middleware.platform.ticket.dto.TicketCountsResponse;
 import com.middleware.platform.ticket.dto.TicketResponse;
 import com.middleware.platform.ticket.dto.UpdateTicketRequest;
@@ -15,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -49,6 +51,12 @@ public class TicketAdminController {
     @GetMapping("/counts")
     public TicketCountsResponse counts() {
         return ticketService.counts();
+    }
+
+    /** Team members a ticket can be assigned to (active Super Admin, Operation, Finance, Support). */
+    @GetMapping("/assignees")
+    public List<TicketAssigneeResponse> assignees() {
+        return ticketService.assignees();
     }
 
     @GetMapping("/{id}")

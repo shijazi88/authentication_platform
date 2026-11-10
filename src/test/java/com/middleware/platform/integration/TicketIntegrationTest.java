@@ -4,6 +4,7 @@ import com.middleware.platform.iam.dto.CreateTenantRequest;
 import com.middleware.platform.iam.dto.TenantResponse;
 import com.middleware.platform.iam.service.TenantService;
 import com.middleware.platform.ticket.domain.TicketCategory;
+import com.middleware.platform.ticket.domain.TicketClosedBy;
 import com.middleware.platform.ticket.domain.TicketStatus;
 import com.middleware.platform.ticket.dto.CreateTicketRequest;
 import com.middleware.platform.ticket.dto.StaffReplyRequest;
@@ -70,5 +71,10 @@ class TicketIntegrationTest {
                 .extracting(TicketResponse::tenantName).containsExactly("Ticket Bank Ltd");
 
         assertThat(ticketService.counts().needsReply()).isGreaterThanOrEqualTo(1L);
+
+        TicketResponse confirmed = ticketService.clientConfirm(tenant.id(), first.id());
+        assertThat(confirmed.status()).isEqualTo(TicketStatus.CLOSED);
+        assertThat(confirmed.closedBy()).isEqualTo(TicketClosedBy.CLIENT);
+        assertThat(ticketService.autoCloseUnconfirmed()).isZero();
     }
 }

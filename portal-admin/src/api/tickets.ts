@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Ticket, TicketCounts, TicketPriority, TicketStatus } from "@/types/api";
+import type { Ticket, TicketAssignee, TicketCounts, TicketPriority, TicketStatus } from "@/types/api";
 
 type Page<T> = { content: T[]; totalElements: number; number: number; size: number };
 
@@ -30,6 +30,12 @@ export async function getTicketCounts(): Promise<TicketCounts> {
   return data;
 }
 
+/** Active team members who answer tickets (Super Admin, Operation, Finance, Support). */
+export async function getTicketAssignees(): Promise<TicketAssignee[]> {
+  const { data } = await api.get<TicketAssignee[]>("/admin/tickets/assignees");
+  return data;
+}
+
 export async function getTicket(id: string): Promise<Ticket> {
   const { data } = await api.get<Ticket>(`/admin/tickets/${id}`);
   return data;
@@ -46,7 +52,7 @@ export async function replyToTicket(
   return data;
 }
 
-/** Omitted fields stay as they are; assignedTo "" unassigns. */
+/** Omitted fields stay as they are; assignedTo "" unassigns, otherwise it must be an assignee's email. */
 export async function updateTicket(
   id: string,
   patch: { status?: TicketStatus; priority?: TicketPriority; assignedTo?: string },

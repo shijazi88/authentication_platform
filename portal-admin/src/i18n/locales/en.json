@@ -642,18 +642,20 @@
       "you": "You",
       "supportTeam": "MOTABIQ Support",
       "backToList": "All tickets",
-      "markSolved": "Mark as solved",
-      "markedSolved": "Marked as solved. Thank you!",
+      "markSolved": "My issue is solved",
       "replyPlaceholder": "Write a reply…",
       "sendReply": "Send reply",
       "replySent": "Reply sent",
-      "solvedNote": "This ticket is marked as solved. If you still need help, reply below and it will reopen.",
-      "closedNote": "This ticket is closed. If you need more help, please open a new ticket.",
+      "closedNote": {
+        "CLIENT": "You confirmed this issue is solved.",
+        "STAFF": "This ticket was closed by our support team.",
+        "AUTO": "This ticket closed automatically because we didn't hear back."
+      },
       "status": {
         "OPEN": "Open",
         "IN_PROGRESS": "In progress",
         "WAITING_ON_CLIENT": "Awaiting your reply",
-        "RESOLVED": "Solved",
+        "RESOLVED": "Please confirm",
         "CLOSED": "Closed"
       },
       "priority": {
@@ -682,7 +684,17 @@
       "empty": {
         "title": "No tickets yet",
         "description": "When you need help, open a ticket and follow our replies here."
-      }
+      },
+      "confirmedToast": "Thank you! The ticket is closed.",
+      "closedNewTicket": "If you need more help, please open a new ticket.",
+      "confirm": {
+        "title": "Our team has marked this as solved. Is your issue solved?",
+        "yes": "Yes, it's solved",
+        "no": "No, I still need help",
+        "autoClose": "If we don't hear from you, the ticket closes automatically on {{date}}.",
+        "hint": "Confirm, or reply below if something is still not working."
+      },
+      "stillNeedHelpPlaceholder": "Tell us what is still not working…"
     }
   },
   "pin": {
@@ -928,7 +940,7 @@
       "OPEN": "Needs reply",
       "IN_PROGRESS": "In progress",
       "WAITING_ON_CLIENT": "Waiting on client",
-      "RESOLVED": "Resolved",
+      "RESOLVED": "Awaiting confirmation",
       "CLOSED": "Closed",
       "ALL": "All"
     },
@@ -936,7 +948,7 @@
       "OPEN": "Needs reply",
       "IN_PROGRESS": "In progress",
       "WAITING_ON_CLIENT": "Waiting on client",
-      "RESOLVED": "Resolved",
+      "RESOLVED": "Awaiting client confirmation",
       "CLOSED": "Closed"
     },
     "priority": {
@@ -966,7 +978,6 @@
     "searchPlaceholder": "Search subject or ticket number",
     "unassigned": "Unassigned",
     "assignToMe": "Assign to me",
-    "unassign": "Unassign",
     "clientReplied": "Client replied last",
     "backToList": "All tickets",
     "details": "Ticket details",
@@ -989,7 +1000,14 @@
       "addNote": "Add note",
       "sent": "Reply sent to the client",
       "noteAdded": "Internal note added",
-      "closedHint": "This ticket is closed. Change its status to reopen it before replying to the client."
+      "closedHint": "This ticket is closed. Change its status to reopen it before replying to the client.",
+      "resolvedHint": "The client will be asked to confirm the issue is solved."
+    },
+    "awaitingConfirmation": "Waiting for the client to confirm it's solved. Closes automatically on {{date}} if they don't reply.",
+    "closedBy": {
+      "CLIENT": "Confirmed solved by the client",
+      "STAFF": "Closed by the support team",
+      "AUTO": "Closed automatically — no reply from the client"
     }
   }
 }

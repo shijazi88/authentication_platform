@@ -263,7 +263,8 @@ export async function replyToMyTicket(id: string, message: string): Promise<Tick
   return data;
 }
 
-export async function resolveMyTicket(id: string): Promise<Ticket> {
-  const { data } = await tenantApi.post<Ticket>(`/portal-api/tickets/${id}/resolve`);
+/** The client confirms the issue is solved; the ticket closes. */
+export async function confirmMyTicket(id: string): Promise<Ticket> {
+  const { data } = await tenantApi.post<Ticket>(`/portal-api/tickets/${id}/confirm`);
   return data;
 }

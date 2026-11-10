@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
-import { getMyTicket, replyToMyTicket, resolveMyTicket } from "@/api/tenant";
+import { ArrowLeft, CheckCircle2, MessageSquareReply, Send } from "lucide-react";
+import { confirmMyTicket, getMyTicket, replyToMyTicket } from "@/api/tenant";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -20,6 +20,7 @@ export function PortalTicketPage() {
   const qc = useQueryClient();
   const ticketQ = useQuery({ queryKey: ["t-ticket", id], queryFn: () => getMyTicket(id), refetchInterval: 30_000 });
   const [message, setMessage] = useState("");
+  const replyRef = useRef<HTMLTextAreaElement>(null);
 
   function onSaved(tk: Ticket) {
     qc.setQueryData(["t-ticket", id], tk);
@@ -35,11 +36,11 @@ export function PortalTicketPage() {
     },
   });
 
-  const resolveMut = useMutation({
-    mutationFn: () => resolveMyTicket(id),
+  const confirmMut = useMutation({
+    mutationFn: () => confirmMyTicket(id),
     onSuccess: (tk) => {
       onSaved(tk);
-      toast.success(t("portal.tickets.markedSolved"));
+      toast.success(t("portal.tickets.confirmedToast"));
     },
   });
 
@@ -73,8 +74,8 @@ export function PortalTicketPage() {
           <Button
             variant="secondary"
             leftIcon={<CheckCircle2 className="h-4 w-4" />}
-            loading={resolveMut.isPending}
-            onClick={() => resolveMut.mutate()}
+            loading={confirmMut.isPending}
+            onClick={() => confirmMut.mutate()}
           >
             {t("portal.tickets.markSolved")}
           </Button>
@@ -87,17 +88,48 @@ export function PortalTicketPage() {
         </CardBody>
       </Card>
 
+      {solved && (
+        <Card className="border-accent-emerald/30">
+          <CardBody className="p-5 space-y-3">
+            <div className="font-semibold">{t("portal.tickets.confirm.title")}</div>
+            <p className="text-xs text-text-muted">
+              {tk.autoCloseAt
+                ? t("portal.tickets.confirm.autoClose", { date: formatDate(tk.autoCloseAt) })
+                : t("portal.tickets.confirm.hint")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                leftIcon={<CheckCircle2 className="h-4 w-4" />}
+                loading={confirmMut.isPending}
+                onClick={() => confirmMut.mutate()}
+              >
+                {t("portal.tickets.confirm.yes")}
+              </Button>
+              <Button
+                variant="secondary"
+                leftIcon={<MessageSquareReply className="h-4 w-4" />}
+                onClick={() => replyRef.current?.focus()}
+              >
+                {t("portal.tickets.confirm.no")}
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
       {closed ? (
-        <p className="text-sm text-text-muted">{t("portal.tickets.closedNote")}</p>
+        <p className="text-sm text-text-muted">
+          {t(`portal.tickets.closedNote.${tk.closedBy ?? "STAFF"}`)} {t("portal.tickets.closedNewTicket")}
+        </p>
       ) : (
         <Card>
           <CardBody className="p-5 space-y-3">
-            {solved && <p className="text-xs text-text-muted">{t("portal.tickets.solvedNote")}</p>}
             <Textarea
+              ref={replyRef}
               dir="auto"
               rows={4}
               maxLength={10000}
-              placeholder={t("portal.tickets.replyPlaceholder")}
+              placeholder={solved ? t("portal.tickets.stillNeedHelpPlaceholder") : t("portal.tickets.replyPlaceholder")}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />

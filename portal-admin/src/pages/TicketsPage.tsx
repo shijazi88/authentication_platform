@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Inbox, Search, CornerDownLeft } from "lucide-react";
-import { getTicketCounts, listTickets } from "@/api/tickets";
+import { getTicketAssignees, getTicketCounts, listTickets } from "@/api/tickets";
 import { listTenants } from "@/api/tenants";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
@@ -33,6 +33,8 @@ export function TicketsPage() {
 
   const countsQ = useQuery({ queryKey: ["ticket-counts"], queryFn: getTicketCounts, refetchInterval: 60_000 });
   const tenantsQ = useQuery({ queryKey: ["tenants"], queryFn: listTenants });
+  const assigneesQ = useQuery({ queryKey: ["ticket-assignees"], queryFn: getTicketAssignees, staleTime: 5 * 60_000 });
+  const nameOf = (email: string) => assigneesQ.data?.find((a) => a.email === email)?.displayName || email;
   const ticketsQ = useQuery({
     queryKey: ["tickets", tab, tenantId, q, page],
     queryFn: () => listTickets({ status: tab, tenantId: tenantId || undefined, q, page, size: PAGE_SIZE }),
@@ -153,7 +155,7 @@ export function TicketsPage() {
                           <span title={tk.lastMessageAt}>{formatRelative(tk.lastMessageAt)}</span>
                         </div>
                       </Td>
-                      <Td className="text-text-muted text-xs">{tk.assignedTo ?? t("tickets.unassigned")}</Td>
+                      <Td className="text-text-muted text-xs">{tk.assignedTo ? nameOf(tk.assignedTo) : t("tickets.unassigned")}</Td>
                     </Tr>
                   );
                 })}

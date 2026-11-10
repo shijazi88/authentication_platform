@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ArrowLeft, Lock, Send, UserCheck } from "lucide-react";
-import { getTicket, replyToTicket, updateTicket } from "@/api/tickets";
+import { getTicket, getTicketAssignees, replyToTicket, updateTicket } from "@/api/tickets";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +33,7 @@ export function TicketDetailPage() {
   const writable = canReplyTickets(role);
 
   const ticketQ = useQuery({ queryKey: ["ticket", id], queryFn: () => getTicket(id), refetchInterval: 30_000 });
+  const assigneesQ = useQuery({ queryKey: ["ticket-assignees"], queryFn: getTicketAssignees, staleTime: 5 * 60_000 });
 
   const [message, setMessage] = useState("");
   const [internal, setInternal] = useState(false);
@@ -65,6 +66,22 @@ export function TicketDetailPage() {
   if (ticketQ.isLoading || !ticketQ.data) return <PageLoader />;
   const tk = ticketQ.data;
   const closed = tk.status === "CLOSED";
+  const assignees = assigneesQ.data ?? [];
+  const nameOf = (email: string | null) =>
+    email ? assignees.find((a) => a.email === email)?.displayName || email : t("tickets.unassigned");
+  const assigneeOptions = [
+    { value: "", label: t("tickets.unassigned") },
+    ...assignees.map((a) => ({
+      value: a.email,
+      label: a.displayName || a.email,
+      description: `${a.email} · ${t(`roles.${a.role}`, a.role)}`,
+    })),
+    // Keep a current assignee who has since left the team visible.
+    ...(tk.assignedTo && !assignees.some((a) => a.email === tk.assignedTo)
+      ? [{ value: tk.assignedTo, label: tk.assignedTo }]
+      : []),
+  ];
+  const meIsAgent = !!me && assignees.some((a) => a.email === me);
 
   return (
     <div className="space-y-4">
@@ -105,6 +122,9 @@ export function TicketDetailPage() {
               <CardBody className="p-5 space-y-3">
                 {closed && !internal && (
                   <p className="text-xs text-accent-amber">{t("tickets.reply.closedHint")}</p>
+                )}
+                {!closed && !internal && nextStatus === "RESOLVED" && (
+                  <p className="text-xs text-text-muted">{t("tickets.reply.resolvedHint")}</p>
                 )}
                 <Textarea
                   dir="auto"
@@ -178,27 +198,35 @@ export function TicketDetailPage() {
             </div>
             <div>
               <Label>{t("tickets.fields.assignedTo")}</Label>
-              <div className="text-text">{tk.assignedTo ?? t("tickets.unassigned")}</div>
-              {writable && (
-                <div className="flex gap-2 mt-2">
-                  {tk.assignedTo !== me && me && (
+              {writable ? (
+                <>
+                  <Select<string>
+                    value={tk.assignedTo ?? ""}
+                    disabled={updateMut.isPending}
+                    onChange={(email) => updateMut.mutate({ assignedTo: email })}
+                    options={assigneeOptions}
+                  />
+                  {meIsAgent && tk.assignedTo !== me && (
                     <Button
                       size="sm"
-                      variant="secondary"
+                      variant="ghost"
+                      className="mt-2"
                       leftIcon={<UserCheck className="h-3.5 w-3.5" />}
-                      onClick={() => updateMut.mutate({ assignedTo: me })}
+                      onClick={() => updateMut.mutate({ assignedTo: me! })}
                     >
                       {t("tickets.assignToMe")}
                     </Button>
                   )}
-                  {tk.assignedTo && (
-                    <Button size="sm" variant="ghost" onClick={() => updateMut.mutate({ assignedTo: "" })}>
-                      {t("tickets.unassign")}
-                    </Button>
-                  )}
-                </div>
+                </>
+              ) : (
+                <div className="text-text">{nameOf(tk.assignedTo)}</div>
               )}
             </div>
+            {tk.status === "RESOLVED" && tk.autoCloseAt && (
+              <div className="rounded-lg border border-accent-emerald/25 bg-accent-emerald/10 px-3 py-2 text-xs">
+                {t("tickets.awaitingConfirmation", { date: formatDate(tk.autoCloseAt) })}
+              </div>
+            )}
             {tk.reference && (
               <div>
                 <Label>{t("tickets.fields.reference")}</Label>
@@ -224,6 +252,7 @@ export function TicketDetailPage() {
                 <div>
                   <div className="text-text-dim mb-0.5">{t("tickets.fields.closedAt")}</div>
                   <div>{formatDate(tk.closedAt)}</div>
+                  {tk.closedBy && <div className="text-text-muted mt-0.5">{t(`tickets.closedBy.${tk.closedBy}`)}</div>}
                 </div>
               )}
             </div>

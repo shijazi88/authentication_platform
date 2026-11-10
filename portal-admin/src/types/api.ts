@@ -550,6 +550,7 @@ export type TicketStatus = "OPEN" | "IN_PROGRESS" | "WAITING_ON_CLIENT" | "RESOL
 export type TicketPriority = "LOW" | "NORMAL" | "HIGH" | "URGENT";
 export type TicketCategory = "VERIFICATION" | "BILLING" | "INTEGRATION" | "ACCOUNT" | "OTHER";
 export type TicketAuthorType = "CLIENT" | "STAFF";
+export type TicketClosedBy = "CLIENT" | "STAFF" | "AUTO";
 
 export const TICKET_STATUSES: TicketStatus[] = ["OPEN", "IN_PROGRESS", "WAITING_ON_CLIENT", "RESOLVED", "CLOSED"];
 export const TICKET_PRIORITIES: TicketPriority[] = ["LOW", "NORMAL", "HIGH", "URGENT"];
@@ -584,8 +585,19 @@ export type Ticket = {
   createdAt: string;
   resolvedAt: string | null;
   closedAt: string | null;
+  /** CLIENT = the client confirmed it is solved; AUTO = closed unanswered after the confirmation window. */
+  closedBy: TicketClosedBy | null;
+  /** Set while RESOLVED: when it closes unless the client answers. */
+  autoCloseAt: string | null;
   /** Filled on the detail endpoints, null in lists. */
   messages: TicketMessage[] | null;
+};
+
+/** A team member a ticket can be assigned to. */
+export type TicketAssignee = {
+  email: string;
+  displayName: string | null;
+  role: "SUPER_ADMIN" | "PLATFORM_OPS" | "FINANCE" | "SUPPORT";
 };
 
 export type TicketCounts = {
